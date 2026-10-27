@@ -29,6 +29,16 @@ typedef int32_t int32;
 typedef uint32_t uint32;
 #endif
 
+/*u_rand_b (UTIL2.ASM) starts with "adc al,...": it adds the carry flag the caller's
+  code left. The port is given that carry: RND2_CARRY(the condition whose comparison set
+  it) right before U4_RND2, where it can be set; 0 elsewhere*/
+#ifdef M_I86
+#define RND2_CARRY(cf)
+#else
+extern int u_rand_b_carry;
+#define RND2_CARRY(cf) (u_rand_b_carry = (cf)),
+#endif
+
 /*the body of a busy-wait loop ("while(--count);"): nothing in DOS, where the loop itself
   is the wait; the port adds the time one pass of MSC's loop takes on the PC (u4rt.h)*/
 #ifdef M_I86

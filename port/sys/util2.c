@@ -46,7 +46,7 @@ int u_rand_b_carry;
 static uint32_t refresh_cost(void)
 {
 #ifdef PORT_TITLE
-	return 20000;
+	return 150;	/* AnimateMonsters: a countdown (its drawing counts itself) */
 #else
 	switch (CurMode) {
 	case 0: return 30;          /* MOD_VISION: returns at once */

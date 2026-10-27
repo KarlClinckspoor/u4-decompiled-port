@@ -99,6 +99,7 @@
 #define u_kbread T_u_kbread
 #define u_rand_a T_u_rand_a
 #define u_rand_b T_u_rand_b
+#define u_rand_b_carry T_u_rand_b_carry
 #define u_setdrive T_u_setdrive
 #define u_setint24 T_u_setint24
 #define Unused3F77 T_Unused3F77

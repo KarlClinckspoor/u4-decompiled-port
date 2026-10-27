@@ -127,7 +127,8 @@ int16 /*C_034D*/AnimateViewTiles()
 			(tile >= 0x20 && tile <= 0x2e) ||
 			(tile >= 0x50 && tile <= 0x5e)
 		) {
-			if(u_rand_b() < 0xc0)
+			/*the carry: the tile is below the top of its range (the last comparison)*/
+			if(RND2_CARRY(tile != 0x8e && tile != 0x2e && tile != 0x5e) u_rand_b() < 0xc0)
 				Area._npc._gtile[slot] = ((Area._npc._gtile[slot] & 1) | tile) ^ 1;
 		} else if(tile >= 0x90) {
 			if(u_rand_b() < 0xc0)

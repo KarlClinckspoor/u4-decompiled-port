@@ -77,6 +77,7 @@ static void mix(int16_t *out, int frames, int rate)
 static uint64_t t;                  /* cycles since the effect started */
 static uint64_t t_last;             /* the last movement */
 static int level;                   /* the cone (port 61h bit 1) */
+static int al;                      /* bit 1 of AL, the next value OUT writes */
 static uint16_t speed;              /* the speed_info of the program playing */
 static uint32_t *seg_ns;
 static uint8_t *seg_level;
@@ -86,6 +87,7 @@ static void begin(void)
 {
 	t = t_last = 0;
 	level = 0;
+	al = 0;		/* "and al,not 3": the routines start from the cone at rest */
 	nseg = 0;
 }
 
@@ -103,19 +105,42 @@ static void push_seg(uint64_t cycles, int lvl)
 	nseg++;
 }
 
-/* OUT 61h with bit 1 flipped */
-static void toggle(void)
+/* the cone moves */
+static void edge(void)
 {
-	t += 14;	/* out dx/imm,al + xor al,2 */
 	push_seg(t - t_last, level);
 	t_last = t;
 	level ^= 1;
+}
+
+/* OUT 61h,AL: the cone goes where bit 1 of AL says (it moves only if that differs) */
+static void out61(void)
+{
+	t += 10;
+	if (al != level)
+		edge();
+}
+
+/* "out 61h,al / xor al,2": the loops' step */
+static void toggle(void)
+{
+	out61();
+	t += 4;
+	al ^= 1;
+}
+
+/* the routine's end: port 61h as it was (the cone at rest) */
+static void restore(void)
+{
+	al = 0;
+	out61();
 }
 
 /* the effect is over: the game waited this long; the audio gets it */
 static void end(void)
 {
 	int i;
+	restore();
 	push_seg(t - t_last + 1, level);
 	vc_cycles((uint32_t)(t > 0xFFFFFFFFu ? 0xFFFFFFFFu : t));
 	if (!audio_on || (rp_mode == RP_REPLAY && !rp_finished()))
@@ -140,11 +165,13 @@ static uint64_t loops(uint32_t n, uint32_t per)
 	return (uint64_t)(n ? n : 0x10000) * per;
 }
 
-static void snd_step(void)                  /* C_1D69 */
+static void snd_step(void)                  /* C_1D69: one click */
 {
-	toggle();
+	al ^= 1;	/* xor al,2 before the first out */
+	out61();
 	wait(loops(0x32, DEC_JNZ));
-	toggle();
+	al ^= 1;
+	out61();
 }
 
 static void snd_blocked(void)               /* C_1D82: 8 periods of a low tone */
@@ -157,7 +184,7 @@ static void snd_blocked(void)               /* C_1D82: 8 periods of a low tone *
 		wait(loops(dx, 3 + 14 + 15 + 12 + 12 + 16));	/* dec, pushf, push, pop, popf, jnz */
 		wait(17);
 	}
-	toggle();
+	restore();
 }
 
 static void snd_error(void)                 /* C_1DA8: 24 periods, then the low tone */
@@ -170,7 +197,7 @@ static void snd_error(void)                 /* C_1DA8: 24 periods, then the low 
 		wait(loops(dx, DEC_JNZ));
 		wait(17);
 	}
-	toggle();
+	restore();
 	snd_blocked();
 }
 
@@ -365,7 +392,7 @@ void ega_speaker_noise(int toggles)
 	step = span / (uint64_t)(toggles + 1);
 	for (i = 0; i < toggles; i++) {
 		wait(step);
-		toggle();
+		edge();
 	}
 	t = span;
 	push_seg(t - t_last + 1, level);

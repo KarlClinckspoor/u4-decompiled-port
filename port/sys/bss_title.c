@@ -7,7 +7,7 @@
 
 _Static_assert(sizeof(jmp_buf) <= 512, "the room for a jmp_buf");
 
-#define BSS_SIZE 2080
+#define BSS_SIZE 2096
 __attribute__((aligned(16))) uint8_t u4_bss_title[BSS_SIZE];
 
 #if defined(__APPLE__) || (defined(_WIN32) && !defined(_WIN64))
@@ -28,18 +28,18 @@ __attribute__((aligned(16))) uint8_t u4_bss_title[BSS_SIZE];
 AT(T_speed_info, 162) /* 2 bytes, LOW.ASM */
 /* 164: OldVideoMode (LOW.ASM, private) */
 AT(T_equip_flags, 165) /* 2 bytes, LOW.ASM */
-AT(T_patch_tandy, 167) /* 5 bytes, LOW.ASM */
-AT(T_seed_128, 172) /* 16 bytes, UTIL2.ASM */
-AT(T_Area, 188) /* 1280 bytes, UTIL2.ASM */
-/* 1468: cursor_state (UTIL2.ASM, private) */
-/* 1469: cursor_count (UTIL2.ASM, private) */
-AT(T_MonstersShown, 1472) /* 2 bytes, VAR.ASM */
-AT(T_Party, 1474) /* 502 bytes, VAR.ASM */
-AT(T_GraphicsType, 1976) /* 2 bytes, VAR.ASM */
-AT(T_pShapes, 1984) /* 8 bytes (DOS 4), VAR.ASM */
-AT(T_pAnim, 2000) /* 8 bytes (DOS 4), VAR.ASM */
-AT(T_TwoDrives, 2016) /* 2 bytes, VAR.ASM */
-AT(T_pCharset, 2032) /* 8 bytes (DOS 4), VAR.ASM */
-AT(T_txt_X, 2048) /* 2 bytes, VAR.ASM */
-AT(T_txt_Y, 2050) /* 2 bytes, VAR.ASM */
-AT(T_pTitle, 2064) /* 8 bytes (DOS 4), VAR.ASM */
+AT(T_patch_tandy, 176) /* 8 bytes (DOS 5), LOW.ASM */
+AT(T_seed_128, 192) /* 16 bytes, UTIL2.ASM */
+AT(T_Area, 208) /* 1280 bytes, UTIL2.ASM */
+/* 1488: cursor_state (UTIL2.ASM, private) */
+/* 1489: cursor_count (UTIL2.ASM, private) */
+AT(T_MonstersShown, 1492) /* 2 bytes, VAR.ASM */
+AT(T_Party, 1494) /* 502 bytes, VAR.ASM */
+AT(T_GraphicsType, 1996) /* 2 bytes, VAR.ASM */
+AT(T_pShapes, 2000) /* 8 bytes (DOS 4), VAR.ASM */
+AT(T_pAnim, 2016) /* 8 bytes (DOS 4), VAR.ASM */
+AT(T_TwoDrives, 2032) /* 2 bytes, VAR.ASM */
+AT(T_pCharset, 2048) /* 8 bytes (DOS 4), VAR.ASM */
+AT(T_txt_X, 2064) /* 2 bytes, VAR.ASM */
+AT(T_txt_Y, 2066) /* 2 bytes, VAR.ASM */
+AT(T_pTitle, 2080) /* 8 bytes (DOS 4), VAR.ASM */

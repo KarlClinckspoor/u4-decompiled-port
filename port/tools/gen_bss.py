@@ -35,6 +35,8 @@ PROGRAMS = {
 # a jmp_buf: 18 bytes in DOS, 200 with glibc, 256 with MinGW (16-byte aligned): the room
 # reserved for it, checked by the generated file
 JMP_BUFS = {'GameLoopJmp'}
+# far pointers of the assembly modules that a program's headers may not declare
+FAR_POINTERS = {'patch_tandy'}
 JMP_BUF_ROOM = 512
 
 
@@ -153,6 +155,8 @@ def generate(prog):
             h64, h32, is_array = sizes[name]
             if h64 != h32:          # holds pointers: the host's size
                 host = dos // h32 * h64 if is_array else max(h64, dos + h64 - h32)
+        if name in FAR_POINTERS and host == dos and dos <= 5:
+            host = 8                # a far pointer the headers do not declare (the port's C sets it)
         if name in JMP_BUFS:
             host = JMP_BUF_ROOM     # the host's jmp_buf, whatever its C library
         if host != dos:
