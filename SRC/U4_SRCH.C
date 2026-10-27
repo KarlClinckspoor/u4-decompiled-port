@@ -17,7 +17,7 @@ char /*D_27A6*/MsgNothingHere[] = "Nothing Here!\n";
  * Something was found: Honor +5, and remember the time (moves & 0xf0) so that the
  * reagents cannot be found again before a while (see FindMandrake).
  */
-/*C_8D4B*/SearchFound()
+int16 /*C_8D4B*/SearchFound()
 {
 	u4_puts(/*D_2798*/"You find...\n");
 	karma_inc(&(Party._honor), 5);
@@ -27,7 +27,7 @@ char /*D_27A6*/MsgNothingHere[] = "Nothing Here!\n";
 /*
  * Add 2 to 9 of reagent reagent (at most 99).
  */
-/*C_8D6D*/AddReagent(reagent)
+int16 /*C_8D6D*/AddReagent(reagent)
 int16 reagent;
 {
 	Party._reagents[reagent] += U4_RND1(7) + 2;
@@ -42,7 +42,7 @@ int16 reagent;
  * Mandrake root: only when both moons are new, and not twice in the same period of
  * 16 moves.
  */
-/*C_8DAA*/FindMandrake()
+int16 /*C_8DAA*/FindMandrake()
 {
 	if((Party._trammel | Party._felucca) || (Party._moves & 0xf0) == Party._lastFound) {
 		u4_puts(MsgNothingHere);
@@ -56,7 +56,7 @@ int16 reagent;
 /*
  * Nightshade: same conditions as the mandrake.
  */
-/*C_8DE0*/FindNightshade()
+int16 /*C_8DE0*/FindNightshade()
 {
 	if((Party._trammel | Party._felucca) || (Party._moves & 0xf0) == Party._lastFound) {
 		u4_puts(MsgNothingHere);
@@ -70,7 +70,7 @@ int16 reagent;
 /*
  * The Bell of Courage (once).
  */
-/*C_8E16*/FindBell()
+int16 /*C_8E16*/FindBell()
 {
 	if(TST_MSK(Party.mItems, ST_BELL)) {
 		u4_puts(MsgNothingHere);
@@ -85,7 +85,7 @@ int16 reagent;
 /*
  * The Silver Horn (once).
  */
-/*C_8E46*/FindHorn()
+int16 /*C_8E46*/FindHorn()
 {
 	if(TST_MSK(Party.mItems, ST_HORN)) {
 		u4_puts(MsgNothingHere);
@@ -100,7 +100,7 @@ int16 reagent;
 /*
  * The ship's wheel (once).
  */
-/*C_8E77*/FindWheel()
+int16 /*C_8E77*/FindWheel()
 {
 	if(TST_MSK(Party.mItems, ST_WHEEL)) {
 		u4_puts(MsgNothingHere);
@@ -116,7 +116,7 @@ int16 reagent;
  * The Skull of Mondain: only when both moons are new, and not if it was already
  * found or destroyed.
  */
-/*C_8EA8*/FindSkull()
+int16 /*C_8EA8*/FindSkull()
 {
 	if(
 		TST_MSK(Party.mItems, ST_SKULL) ||
@@ -135,7 +135,7 @@ int16 reagent;
 /*
  * The black stone (bit 7 of mStones): only when both moons are new.
  */
-/*C_8EE8*/FindBlackStone()
+int16 /*C_8EE8*/FindBlackStone()
 {
 	if(
 		TST_MSK(Party.mStones, 7) ||
@@ -153,7 +153,7 @@ int16 reagent;
 /*
  * The white stone (bit 6 of mStones).
  */
-/*C_8F21*/FindWhiteStone()
+int16 /*C_8F21*/FindWhiteStone()
 {
 	if(TST_MSK(Party.mStones, 6)) {
 		u4_puts(MsgNothingHere);
@@ -168,7 +168,7 @@ int16 reagent;
 /*
  * The Book of Truth (once).
  */
-/*C_8F51*/FindBook()
+int16 /*C_8F51*/FindBook()
 {
 	if(TST_MSK(Party.mItems, ST_BOOK)) {
 		u4_puts(MsgNothingHere);
@@ -183,7 +183,7 @@ int16 reagent;
 /*
  * The Candle of Love (once).
  */
-/*C_8F81*/FindCandle()
+int16 /*C_8F81*/FindCandle()
 {
 	if(TST_MSK(Party.mItems, ST_CANDLE)) {
 		u4_puts(MsgNothingHere);
@@ -199,7 +199,7 @@ int16 reagent;
  * The telescope (in the Lycaeum): show the map of one of the 16 towns/castles, then
  * reload the current one.
  */
-/*C_8FB1*/UseTelescope()
+int16 /*C_8FB1*/UseTelescope()
 {
 	int16 town;
 
@@ -218,7 +218,7 @@ int16 reagent;
  * Mystic armour, 8 of them: only when the party has none and all eight virtues
  * are elevated (karma 0).
  */
-/*C_9027*/FindMysticArmour()
+int16 /*C_9027*/FindMysticArmour()
 {
 	if(
 		Party._armors[ARM_MYSTIC] |
@@ -239,7 +239,7 @@ int16 reagent;
 /*
  * Mystic weapons: same conditions as the mystic armour.
  */
-/*C_9076*/FindMysticWeapons()
+int16 /*C_9076*/FindMysticWeapons()
 {
 	if(
 		Party._weapons[WPN_MYSTIC] |
@@ -273,7 +273,7 @@ unsigned char /*D_2904*/RuneTowns[][2] = {
 /*
  * The rune of the virtue of the current location (once).
  */
-/*C_90C5*/FindRune()
+int16 /*C_90C5*/FindRune()
 {
 	register int16 virtue;
 
@@ -330,7 +330,7 @@ struct tSearchSpot {
  * (S)earch: look for the party's location and position in SearchSpots (not
  * possible while flying the balloon).
  */
-/*C_913A*/CMD_Search()
+int16 /*C_913A*/CMD_Search()
 {
 	register struct tSearchSpot *spot;
 

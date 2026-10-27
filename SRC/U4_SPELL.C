@@ -39,7 +39,7 @@ char /*D_208C*/SpellMPCost[] = {
 static int16 /*D_8CCC*/CurSpell;/*current spell*/
 
 /*Is tile an undead monster (ghost, phantom, skeleton, liche)?*/
-/*C_636D*/IsUndead(tile)
+int16 /*C_636D*/IsUndead(tile)
 int16 tile;
 {
 	if(tile == TIL_GHOST || tile == TIL_PHANTOM || tile == TIL_SKELETON || tile == TIL_LICHE)
@@ -48,7 +48,7 @@ int16 tile;
 }
 
 /*Print "Failed!".*/
-/*C_6399*/w_Failed()
+int16 /*C_6399*/w_Failed()
 {
 	u4_puts(/*D_20A6*/"Failed!\n");
 	hit_tile = 0;
@@ -59,7 +59,7 @@ int16 tile;
  * Cast CurSpell: spend its magic points, with sound and flash. Returns 0
  * (failed) when Negate is in effect, 1 otherwise.
  */
-/*C_63B4*/SpellStart()
+int16 /*C_63B4*/SpellStart()
 {
 	Party.chara[activeChara]._MP -= SpellMPCost[CurSpell];
 	sound(SND_CAST, SpellMPCost[CurSpell]);
@@ -72,7 +72,7 @@ int16 tile;
 }
 
 /*Returns 1 if outdoors, else fails and returns 0.*/
-/*C_6409*/SpellOutdoorsOnly()
+int16 /*C_6409*/SpellOutdoorsOnly()
 {
 	if(CurMode != MOD_OUTDOORS) {
 		u4_puts(/*D_20AF*/"Outdoors Only!\n");
@@ -83,7 +83,7 @@ int16 tile;
 }
 
 /*Returns 1 if in combat, else fails and returns 0.*/
-/*C_6428*/SpellCombatOnly()
+int16 /*C_6428*/SpellCombatOnly()
 {
 	if(CurMode < MOD_COMBAT) {
 		u4_puts(/*D_20BF*/"Combat Only!\n");
@@ -94,7 +94,7 @@ int16 tile;
 }
 
 /*Returns 1 if in a dungeon, else fails and returns 0.*/
-/*C_6447*/SpellDungeonOnly()
+int16 /*C_6447*/SpellDungeonOnly()
 {
 	if(CurMode != MOD_DUNGEON) {
 		u4_puts(/*D_20CD*/"Dungeon Only!\n");
@@ -110,7 +110,7 @@ int16 tile;
  * hits a foe or something that stops it. The damage depends on the tile: magic
  * missile 16-63, iceball 32-255, fireball 24-127, kill (whirlpool tile) 232.
  */
-/*C_6466*/SpellMissile(tile)
+int16 /*C_6466*/SpellMissile(tile)
 int16 tile;
 {
 	register int16 foe, points;
@@ -149,7 +149,7 @@ int16 tile;
 
 
 /*Awaken: wake up a sleeping party member.*/
-/*C_6558*/SPL_Awaken()
+int16 /*C_6558*/SPL_Awaken()
 {
 	register int16 member;
 
@@ -173,7 +173,7 @@ int16 tile;
  * farthest walkable square of the loaded map window. Not when both coordinates
  * are 0xc0 or more (the Abyss' corner of the world).
  */
-/*C_65AA*/SPL_Blink()
+int16 /*C_65AA*/SPL_Blink()
 {
 	int16 dx, dy;
 	unsigned char dest_x, dest_y;
@@ -209,7 +209,7 @@ int16 tile;
 }
 
 /*Cure: cure a poisoned party member.*/
-/*C_669B*/SPL_Cure()
+int16 /*C_669B*/SPL_Cure()
 {
 	register int16 member;
 
@@ -228,7 +228,7 @@ int16 tile;
  * Dispel a field: in a dungeon, the one ahead; elsewhere, the one in the given
  * direction, replaced by the tile under the caster (not while flying).
  */
-/*C_66DA*/SPL_Dispel()
+int16 /*C_66DA*/SPL_Dispel()
 {
 	int16 dx, dy;
 	unsigned char *p_field;
@@ -288,7 +288,7 @@ int16 tile;
  * Probable original bug: in a dungeon, when the square ahead is not empty it
  * says "Failed!" but still replaces it with the field.
  */
-/*C_6882*/SPL_Energy()
+int16 /*C_6882*/SPL_Energy()
 {
 	unsigned char *p_square;
 	int16 typed;
@@ -340,12 +340,12 @@ the original bytecode*/
 }
 
 /*Fireball: missile spell.*/
-/*C_69D7*/SPL_Fireball() {
+int16 /*C_69D7*/SPL_Fireball() {
 	SpellMissile(TIL_HIT_FLASH);
 }
 
 /*Gate: outdoors, not on a ship or the balloon, go to the moongate of a phase (1-8).*/
-/*C_69E5*/SPL_Gate()
+int16 /*C_69E5*/SPL_Gate()
 {
 	register int16 phase;
 
@@ -367,7 +367,7 @@ the original bytecode*/
 }
 
 /*Heal: give 75-99 hit points to a living party member.*/
-/*C_6A40*/SPL_Heal()
+int16 /*C_6A40*/SPL_Heal()
 {
 	register int16 member;
 
@@ -383,13 +383,13 @@ the original bytecode*/
 }
 
 /*Iceball: missile spell.*/
-/*C_6A82*/SPL_Iceball()
+int16 /*C_6A82*/SPL_Iceball()
 {
 	SpellMissile(TIL_MAGIC_BOLT);
 }
 
 /*Jinx: for 10 turns, the foes may hit each other (see CheckJinx).*/
-/*C_6A90*/SPL_Jinx()
+int16 /*C_6A90*/SPL_Jinx()
 {
 	if(!SpellStart())
 		return;
@@ -398,13 +398,13 @@ the original bytecode*/
 }
 
 /*Kill: missile spell (shown with the whirlpool tile).*/
-/*C_6AA9*/SPL_Kill()
+int16 /*C_6AA9*/SPL_Kill()
 {
 	SpellMissile(TIL_WHIRLPOOL);
 }
 
 /*Light: in a dungeon, 100 turns of light.*/
-/*C_6AB7*/SPL_Light()
+int16 /*C_6AB7*/SPL_Light()
 {
 	if(!SpellDungeonOnly())
 		return;
@@ -416,13 +416,13 @@ the original bytecode*/
 }
 
 /*Magic missile: missile spell.*/
-/*C_6ADB*/SPL_MagicMisl()
+int16 /*C_6ADB*/SPL_MagicMisl()
 {
 	SpellMissile(TIL_MISSILE);
 }
   
 /*Negate: no magic for 10 turns.*/
-/*C_6AE9*/SPL_Negate()
+int16 /*C_6AE9*/SPL_Negate()
 {
 	if(!SpellStart())
 		return;
@@ -434,7 +434,7 @@ the original bytecode*/
  * Open a chest (not in the balloon); outside combat, its trap is always
  * evaded, in combat the caster faces it.
  */
-/*C_6B02*/SPL_Open()
+int16 /*C_6B02*/SPL_Open()
 {
 	if(!SpellStart())
 		return;
@@ -450,7 +450,7 @@ the original bytecode*/
 }
 
 /*Protection: for 10 turns, half of the foes' blows are parried.*/
-/*C_6B36*/SPL_Protection()
+int16 /*C_6B36*/SPL_Protection()
 {
 	if(!SpellStart())
 		return;
@@ -459,7 +459,7 @@ the original bytecode*/
 }
 
 /*Quickness: for 10 turns (extra turns in combat, see COM_EndCharaTurn).*/
-/*C_6B4F*/SPL_Quickness()
+int16 /*C_6B4F*/SPL_Quickness()
 {
 	if(!SpellStart())
 		return;
@@ -468,7 +468,7 @@ the original bytecode*/
 }
 
 /*Resurrect: bring a dead party member back to life (not in combat).*/
-/*C_6B68*/SPL_Resurrect()
+int16 /*C_6B68*/SPL_Resurrect()
 {
 	register int16 member;
 
@@ -489,7 +489,7 @@ the original bytecode*/
 }
 
 /*Sleep: in combat, put to sleep the foes (but undead and balrons) with less hit points than a random number.*/
-/*C_6BAE*/SPL_Sleep()
+int16 /*C_6BAE*/SPL_Sleep()
 {
 	register int16 foe;
 
@@ -507,7 +507,7 @@ the original bytecode*/
  * out of 2), or set to 23 hit points (1 time out of 4: this can heal a weak
  * one), or unharmed.
  */
-/*C_6BF8*/SPL_Tremor()
+int16 /*C_6BF8*/SPL_Tremor()
 {
 	register int16 foe;
 
@@ -535,7 +535,7 @@ the original bytecode*/
 }
 
 /*Undead: in combat, 1 time out of 2 bring each undead foe down to 23 hit points.*/
-/*C_6C71*/SPL_Undead()
+int16 /*C_6C71*/SPL_Undead()
 {
 	register int16 foe;
 
@@ -549,7 +549,7 @@ the original bytecode*/
 }
 
 /*View: show the map.*/
-/*C_6CB2*/SPL_View()
+int16 /*C_6CB2*/SPL_View()
 {
 	if(!SpellStart())
 		return;
@@ -558,7 +558,7 @@ the original bytecode*/
 
 
 /*Winds: outdoors, make the wind blow from the given direction.*/
-/*C_6CC3*/SPL_Winds()
+int16 /*C_6CC3*/SPL_Winds()
 {
 	int16 dx, dy;
 
@@ -583,7 +583,7 @@ the original bytecode*/
 }
 
 /*X-it: leave the dungeon.*/
-/*C_6D22*/SPL_X_it()
+int16 /*C_6D22*/SPL_X_it()
 {
 	if(!SpellDungeonOnly())
 		return;
@@ -596,7 +596,7 @@ the original bytecode*/
  * Y-up: in a dungeon (not the Abyss), go up a level to a random empty square
  * (32 tries); from the first level, leave the dungeon.
  */
-/*C_6D3D*/SPL_Y_up()
+int16 /*C_6D3D*/SPL_Y_up()
 {
 	int16 tries;
 	unsigned char dest_x, dest_y;
@@ -630,7 +630,7 @@ the original bytecode*/
  * Z-down: in a dungeon (not the Abyss, not from the last level), go down a
  * level to a random empty square (32 tries).
  */
-/*C_6DC1*/SPL_Z_down()
+int16 /*C_6DC1*/SPL_Z_down()
 {
 	int16 tries;
 	unsigned char dest_x, dest_y;
@@ -696,7 +696,7 @@ pSpell_handler /*D_216E*/SpellHandlers[] = {
  * (C)ast: choose the caster (outside combat) and the spell. The mixture is
  * used up even when the magic points are too low.
  */
-/*C_6E4A*/CMD_Cast()
+int16 /*C_6E4A*/CMD_Cast()
 {
 	u4_puts(/*D_213A*/"Cast Spell!\n");
 	if(CurMode < MOD_COMBAT) {

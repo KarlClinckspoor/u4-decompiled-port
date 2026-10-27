@@ -37,7 +37,7 @@ static uint16 D_3A84;
  * wait; while the view runs (ViewRunning) it draws at every call.
  * Also picks the text cursor's blink rate.
  */
-/*C_019A*/AnimateMonsters()
+int16 /*C_019A*/AnimateMonsters()
 {
 	uint16 frame;
 
@@ -62,7 +62,7 @@ static uint16 D_3A84;
  * Print character c at the text cursor and advance it; a backspace (8) moves the cursor
  * back and blanks that position.
  */
-/*C_027A*/u4_putc(c)
+int16 /*C_027A*/u4_putc(c)
 unsigned char c;
 {
 	if(c == 8) {
@@ -77,7 +77,7 @@ unsigned char c;
 /*
  * Busy-wait count * speed_info iterations, unless a key is waiting (then return at once).
  */
-/*C_02A3*/DelayUnlessKey(count)
+int16 /*C_02A3*/DelayUnlessKey(count)
 int32 count;
 {
 	if(u_kbhit())
@@ -91,7 +91,7 @@ int32 count;
  * y counted from the bottom); each dot is 2 pixels wide. With slowly set, pause after each dot so the signature looks
  * handwritten, then wait a moment at the end.
  */
-/*C_02D1*/DrawSignature(slowly)
+int16 /*C_02D1*/DrawSignature(slowly)
 uint16 slowly;
 {
 	register int16 dot;
@@ -114,7 +114,7 @@ uint16 slowly;
  * direction the script gave it; other actors show their base tile. Every few calls
  * (depending on speed_info) also animate the water, lava and field tiles and the flags.
  */
-/*C_034D*/AnimateViewTiles()
+int16 /*C_034D*/AnimateViewTiles()
 {
 	register int16 slot;
 
@@ -160,7 +160,7 @@ uint16 slowly;
  *              hold this frame for x more calls;
  *   0x9x-0xfx: end of script, start it again.
  */
-/*C_041A*/StepViewScript()
+int16 /*C_041A*/StepViewScript()
 {
 	int16 idx;
 
@@ -204,7 +204,7 @@ uint16 slowly;
  * Run the animated view (the scene below the title) until a key is pressed; the key is
  * then read and discarded. Each frame is drawn several times depending on speed_info.
  */
-/*C_05A4*/ShowView()
+int16 /*C_05A4*/ShowView()
 {
 	register int16 repeat;
 
@@ -234,7 +234,7 @@ uint16 slowly;
  * two creatures rising into the top corners. A key press skips the slow parts.
  * temp is used both as a column and as a creature's frame.
  */
-/*C_068C*/TitleSequence()
+int16 /*C_068C*/TitleSequence()
 {
 	register uint16 step, redraw;
 	int16 temp;
@@ -331,7 +331,7 @@ uint16 slowly;
 /*
  * Print the string str at text position (row, col).
  */
-/*C_0B1E*/PutsAt(row, col, str)
+int16 /*C_0B1E*/PutsAt(row, col, str)
 int16 row;
 int16 col;
 register char *str;
@@ -346,7 +346,7 @@ register char *str;
  * Draw the title menu (Return to the view, Journey Onward, Initiate New Game) and put
  * the blinking cursor after "Options:".
  */
-/*C_0B45*/ShowMenu()
+int16 /*C_0B45*/ShowMenu()
 {
 	Gra_ClearMenu();
 	PutsAt(14,  2, /*D_00EF*/"In another world, in a time to come.");
@@ -366,7 +366,7 @@ register char *str;
  * used the screen): reload the tiles and pictures, draw the logo and the two creatures,
  * then the menu. temp is used both as a column and as a creature's frame.
  */
-/*C_0BCA*/RedrawTitle()
+int16 /*C_0BCA*/RedrawTitle()
 {
 	int16 temp;
 

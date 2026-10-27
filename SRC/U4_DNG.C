@@ -18,7 +18,7 @@ DNG_EndOfTurn();*/
  * The dungeon loop: read and run the commands until the party climbs out of the
  * dungeon (Party._z < 0). Ctrl-S right after Alt-Z shows the karma (cheat).
  */
-/*C_84D2*/DNG_main()
+int16 /*C_84D2*/DNG_main()
 {
 	register uint16 cmd;
 	int16 prevCmd;
@@ -104,7 +104,7 @@ DNG_EndOfTurn();*/
  * one, remove it (from the map and from the NPC list) and fight it.
  * Returns 1 if there was a combat.
  */
-/*C_8743*/DNG_CheckEncounter()
+int16 /*C_8743*/DNG_CheckEncounter()
 {
 	register int16 npc;
 
@@ -142,7 +142,7 @@ DNG_EndOfTurn();*/
  * burns, the spell effects end; then the encounter with a monster under the party,
  * or the rooms the party walks into.
  */
-/*C_87E2*/DNG_EndOfTurn()
+int16 /*C_87E2*/DNG_EndOfTurn()
 {
 	register int16 chara;
 	register struct tChara *pChara;
@@ -197,7 +197,7 @@ DNG_EndOfTurn();*/
  * (0xC0, 0xE0, 0xD0) only when moving forward (backward == 0); otherwise any tile
  * below 0xC0 (not the walls) except the energy fields (0xA1).
  */
-/*C_88E8*/DNG_CanEnter(tile, backward)
+int16 /*C_88E8*/DNG_CanEnter(tile, backward)
 unsigned char tile;
 uint16 backward;
 {
@@ -216,7 +216,7 @@ uint16 backward;
 /*
  * Up arrow: move one square forward.
  */
-/*C_891E*/DNG_Advance()
+int16 /*C_891E*/DNG_Advance()
 {
 	u4_puts(/*D_2654*/"Advance\n");
 	if(!DNG_CanEnter(tile_forward, 0)) {
@@ -230,7 +230,7 @@ uint16 backward;
 /*
  * Down arrow: move one square backward (facing the same way).
  */
-/*C_895F*/DNG_Retreat()
+int16 /*C_895F*/DNG_Retreat()
 {
 	u4_puts(/*D_265D*/"Retreat\n");
 	if(!DNG_CanEnter(tile_back, 1)) {
@@ -244,7 +244,7 @@ uint16 backward;
 /*
  * Left arrow: turn left (does not count as a turn).
  */
-/*C_899F*/DNG_TurnLeft()
+int16 /*C_899F*/DNG_TurnLeft()
 {
 	u4_puts(/*D_2666*/"Turn Left\n");
 	Party._dir = (Party._dir - 1) & 3;
@@ -254,7 +254,7 @@ uint16 backward;
 /*
  * Right arrow: turn right (does not count as a turn).
  */
-/*C_89BD*/DNG_TurnRight()
+int16 /*C_89BD*/DNG_TurnRight()
 {
 	u4_puts(/*D_2671*/"Turn Right\n");
 	Party._dir = (Party._dir + 1) & 3;
@@ -265,7 +265,7 @@ uint16 backward;
  * (K)limb a ladder up (tile 0x10 or 0x30); climbing above level 1 leaves the
  * dungeon (Party._z < 0 ends DNG_main).
  */
-/*C_89DB*/DNG_Klimb()
+int16 /*C_89DB*/DNG_Klimb()
 {
 	u4_puts(/*D_267D*/"Klimb ");
 	if(
@@ -286,7 +286,7 @@ uint16 backward;
 /*
  * (D)escend a ladder down (tile 0x20 or 0x30).
  */
-/*C_8A1F*/DNG_Descend()
+int16 /*C_8A1F*/DNG_Descend()
 {
 	u4_puts(/*D_2693*/"Descend ");
 	if(

@@ -16,7 +16,7 @@
  * Write a message to the standard output (DOS handle 1), for the file errors.
  * Exits the program (code 3) if it cannot be written.
  */
-/*C_0812*/Console(msg)
+int16 /*C_0812*/Console(msg)
 char *msg;
 {
 	int16 written;
@@ -31,7 +31,7 @@ char *msg;
  * Returns 0, or -1 after printing what went wrong.
  * Note: the file is not closed when the read fails.
  */
-/*C_0855*/Load(fname, size, buf)
+int16 /*C_0855*/Load(fname, size, buf)
 char *fname;
 uint16 size;
 void far *buf;
@@ -66,7 +66,7 @@ void far *buf;
  * Returns 0, or -1 after printing what went wrong; a failed write
  * exits the program (code 1).
  */
-/*C_08D1*/Save(fname, size, buf)
+int16 /*C_08D1*/Save(fname, size, buf)
 char *fname;
 uint16 size;
 void far *buf;

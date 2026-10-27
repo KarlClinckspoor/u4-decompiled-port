@@ -34,7 +34,7 @@ char * /*D_1738*/TalkFiles[] ={
  * Save the outdoor monsters, then load the map and npcs of castle/towne/village
  * loc (LOC_*) and open its dialogue file (indexed by Party._loc, not loc).
  */
-/*C_3E30*/LoadTown(loc)
+int16 /*C_3E30*/LoadTown(loc)
 uint16 loc;
 {
 	if(Save(/*D_172B*/"OUTMONST.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
@@ -49,7 +49,7 @@ uint16 loc;
  * Load the map of dungeon Party._loc, keep its file open (File_DNG, for the
  * rooms) and remove all the npcs.
  */
-/*C_3E94*/LoadDungeon()
+int16 /*C_3E94*/LoadDungeon()
 {
 	register int16 npc;
 
@@ -61,7 +61,7 @@ uint16 loc;
 }
 
 /*Load dungeon Party._loc and play it, from level 1 facing east.*/
-/*C_3EE4*/StartDungeon()
+int16 /*C_3EE4*/StartDungeon()
 {
 	LoadDungeon();
 	CurMode = MOD_DUNGEON;
@@ -74,7 +74,7 @@ uint16 loc;
  * Enter dungeon Party._loc (on foot only): save the outdoor monsters and play
  * the dungeon from (1, 1).
  */
-/*C_3F03*/EnterDungeon()
+int16 /*C_3F03*/EnterDungeon()
 {
 	Gra_CR();
 	Gra_CR();
@@ -94,7 +94,7 @@ uint16 loc;
  * In the eight townes, npc #31 is the companion of the towne's class (Moonglow:
  * mage, Britain: bard, ...); remove it if that companion has joined the party.
  */
-/*C_3F4A*/EnterTown()
+int16 /*C_3F4A*/EnterTown()
 {
 	register int16 member;
 
@@ -118,7 +118,7 @@ uint16 loc;
  * Enter the Great Stygian Abyss: only with the bell, book and candle, all
  * three already used at the entrance; otherwise "Can't".
  */
-/*C_3FB9*/EnterAbyss()
+int16 /*C_3FB9*/EnterAbyss()
 {
 	if((
 		(Party.mItems >> ST_BOOK) &
@@ -141,7 +141,7 @@ uint16 loc;
  * it according to the tile there. Lava enters the Abyss only at (0xe9, 0xe9)
  * (falls through to the fire field case).
  */
-/*C_4018*/CMD_Enter()
+int16 /*C_4018*/CMD_Enter()
 {
 	register int16 place;
 
@@ -219,7 +219,7 @@ uint16 loc;
  * Leave the vehicle as an npc on the map (in a free slot among #8-#31, else
  * overwriting one of #16-#31 at random) and continue on foot.
  */
-/*C_4164*/LeaveVehicle()
+int16 /*C_4164*/LeaveVehicle()
 {
 	register int16 npc;
 
@@ -241,7 +241,7 @@ uint16 loc;
  * X-it the ship (remembering where it was left, see CMD_Board), the horse
  * (stops galloping) or the balloon (only once landed).
  */
-/*C_41C0*/CMD_X_it()
+int16 /*C_41C0*/CMD_X_it()
 {
 	u4_puts(/*D_17AC*/"X-it ");
 	if(Party._tile < TIL_HORSE_W) {
@@ -263,7 +263,7 @@ uint16 loc;
  * cleared) at the party's position, and take its tile as the party's tile.
  * Note the misleading indentation: the last statement is not part of the if.
  */
-/*C_4206*/BoardVehicle(vehicle)
+int16 /*C_4206*/BoardVehicle(vehicle)
 uint16 vehicle;
 {
 	register int16 npc;
@@ -284,7 +284,7 @@ uint16 vehicle;
  * Board a horse, the balloon or a ship. A ship other than the one the party
  * last left (ship_x, ship_y) comes with a fully repaired hull (50).
  */
-/*C_4253*/CMD_Board()
+int16 /*C_4253*/CMD_Board()
 {
 	if(Party._tile != TIL_AVATAR) {
 		u4_puts(/*D_17B2*/"Board: ");
@@ -314,7 +314,7 @@ uint16 vehicle;
 }
 
 /*Yell: on horseback, toggle galloping.*/
-/*C_42E8*/CMD_Yell()
+int16 /*C_42E8*/CMD_Yell()
 {
 	u4_puts(/*D_17E3*/"Yell ");
 	if(Party._tile == TIL_HORSE_W || Party._tile == TIL_HORSE_E) {
@@ -332,7 +332,7 @@ uint16 /*D_17FC*/DoorY = 0;/*current opened door's y*/
 uint16 /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 
 /*Count down the opened door's timer and close the door when it expires.*/
-/*C_431D*/AutoCloseDoor()
+int16 /*C_431D*/AutoCloseDoor()
 {
 	if(CurMode == MOD_BUILDING && DoorTimer) {
 		if(--DoorTimer == 0)
@@ -346,7 +346,7 @@ uint16 /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
  * Open a door for 5 turns (closes any door still open first). Only doors to
  * the east or the west can be opened: any north/south direction is "Not here".
  */
-/*C_4353*/CMD_Open()
+int16 /*C_4353*/CMD_Open()
 {
 	uint16 dx, dy;
 
@@ -384,7 +384,7 @@ uint16 /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
  * Jimmy a locked door with a key (east or west only, as with Open).
  * The door stays a normal closed door.
  */
-/*C_43F8*/CMD_Jimmy()
+int16 /*C_43F8*/CMD_Jimmy()
 {
 	int16 dy, dx;
 
@@ -415,7 +415,7 @@ uint16 /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
  * Klimb: outdoors, make the balloon fly (no line of sight while flying);
  * in Lord British's castle, take the ladder up to the second floor.
  */
-/*C_4477*/CMD_Klimb()
+int16 /*C_4477*/CMD_Klimb()
 {
 	u4_puts(/*D_183A*/"Klimb ");
 	if(Party._loc == 0) {
@@ -447,7 +447,7 @@ uint16 /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
  * the ladder down to the first floor, or from the first floor (the ladder at
  * y == 2) into the dungeon Hythloth.
  */
-/*C_44EE*/CMD_Descend()
+int16 /*C_44EE*/CMD_Descend()
 {
 	if(Party._tile == TIL_BALLOON) {
 		u4_puts(/*D_1867*/"Land Balloon\n");

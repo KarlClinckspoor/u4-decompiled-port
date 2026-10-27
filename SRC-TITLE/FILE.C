@@ -18,7 +18,7 @@
  * Write a string to standard output (DOS handle 1); exit with code 3 if it could not be
  * written completely.
  */
-/*C_0010*/Console(msg)
+int16 /*C_0010*/Console(msg)
 char *msg;
 {
 	int16 written;
@@ -34,7 +34,7 @@ char *msg;
  * opened, read (or has the wrong size) or closed (a message is printed); exits with
  * code 0x13 when the temporary buffer cannot be allocated.
  */
-/*C_0051*/Load(fname, size, dest)
+int16 /*C_0051*/Load(fname, size, dest)
 char *fname;
 uint16 size;
 void far *dest;
@@ -83,7 +83,7 @@ void far *dest;
  * short write exits the program with code 1.
  * Unlike AVATAR.EXE's version, the source buffer is near, not far.
  */
-/*C_0110*/Save(fname, size, buf)
+int16 /*C_0110*/Save(fname, size, buf)
 char *fname;
 uint16 size;
 void /*far */*buf;

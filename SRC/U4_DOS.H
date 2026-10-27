@@ -9,11 +9,11 @@
 
 /*u4_dos*/
 extern void far * cdecl /*C_1FF4*/dalloc(int16);
-extern cdecl /*C_2023*/dfree(void far *);
-extern cdecl /*C_2033*/dopen(char *, int16);
-extern cdecl /*C_2049*/dlseek(int16, uint32);
-extern cdecl /*C_2067*/dread(int16, void far *, int16);
-extern cdecl /*C_208B*/dwrite(int16, void far *, int16);
-extern cdecl /*C_20AB*/dclose(int16);
+extern int16 cdecl /*C_2023*/dfree(void far *);
+extern int16 cdecl /*C_2033*/dopen(char *, int16);
+extern int16 cdecl /*C_2049*/dlseek(int16, uint32);
+extern int16 cdecl /*C_2067*/dread(int16, void far *, int16);
+extern int16 cdecl /*C_208B*/dwrite(int16, void far *, int16);
+extern int16 cdecl /*C_20AB*/dclose(int16);
 
 #endif

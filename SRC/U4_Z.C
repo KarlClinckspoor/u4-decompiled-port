@@ -9,7 +9,7 @@
 #include <string.h>
 
 /*Blank the status area (columns 24-38) from the current line down to line 8.*/
-/*C_45B5*/ZtatsClearRest()
+int16 /*C_45B5*/ZtatsClearRest()
 {
 	for( ;txt_Y <= 8; txt_Y ++) {
 		txt_X = 24;
@@ -21,7 +21,7 @@
  * Print str centered in the status area (plus shift columns) on line txt_Y;
  * on the top line (the frame), between the two title brackets 0x10 and 0x11.
  */
-/*C_45D6*/ZtatsTitle(str, shift)
+int16 /*C_45D6*/ZtatsTitle(str, shift)
 register char *str;
 uint16 shift;
 {
@@ -43,7 +43,7 @@ uint16 shift;
 }
 
 /*Redraw the frame over the status area's title (top line); the cursor is preserved.*/
-/*C_4649*/ZtatsClearTitle()
+int16 /*C_4649*/ZtatsClearTitle()
 {
 	uint16 orig_y, orig_x;
 
@@ -62,7 +62,7 @@ uint16 shift;
  * Ztats page of party member #member: name, sex, class, status, magic points,
  * level (max HP / 100), attributes, hit points, experience, weapon and armour.
  */
-/*C_4689*/ZtatsChara(member)
+int16 /*C_4689*/ZtatsChara(member)
 int16 member;
 {
 	register struct tChara *chara;
@@ -95,7 +95,7 @@ int16 member;
  * Ztats page of the weapons owned (hands always shown): letter, count and
  * code, in columns of 8 lines.
  */
-/*C_4832*/ZtatsWeapons()
+int16 /*C_4832*/ZtatsWeapons()
 {
 	register int16 weapon;
 
@@ -131,7 +131,7 @@ int16 member;
 }
 
 /*Ztats page of the armours owned (no armour always shown).*/
-/*C_48F8*/ZtatsArmour()
+int16 /*C_48F8*/ZtatsArmour()
 {
 	register int16 armour;
 
@@ -157,7 +157,7 @@ int16 member;
 }
 
 /*Ztats page of the torches, gems, keys and sextants (when any).*/
-/*C_4987*/ZtatsEquipment()
+int16 /*C_4987*/ZtatsEquipment()
 {
 	txt_Y = 0;
 	ZtatsTitle(/*D_192C*/"Equipment", -1);
@@ -188,7 +188,7 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
  * Ztats page of the quest items: stones, runes, bell/book/candle ("Candl"
  * when all three, to fit), the three part key, horn, wheel and skull.
  */
-/*C_4A3D*/ZtatsItems()
+int16 /*C_4A3D*/ZtatsItems()
 {
 	register int16 bit;
 
@@ -256,7 +256,7 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
 }
 
 /*Ztats page of the reagents owned.*/
-/*C_4BC7*/ZtatsReagents()
+int16 /*C_4BC7*/ZtatsReagents()
 {
 	register int16 reagent;
 
@@ -283,7 +283,7 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
  * Ztats page of the mixtures (spell letter and count), in columns of 8 lines;
  * stops when the status area is full.
  */
-/*C_4C42*/ZtatsMixtures()
+int16 /*C_4C42*/ZtatsMixtures()
 {
 	register int16 spell;
 
@@ -329,7 +329,7 @@ pZ_handler /*D_19C0*/ZtatsPages[] = {
  * 0 the weapons, arrows/PgUp/PgDn/Home/End browse (skipping the absent
  * members), any other key leaves.
  */
-/*C_4CC1*/ZtatsBrowse(page)
+int16 /*C_4CC1*/ZtatsBrowse(page)
 int16 page;
 {
 	uint16 orig_y, orig_x;
@@ -407,7 +407,7 @@ int16 page;
  * Ztats: in combat, of the active character; otherwise ask for a member
  * (0 for the weapons page).
  */
-/*C_4E45*/CMD_Ztats()
+int16 /*C_4E45*/CMD_Ztats()
 {
 	if(CurMode >= MOD_COMBAT) {
 		u4_puts(/*D_19DC*/"Ztats\n");

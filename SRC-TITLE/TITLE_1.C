@@ -484,7 +484,7 @@ open your eyes to..."
 /*
  * Print a string at the text cursor; '\n' goes to the start of the next line.
  */
-/*C_261D*/u4_puts(str)
+int16 /*C_261D*/u4_puts(str)
 char *str;
 {
 	char c;
@@ -507,7 +507,7 @@ char *str;
  * Probable original bug: when the line is empty or only spaces, the final loop decrements
  * len past 0 and reads (and clears while it finds spaces) the bytes before buf.
  */
-/*C_2656*/u4_gets(buf, size)
+int16 /*C_2656*/u4_gets(buf, size)
 register char *buf;
 uint16 size;
 {
@@ -559,7 +559,7 @@ uint16 size;
 /*
  * Clear the text area, print text at its top line and wait for a key.
  */
-/*C_271D*/ShowTextPage(text)
+int16 /*C_271D*/ShowTextPage(text)
 char *text;
 {
 	Gra_ClearText();
@@ -572,7 +572,7 @@ char *text;
 /*
  * Intro: the moongate rises from the ground in front of the tree (busy-wait delays).
  */
-/*C_273E*/MoongateRises()
+int16 /*C_273E*/MoongateRises()
 {
 	int16 step, delay;
 
@@ -587,7 +587,7 @@ char *text;
 /*
  * Intro: the moongate sinks back into the ground.
  */
-/*C_27E0*/MoongateSinks()
+int16 /*C_27E0*/MoongateSinks()
 {
 	int16 step, delay;
 
@@ -605,7 +605,7 @@ char *text;
  * abacus), one page per key press. Pictures are loaded one page ahead and shown with
  * the page that needs them.
  */
-/*C_2883*/Introduction()
+int16 /*C_2883*/Introduction()
 {
 	uint16 page;
 
@@ -668,7 +668,7 @@ int16 /*D_3012*/AbacusRowY[] = {0x18,0x28,0x36,0x44,0x52,0x62,0x70};
  * Draw a bead on the gypsy's abacus: in the column of the virtue, on the row of the
  * question, with a different bead picture for the chosen and the discarded virtue.
  */
-/*C_2B2A*/DrawBead(discarded, virtue, row)
+int16 /*C_2B2A*/DrawBead(discarded, virtue, row)
 uint16 discarded;/*0: chosen virtue, 1: discarded virtue*/
 uint16 virtue;/*virtue index 0..7*/
 uint16 row;/*question index 0..6*/
@@ -694,7 +694,7 @@ char * /*D_307E*/CardPictures[] = {
  * card is the left or right half of picture virtue / 2; the CGA pictures come after
  * the EGA ones in CardPictures.
  */
-/*C_2B6D*/DrawCard(virtue, side)
+int16 /*C_2B6D*/DrawCard(virtue, side)
 uint16 virtue;/*virtue index 0..7*/
 uint16 side;/*0: left, 1: right*/
 {
@@ -734,7 +734,7 @@ unsigned char /*D_30CA*/DilemmaBase[] = {
  * bead; the last one chosen (lastVirtue) decides the class. n is a loop index, a swap
  * temporary and the key read.
  */
-/*C_2C12*/GypsyReading()
+int16 /*C_2C12*/GypsyReading()
 {
 	int16 n;
 	unsigned char chosen, discarded;
@@ -829,7 +829,7 @@ uint16 /*D_30EC*/*pKarmas[] = {
  * the chosen class (lastVirtue) swapped into the first slot and given the player's name,
  * attributes and sex; one member only, and the NPC table of the world map is cleared.
  */
-/*C_2E04*/CreateParty()
+int16 /*C_2E04*/CreateParty()
 {
 	int16 idx;
 	struct tChara temp;
@@ -869,7 +869,7 @@ uint16 /*D_30EC*/*pKarmas[] = {
  * drives). Beeps and waits again otherwise.
  * Probable original bug: 'P' gives drive 0 ('P' & 0xf), which never matches.
  */
-/*C_2F07*/AskForDisk(prompt, fname)/*%%% hacked %%%*/
+int16 /*C_2F07*/AskForDisk(prompt, fname)/*%%% hacked %%%*/
 char *prompt;
 char *fname;
 {
@@ -907,7 +907,7 @@ char *fname;
  * MONSTERS.SAV on it. If it went into the program's drive, ask for the PROGRAM disk
  * again (AVATAR.EXE), otherwise go back to the program's drive.
  */
-/*C_2FB8*/WritePlayerDisk()
+int16 /*C_2FB8*/WritePlayerDisk()
 {
 	uint16 programDrive;
 
@@ -924,7 +924,7 @@ char *fname;
 		u_setdrive(programDrive);
 }
 
-extern /*C_0B1E*/PutsAt(int16, int16, char *);
+extern int16 /*C_0B1E*/PutsAt(int16, int16, char *);
 
 /*
  * "Initiate New Game": ask the name and the sex, then run the introduction, the gypsy's
@@ -934,7 +934,7 @@ extern /*C_0B1E*/PutsAt(int16, int16, char *);
  * Probable original bug: M_or_F holds only the character code (& 0xff), so the
  * KBD_ENTER and KBD_SPACE (scan code + character) tests never match.
  */
-/*C_3030*/NewGame()
+int16 /*C_3030*/NewGame()
 {
 	Gra_ClearMenu();
 	PutsAt(16, 4, /*D_3169*/"By what name shalt thou be known");

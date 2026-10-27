@@ -73,7 +73,7 @@ char * /*D_8362*/VisionRunes[] = {
  * Show the rune picture of virtue #virtue (the vision of partial Avatarhood), in its
  * ".pic" (CGA) or ".ega" version.
  */
-/*C_E6DF*/ShowVision(virtue)
+int16 /*C_E6DF*/ShowVision(virtue)
 int16 virtue;
 {
 	char fname[20];
@@ -93,7 +93,7 @@ int16 virtue;
  * partial Avatarhood (the virtue drops to 0) and the rune vision.
  * Always ends back outdoors.
  */
-/*C_E72C*/EnterShrine()
+int16 /*C_E72C*/EnterShrine()
 {
 	int16 virtue, round, step;
 	char answer[16];

@@ -10,9 +10,9 @@
 #include <stdlib.h>
 
 /*empty functions, never called*/
-/*C_C445*/Unused1() {}
-/*C_C44A*/Unused2() {}
-/*C_C44F*/Unused3() {}
+int16 /*C_C445*/Unused1() {}
+int16 /*C_C44A*/Unused2() {}
+int16 /*C_C44F*/Unused3() {}
 
 /*nonzero if the machine has (or the command line says) two floppy drives*/
 static int16 /*D_9138*/TwoDrives;
@@ -22,7 +22,7 @@ static int16 /*D_9138*/TwoDrives;
  * ("Insert ... disk") and wait until the player presses the letter of a drive that
  * has it (B only when there are two drives; other keys beep).
  */
-/*C_C454*/AskForDisk(message, fname)
+int16 /*C_C454*/AskForDisk(message, fname)
 char *message;
 char *fname;
 {
@@ -71,7 +71,7 @@ char *fname;
  * WORLD.MAP, then initializes the game state and draws the screen.
  * GraphicsType: 1 CGA, 2 EGA, 3 Tandy, -1 none found.
  */
-/*C_C51C*/GameInit()
+int16 /*C_C51C*/GameInit()
 {
 	int16 programDrive, copyCheck;
 

@@ -12,7 +12,7 @@ uint16 /*D_1630*/FlowCounter = 0;
  * Animate the flowing tiles (water, lava, force fields) once every speed_info
  * calls, and the campfire on every call.
  */
-/*C_34EA*/AnimateTiles()
+int16 /*C_34EA*/AnimateTiles()
 {
 	if(FlowCounter -- == 0) {
 		FlowCounter = speed_info - 1;
@@ -33,7 +33,7 @@ uint16 /*D_1630*/FlowCounter = 0;
  * of the view frame. In a dungeon, also print the level ("L1".."L8") at the top.
  * The text cursor is preserved.
  */
-/*C_353D*/ShowDirection(dir, label)
+int16 /*C_353D*/ShowDirection(dir, label)
 uint16 dir;
 char *label;
 {
@@ -66,7 +66,7 @@ uint16 /*D_1654*/WindCounter = 0;
  * Once every speed_info calls, maybe turn the wind: with a 1/64 chance it
  * rotates a quarter turn either way. Then display it.
  */
-/*C_35C7*/UpdateWind()
+int16 /*C_35C7*/UpdateWind()
 {
 	if(WindCounter-- == 0) {
 		WindCounter = speed_info - 1;
@@ -85,7 +85,7 @@ uint16 /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
  * cycle through theirs, others just show their base tile (pirate ships keep
  * their heading). Then animate the tiles and the flags.
  */
-/*C_3605*/AnimateNpcs()
+int16 /*C_3605*/AnimateNpcs()
 {
 	register int16 npc, npc_tile;
 
@@ -96,7 +96,8 @@ uint16 /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
 			(npc_tile >= TIL_MAGE && npc_tile <= TIL_SHEPHERD) ||
 			(npc_tile >= TIL_GUARD && npc_tile <= TIL_LORD_BRITISH)
 		) {
-			if(U4_RND2(1) != 0)
+			/*the carry: the tile is below the top of its range (the last comparison)*/
+			if(RND2_CARRY(npc_tile != TIL_TWISTER && npc_tile != TIL_SHEPHERD && npc_tile != TIL_LORD_BRITISH) U4_RND2(1) != 0)
 			if(((speed_info < 8)?NpcAnimChance[speed_info - 1]:0xff) > U4_RND2(0xff))
 			Area._npc._gtile[npc] = ((Area._npc._gtile[npc] & 1) | npc_tile) ^ 1;
 		} else if(npc_tile >= TIL_RAT) {
@@ -115,7 +116,7 @@ uint16 /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
  * (hit_x, hit_y), and the blinking box around the active character in combat
  * (CursorBlink counts down: shown for 4 frames, hidden for 9).
  */
-/*C_36C7*/DrawView()
+int16 /*C_36C7*/DrawView()
 {
 	register uint16 under;
 
@@ -147,7 +148,7 @@ uint16 /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
  * previous step; each step of a straight ray starts two diagonal rays from the
  * squares on its sides. Recursive.
  */
-/*C_376F*/CastRay(dx, dy, x, y)
+int16 /*C_376F*/CastRay(dx, dy, x, y)
 int16 dx;
 int16 dy;
 unsigned char x;
@@ -188,7 +189,7 @@ unsigned char y;
  * Line of sight: fill ViewTiles with the squares of Combat._map visible from
  * the center (5, 5), the others being TIL_BLACK.
  */
-/*C_38BB*/ComputeVisibility()
+int16 /*C_38BB*/ComputeVisibility()
 {
 	register int16 cell;
 
@@ -233,7 +234,7 @@ a | . |   |   |   |   | . |   |   |   |   | . |
 }
 
 /*Put the npcs that are within 5 squares of the party into the 11x11 Combat._map.*/
-/*C_3960*/PlaceNpcsInView()
+int16 /*C_3960*/PlaceNpcsInView()
 {
 	register int16 npc;
 	unsigned char off_x, off_y;
@@ -252,7 +253,7 @@ a | . |   |   |   |   | . |   |   |   |   | . |
  * note the tiles around the party (tile_cur, tile_north, ...), put the party
  * in the center, apply the line of sight if needed, and draw.
  */
-/*C_39BA*/FinishView()
+int16 /*C_39BA*/FinishView()
 {
 	register int16 cell;
 
@@ -292,7 +293,7 @@ unsigned char /*D_1666*/FeluccaCounter = 0;/*felucca counter*/
  * Set OpenGateX/OpenGateY to the moongate of Trammel's current phase and
  * return the sub-step (0-3) used as the moongate's animation frame.
  */
-/*C_3A4F*/UpdateOpenGate()
+int16 /*C_3A4F*/UpdateOpenGate()
 {
 	OpenGateX = MoongateX[(TrammelCounter & 0xe0) >> 5];
 	OpenGateY = MoongateY[(TrammelCounter & 0xe0) >> 5];
@@ -306,7 +307,7 @@ uint16 /*D_1668*/MoonTick = 0;
  * first 4 sub-steps of a Trammel phase and shrinks during the last 4), then
  * display Trammel's and Felucca's phases at the top of the view.
  */
-/*C_3A80*/UpdateMoons()
+int16 /*C_3A80*/UpdateMoons()
 {
 	unsigned char save_x, save_y;
 
@@ -337,7 +338,7 @@ uint16 /*D_1668*/MoonTick = 0;
 }
 
 /*Draw the outdoors view: the 11x11 squares around WinPos, then the npcs, ...*/
-/*C_3B35*/DrawOutdoors()
+int16 /*C_3B35*/DrawOutdoors()
 {
 	register uint16 cell;
 	int16 view_y, view_x;
@@ -358,7 +359,7 @@ uint16 /*D_1668*/MoonTick = 0;
  * Draw the view inside a towne/castle: the squares around the party, outside
  * of the 32x32 map shown as grass; then the npcs, ... and the wind.
  */
-/*C_3B83*/DrawTown()
+int16 /*C_3B83*/DrawTown()
 {
 	register int16 dx, dy;
 
@@ -382,7 +383,7 @@ uint16 /*D_1668*/MoonTick = 0;
 uint16 /*D_166A*/BalloonTick = 0;
 
 /*Once every speed_info + 1 calls, the flying balloon drifts with the wind (one move).*/
-/*C_3C08*/DriftBalloon()
+int16 /*C_3C08*/DriftBalloon()
 {
 	if(BalloonTick -- == 0) {
 		BalloonTick = speed_info;
@@ -404,7 +405,7 @@ uint16 /*D_166C*/CombatAnimMask[] = {1,3,3,7,7,7,7,15};
  * party members (unless in a shrine).
  * A mimic still showing as a chest stays a chest.
  */
-/*C_3C54*/DrawCombat()
+int16 /*C_3C54*/DrawCombat()
 {
 	register int16 n;
 	uint16 frame_mask;
@@ -439,7 +440,8 @@ uint16 /*D_166C*/CombatAnimMask[] = {1,3,3,7,7,7,7,15};
 			} else {
 /*C_3D35*/
 /*note: I had a hard time figuring out how to get this statement right*/
-				*p_cell = *p_gtile ^= U4_RND1(U4_RND2(1));
+				/*the carry: the comparison with TIL_SLEEPING just before*/
+				*p_cell = *p_gtile ^= U4_RND1(RND2_CARRY(*p_tile < TIL_SLEEPING) U4_RND2(1));
 			}
 		}
 		for(n = Party._members - 1; n >= 0; n --) {
@@ -463,7 +465,7 @@ uint16 /*D_166C*/CombatAnimMask[] = {1,3,3,7,7,7,7,15};
 }
 
 /*Redraw the game view for the current mode (CurMode).*/
-/*C_3DC8*/RefreshView()
+int16 /*C_3DC8*/RefreshView()
 {
 	if(CurMode == MOD_VISION) {
 		cursor_delay = 233;

@@ -14,7 +14,7 @@ LOCATE
  * (L)ocate position with a sextant: the latitude/longitude are given as letters,
  * the high and low nibbles of the party's y/x.
  */
-/*C_755E*/CMD_Locate()
+int16 /*C_755E*/CMD_Locate()
 {
 	u4_puts(/*D_22EA*/"Locate position with ");
 	if(Party._sextants == 0) {
@@ -51,7 +51,7 @@ unsigned char /*D_2334*/ClassMasks[] = {
  * 0x10 + an armour (the armour names follow the weapon names in Names[]);
  * article: print the "a" (for weapons).
  */
-/*C_75DC*/w_MayNotUse(chara, item, article)
+int16 /*C_75DC*/w_MayNotUse(chara, item, article)
 int16 chara;
 int16 item;
 int16 article;
@@ -72,7 +72,7 @@ int16 article;
  * back to the party's stock (at most 99); hands (A) can always be used, otherwise
  * the class must be allowed (ClassMasks).
  */
-/*C_7631*/CMD_Ready()
+int16 /*C_7631*/CMD_Ready()
 {
 	register int16 wielder, weapon;
 	int16 oldWeapon;
@@ -121,7 +121,7 @@ int16 article;
 /*
  * (W)ear armour: same as CMD_Ready for armours; skin (A) means no armour.
  */
-/*C_7732*/CMD_Wear()
+int16 /*C_7732*/CMD_Wear()
 {
 	register int16 chara, armor;
 	int16 oldArmor;

@@ -11,7 +11,7 @@
  * no monster, and not be a trap or fountain (0x80-0x9F), a field, a room or a wall;
  * going back to its previous square is allowed only one time in 8.
  */
-/*C_93A5*/DNG_MonsterCanMove(x, y, npc)
+int16 /*C_93A5*/DNG_MonsterCanMove(x, y, npc)
 unsigned char x;
 unsigned char y;
 int16 npc;
@@ -40,7 +40,7 @@ int16 npc;
  * or 1), horizontally (1 time in 2), vertically, then horizontally. The monster's
  * number is kept in the low nibble of the map's tile.
  */
-/*C_9414*/DNG_MoveMonsters()
+int16 /*C_9414*/DNG_MoveMonsters()
 {
 	int16 incH, npc, incV, retry;
 	unsigned char toX, toY;
@@ -94,7 +94,7 @@ int16 npc;
  * "not on the party's square"); it is one of the 4 monsters from TIL_RAT + 4z on
  * (no mimics).
  */
-/*C_95AA*/DNG_SpawnMonsters()
+int16 /*C_95AA*/DNG_SpawnMonsters()
 {
 	int16 npc;
 	unsigned char spawnCol, monster, spawnRow;
@@ -124,7 +124,7 @@ int16 npc;
 /*
  * The living character at (hit_x, hit_y) on the combat map, or -1.
  */
-/*C_9683*/CharaAtHit()
+int16 /*C_9683*/CharaAtHit()
 {
 	register int16 chara;
 
@@ -142,7 +142,7 @@ int16 npc;
  * A killed character raises Sacrifice.
  * Returns 1 if the character was killed.
  */
-/*C_96B9*/FoeHitsChara(chara, foe)
+int16 /*C_96B9*/FoeHitsChara(chara, foe)
 int16 chara;
 int16 foe;
 {
@@ -172,7 +172,7 @@ int16 foe;
 /*
  * Character chara is struck without damage (a missile with a special effect).
  */
-/*C_9764*/CharaStruck(chara)
+int16 /*C_9764*/CharaStruck(chara)
 int16 chara;
 {
 	Gra_InvertStatusLine(chara);
@@ -188,7 +188,7 @@ int16 chara;
  * where it stops. The poison and sleep missiles fail one time in 2 or on
  * characters not in good health; the others hurt.
  */
-/*C_978C*/FoeShoot(missile, foe, dx, dy)
+int16 /*C_978C*/FoeShoot(missile, foe, dx, dy)
 unsigned char missile;
 int16 foe;
 int16 dx;
@@ -267,7 +267,7 @@ int16 dy;
  * anywhere but water and energy fields.
  * Note: the map is read before checking that (x, y) is on it.
  */
-/*C_98E4*/FoeCanMoveTo(x, y, foe)
+int16 /*C_98E4*/FoeCanMoveTo(x, y, foe)
 unsigned char x;
 unsigned char y;
 int16 foe;
@@ -356,7 +356,7 @@ unsigned char tile;
  * Under the Jinx spell, a foe moving onto another foe at (x, y) hits it instead
  * (0-63 damage). Returns 1 if that happened.
  */
-/*C_9B03*/CheckJinx(x, y)
+int16 /*C_9B03*/CheckJinx(x, y)
 unsigned char x;
 unsigned char y;
 {
@@ -381,7 +381,7 @@ unsigned char y;
 /*
  * A gremlin steals 25 food (2500 hundredths).
  */
-/*C_9B6B*/StealFood()
+int16 /*C_9B6B*/StealFood()
 {
 	Party._food = u4_max(Party._food - 2500, 0L);
 	dspl_Stats();
@@ -391,7 +391,7 @@ unsigned char y;
 /*
  * A rogue steals 0-63 gold, one time in 4.
  */
-/*C_9BA6*/StealGold()
+int16 /*C_9BA6*/StealGold()
 {
 	register int16 amount;
 
@@ -408,7 +408,7 @@ unsigned char y;
  * Protection spell, or if the armour wins (ArmorDefense >= random 0-255).
  * Returns 1 if the character was hit and survived, else 0 (the result is unused).
  */
-/*C_9BE5*/FoeMelee(foe, chara)
+int16 /*C_9BE5*/FoeMelee(foe, chara)
 int16 foe;
 int16 chara;
 {
@@ -430,7 +430,7 @@ int16 chara;
  * Foe foe leaves the combat map; letting a non-evil foe flee raises Compassion and
  * Justice.
  */
-/*C_9C56*/FoeFlees(foe)
+int16 /*C_9C56*/FoeFlees(foe)
 int16 foe;
 {
 	Gra_CR();
@@ -457,7 +457,7 @@ int16 foe;
  *   (1 time in 2), vertically, horizontally. Moving off the map is fleeing; a
  *   fleeing foe that cannot move but is adjacent attacks.
  */
-/*C_9CBC*/FoeAct(foe, chara, dist)
+int16 /*C_9CBC*/FoeAct(foe, chara, dist)
 int16 foe;
 int16 chara;
 int16 dist;
@@ -578,7 +578,7 @@ C_9DE5:
  * against its HP. Then the end of the turn: magic points, moves, spell effects
  * (7: none).
  */
-/*C_9F7B*/COM_FoesTurn()
+int16 /*C_9F7B*/COM_FoesTurn()
 {
 	int16 foeId, chara, nearest, bestDist;
 	unsigned char posX, posY;

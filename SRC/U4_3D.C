@@ -90,7 +90,7 @@ int16 /*D_2DEE*/MonsterAnimTick = 0;
  * Draw a force field across the near edge of the square at the current depth; its
  * kind (poison/energy/fire/sleep) is the low 2 bits of tile.
  */
-/*C_A7F2*/DrawField3D(tile)
+int16 /*C_A7F2*/DrawField3D(tile)
 unsigned char tile;
 {
 	Gra_FillTiles(
@@ -107,7 +107,7 @@ unsigned char tile;
  * Called by Gra_Line (U4_GRAPH.ASM) for the lines that are neither horizontal nor
  * vertical.
  */
-/*C_A842*/DrawLine(x0, y0, x1, y1)
+int16 /*C_A842*/DrawLine(x0, y0, x1, y1)
 int16 x0;
 int16 y0;
 int16 x1;
@@ -149,7 +149,7 @@ int16 y1;
 /*
  * Draw a hole in the ceiling of the square at the current depth.
  */
-/*C_A94A*/DrawCeilingHole()
+int16 /*C_A94A*/DrawCeilingHole()
 {
 	register int16 d;
 
@@ -165,7 +165,7 @@ int16 y1;
 /*
  * Draw a hole in the floor of the square at the current depth.
  */
-/*C_AA29*/DrawFloorHole()
+int16 /*C_AA29*/DrawFloorHole()
 {
 	register int16 d;
 
@@ -185,7 +185,7 @@ int16 y1;
  * For fields, cursor_delay (the cursor delay, see u_delay) is adjusted to the time the
  * redraw takes.
  */
-/*C_AB08*/Special3D(tile)
+int16 /*C_AB08*/Special3D(tile)
 unsigned char tile;
 {
 	if(PitAnimTick-- == 0)
@@ -221,7 +221,7 @@ unsigned char tile;
  * Is there a monster (the low nibble) on this dungeon tile? Traps, fountains,
  * fields and doors/rooms/walls have other uses for the low nibble.
  */
-/*C_ABE5*/IsMonster3D(tile)
+int16 /*C_ABE5*/IsMonster3D(tile)
 unsigned char tile;
 {
 	register int16 kind;
@@ -242,7 +242,7 @@ unsigned char tile;
  * Draw tile as a sprite in the square at the current depth, zoomed (x3, x2, x1 or
  * shrunk), then wait a while, shorter when near (the zoomed drawings take longer).
  */
-/*C_AC23*/DrawSprite3D(tile)
+int16 /*C_AC23*/DrawSprite3D(tile)
 unsigned char tile;
 {
 	register int16 line;
@@ -281,7 +281,7 @@ unsigned char tile;
  * the squares behind are hidden (by a sprite, a room entrance, a wall, or a door
  * other than the one the party stands in), else 1.
  */
-/*C_AD6A*/RenderSquare3D(tile, depth)
+int16 /*C_AD6A*/RenderSquare3D(tile, depth)
 unsigned char tile;
 int16 depth;
 {
@@ -313,7 +313,7 @@ int16 depth;
  * Draw the sprites (monsters, objects, fields) of the 4 squares ahead, from the
  * nearest, until one hides the rest; without light, only clears the view.
  */
-/*C_ADEF*/RenderSprites3D()
+int16 /*C_ADEF*/RenderSprites3D()
 {
 	if(Party._fly_light == 0) {
 		Gra_ClearView();
@@ -331,7 +331,7 @@ int16 depth;
 /*
  * Read the dungeon tiles behind the party, under it, and 1, 2 and 3 squares ahead.
  */
-/*C_AE41*/DNG_LookAround()
+int16 /*C_AE41*/DNG_LookAround()
 {
 	unsigned char x, y;
 
@@ -360,7 +360,7 @@ int16 depth;
  * party, in column side (-1 left, 0 straight ahead, +1 right), according to the
  * party's position and facing (the level wraps around).
  */
-/*C_AF36*/DNG_SquareAt(getX, getY, side)
+int16 /*C_AF36*/DNG_SquareAt(getX, getY, side)
 register int16 *getX;
 register int16 *getY;
 int16 side;
@@ -394,7 +394,7 @@ int16 side;
  * Draw a ladder going up (through a hole in the ceiling) at the current depth; seen
  * edge-on when facing north or south.
  */
-/*C_AFB5*/DrawLadderUp()
+int16 /*C_AFB5*/DrawLadderUp()
 {
 	register int16 d;
 
@@ -421,7 +421,7 @@ int16 side;
  * Draw a ladder going down (through a hole in the floor) at the current depth; seen
  * edge-on when facing north or south.
  */
-/*C_B0E9*/DrawLadderDown()
+int16 /*C_B0E9*/DrawLadderDown()
 {
 	register int16 d;
 
@@ -456,7 +456,7 @@ int16 side;
 The walls facing north/south and those facing east/west get different colours.*/
 
 /*the wall (or door) across the near edge of the square at the current depth*/
-/*C_B21D*/DrawFrontWall()
+int16 /*C_B21D*/DrawFrontWall()
 {
 	Gra_DrawQuad(
 		Wall_x0[Depth], Wall_x1[Depth] + 1,
@@ -467,7 +467,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 }
 
 /*the far wall of the open square left of the current depth, seen through the opening*/
-/*C_B25E*/DrawLeftFarWall()
+int16 /*C_B25E*/DrawLeftFarWall()
 {
 	Gra_DrawQuad(
 		Wall_x0[Depth],   Wall_x0[Depth+1],
@@ -478,7 +478,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 }
 
 /*the far wall of the open square right of the current depth*/
-/*C_B29C*/DrawRightFarWall()
+int16 /*C_B29C*/DrawRightFarWall()
 {
 	Gra_DrawQuad(
 		Wall_x1[Depth],   Wall_x1[Depth+1],
@@ -489,7 +489,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 }
 
 /*the side wall on the left of the square at the current depth*/
-/*C_B2DA*/DrawLeftSideWall()
+int16 /*C_B2DA*/DrawLeftSideWall()
 {
 	Gra_DrawQuad(
 		Wall_x0[Depth],   Wall_x0[Depth+1],
@@ -500,7 +500,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 }
 
 /*the side wall on the right of the square at the current depth*/
-/*C_B31B*/DrawRightSideWall()
+int16 /*C_B31B*/DrawRightSideWall()
 {
 	Gra_DrawQuad(
 		Wall_x1[Depth],   Wall_x1[Depth+1],
@@ -511,7 +511,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 }
 
 /*the opening of a door drawn by DrawFrontWall*/
-/*C_B35C*/DrawFrontDoor()
+int16 /*C_B35C*/DrawFrontDoor()
 {
 	Gra_DrawQuad(
 		Wall_x0[Depth+1], Wall_x1[Depth+1],
@@ -522,7 +522,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 }
 
 /*a door in the left side wall*/
-/*C_B3AE*/DrawLeftDoor()
+int16 /*C_B3AE*/DrawLeftDoor()
 {
 	Gra_DrawQuad(
 		LDoor_x0[Depth], LDoor_x1[Depth],
@@ -533,7 +533,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 }
 
 /*a door in the right side wall*/
-/*C_B3E3*/DrawRightDoor()
+int16 /*C_B3E3*/DrawRightDoor()
 {
 	Gra_DrawQuad(
 		RDoor_x0[Depth], RDoor_x1[Depth],
@@ -547,7 +547,7 @@ The walls facing north/south and those facing east/west get different colours.*/
  * Draw what is on the right at the current depth: the wall of the next square seen
  * beyond an opening, or a side wall (with a door for doors and rooms).
  */
-/*C_B418*/DrawRightWalls()
+int16 /*C_B418*/DrawRightWalls()
 {
 	int16 y, x;
 
@@ -575,7 +575,7 @@ The walls facing north/south and those facing east/west get different colours.*/
 /*
  * Same as DrawRightWalls for the left side, then the right side.
  */
-/*C_B47A*/DrawLeftWalls()
+int16 /*C_B47A*/DrawLeftWalls()
 {
 	int16 y, x;
 
@@ -606,7 +606,7 @@ The walls facing north/south and those facing east/west get different colours.*/
  * 3 squares ahead, stopping at the first door (other than the one the party stands
  * in), room entrance, field or wall; then the wall 4 squares ahead if there is one.
  */
-/*C_B4DF*/Render3D()
+int16 /*C_B4DF*/Render3D()
 {
 	int16 x, y;
 
@@ -645,7 +645,7 @@ The walls facing north/south and those facing east/west get different colours.*/
  * Remember the state the view is drawn for, then clear the view and draw it (only
  * with light).
  */
-/*C_B61C*/Render3DNow()
+int16 /*C_B61C*/Render3DNow()
 {
 	Saved_z = Party._z;
 	Saved_x = Party._x;
@@ -667,7 +667,7 @@ The walls facing north/south and those facing east/west get different colours.*/
  * party's position, facing or light, or a tile in view (only the tiles up to the
  * first one that blocks the view count).
  */
-/*C_B677*/DNG_Render()
+int16 /*C_B677*/DNG_Render()
 {
 	unsigned char kind;
 

@@ -15,7 +15,7 @@ unsigned char /*D_26B8*/AmbushMonsters[] = {TIL_ORC,TIL_SKELETON,TIL_ROGUE,TIL_P
  * The camp is attacked by a random monster, at the party's position: the
  * characters in good health are asleep ('S') when the combat starts.
  */
-/*C_8A5A*/Ambush()
+int16 /*C_8A5A*/Ambush()
 {
 	register int16 chara;
 
@@ -38,7 +38,7 @@ unsigned char /*D_26B8*/AmbushMonsters[] = {TIL_ORC,TIL_SKELETON,TIL_ROGUE,TIL_P
  * Note: the first loop clears 32 entries of Fighters._tile, which has 16: it also
  * clears Fighters._gtile (harmless).
  */
-/*C_8AB0*/CMD_HoleUp() {
+int16 /*C_8AB0*/CMD_HoleUp() {
 	register int16 chara;
 
 	u4_puts(/*D_26C0*/"Hole up & Camp\n");

@@ -12,8 +12,8 @@
 #define far
 #endif
 
-extern /*C_0812*/Console(char *);
-extern /*C_0855*/Load(char *, uint16, void far *);
-extern /*C_08D1*/Save(char *, uint16, void far *);
+extern int16 /*C_0812*/Console(char *);
+extern int16 /*C_0855*/Load(char *, uint16, void far *);
+extern int16 /*C_08D1*/Save(char *, uint16, void far *);
 
 #endif

@@ -14,7 +14,7 @@ Whirlpools and twisters
  * The vortex (NPC slot vortex) destroys every other NPC on its square, playing
  * sound effect snd for each one.
  */
-/*C_7821*/SwallowNpcsAt(vortex, snd)
+int16 /*C_7821*/SwallowNpcsAt(vortex, snd)
 register int16 vortex;
 int16 snd;
 {
@@ -39,7 +39,7 @@ int16 snd;
  * thrown (as a ship heading west) to the fixed position (0x7f,0x4e), in Lock Lake.
  * Then it swallows the NPCs on its square.
  */
-/*C_786F*/WhirlpoolContact(vortex)
+int16 /*C_786F*/WhirlpoolContact(vortex)
 register int16 vortex;
 {
 	if(Party._x == Area._npc._x[vortex] && Party._y == Area._npc._y[vortex]) {
@@ -63,7 +63,7 @@ register int16 vortex;
  * (resetting hit_tile looks like a leftover from WhirlpoolContact).
  * Then it swallows the NPCs on its square.
  */
-/*C_78D1*/TwisterContact(vortex)
+int16 /*C_78D1*/TwisterContact(vortex)
 register int16 vortex;
 {
 	if(Party._x == Area._npc._x[vortex] && Party._y == Area._npc._y[vortex]) {
@@ -83,7 +83,7 @@ register int16 vortex;
  * party and the NPCs on their square. (Despite the name, nothing moves here:
  * the vortices move with the other NPCs, in MoveNpcs.)
  */
-/*C_7918*/VortexContacts()
+int16 /*C_7918*/VortexContacts()
 {
 	register int16 npc;
 
@@ -102,7 +102,7 @@ register int16 vortex;
 Moving in combat
 ----------------------------------------*/
 
-/*C_794D*/w_SameExit()
+int16 /*C_794D*/w_SameExit()
 {
 	u4_puts(/*D_239E*/"All must use same exit!\n");
 	sound(SND_BEEP);
@@ -113,7 +113,7 @@ Moving in combat
  * Fleeing a normal combat against evil foes while unhurt (HP at max) costs
  * Valor and Sacrifice.
  */
-/*C_7962*/COM_CharaExits()
+int16 /*C_7962*/COM_CharaExits()
 {
 	Combat._charaX[activeChara] = Combat._charaY[activeChara] = 0x80;
 	Fighters._chtile[activeChara] = 0;
@@ -129,7 +129,7 @@ Moving in combat
  * the whole party must leave by the same side: the first one to exit sets
  * RoomExitX (left/right side, x = 0xff or 11) or RoomExitY (top/bottom side).
  */
-/*C_79C9*/COM_TryExit(x, y)
+int16 /*C_79C9*/COM_TryExit(x, y)
 unsigned char x;
 unsigned char y;
 {
@@ -168,7 +168,7 @@ unsigned char y;
  * the trigger position (x in the high nibble, y in the low one), then two target
  * positions coded the same way, where the tile is placed (unless the target is 0,0).
  */
-/*C_7A15*/RoomTriggers(x, y)
+int16 /*C_7A15*/RoomTriggers(x, y)
 unsigned char x;
 unsigned char y;
 {
@@ -200,7 +200,7 @@ unsigned char y;
  * Move character chara to (x, y) in combat: leaving the map is an exit attempt;
  * the destination must be walkable and slow terrain may waste the turn.
  */
-/*C_7AE3*/COM_MoveChara(chara, x, y)
+int16 /*C_7AE3*/COM_MoveChara(chara, x, y)
 register int16 chara;
 unsigned char x;
 unsigned char y;
@@ -230,28 +230,28 @@ unsigned char y;
 }
 
 /*North [combat]*/
-/*C_7B89*/COM_North()
+int16 /*C_7B89*/COM_North()
 {
 	u4_puts(/*D_23B7*/"North\n");
 	COM_MoveChara(activeChara, Combat._charaX[activeChara], Combat._charaY[activeChara] - 1);
 }
 
 /*South [combat]*/
-/*C_7BAF*/COM_South()
+int16 /*C_7BAF*/COM_South()
 {
 	u4_puts(/*D_23BE*/"South\n");
 	COM_MoveChara(activeChara, Combat._charaX[activeChara], Combat._charaY[activeChara] + 1);
 }
 
 /*East [combat]*/
-/*C_7BD5*/COM_East()
+int16 /*C_7BD5*/COM_East()
 {
 	u4_puts(/*D_23C5*/"East\n");
 	COM_MoveChara(activeChara, Combat._charaX[activeChara] + 1, Combat._charaY[activeChara]);
 }
 
 /*West [combat]*/
-/*C_7BFD*/COM_West()
+int16 /*C_7BFD*/COM_West()
 {
 	u4_puts(/*D_23CB*/"West\n");
 	COM_MoveChara(activeChara, Combat._charaX[activeChara] - 1, Combat._charaY[activeChara]);

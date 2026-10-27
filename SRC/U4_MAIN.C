@@ -112,7 +112,7 @@ void cdecl /*C_191E*/main()
  * Cheat (Alt-Z, Ctrl-S): print the 8 virtues' karma points,
  * 2 digits each (00 for an achieved virtue).
  */
-/*C_1C21*/CheatShowKarma()
+int16 /*C_1C21*/CheatShowKarma()
 {
 	register int16 virtue;
 
@@ -129,7 +129,7 @@ void cdecl /*C_191E*/main()
  * creatures move (unless the party is flying the balloon), spells wear off,
  * open doors close.
  */
-/*C_1C53*/EndOfTurn()
+int16 /*C_1C53*/EndOfTurn()
 {
 	register int16 chara;
 	register struct tChara *pChara;

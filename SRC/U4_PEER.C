@@ -49,7 +49,7 @@ static unsigned char D_8F54[22][22];
  * party): each tile is drawn as a 4x4 dot pattern. If showParty, the party's
  * position blinks (a moving bar) until a key is pressed.
  */
-/*C_B9EF*/ShowAreaMap(showParty)
+int16 /*C_B9EF*/ShowAreaMap(showParty)
 uint16 showParty;
 {
 	int16 row, savedMode, col;
@@ -197,7 +197,7 @@ uint16 showParty;
  * printing a character for each tile reached. The 8x8 level wraps around, so it is
  * repeated until the edges of the area.
  */
-/*C_C23B*/ShowDungeonMap()
+int16 /*C_C23B*/ShowDungeonMap()
 {
 	int16 y, h;
 	register uint16 sp;
@@ -261,7 +261,7 @@ uint16 showParty;
  * Gem view (also the View spell): the dungeon map in dungeons, else the 32x32 map with
  * the party's position.
  */
-/*C_C403*/ShowMap()
+int16 /*C_C403*/ShowMap()
 {
 	if(Party._loc >= LOC_DUNGEONS) {
 		ShowDungeonMap();
@@ -273,7 +273,7 @@ uint16 showParty;
 /*
  * (P)eer at a gem: uses one gem to show the map.
  */
-/*C_C41D*/CMD_Peer()
+int16 /*C_C41D*/CMD_Peer()
 {
 	u4_puts(/*D_3012*/"Peer at ");
 	if(Party._gems == 0) {

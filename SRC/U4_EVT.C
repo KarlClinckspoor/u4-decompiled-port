@@ -9,7 +9,7 @@
 /*
  * Sleep field: each conscious character falls asleep one time in 4.
  */
-/*C_919A*/SleepParty()
+int16 /*C_919A*/SleepParty()
 {
 	register int16 chara;
 
@@ -25,7 +25,7 @@
 /*
  * Swamp or poison field: each character in good health is poisoned one time in 8.
  */
-/*C_91D1*/PoisonParty()
+int16 /*C_91D1*/PoisonParty()
 {
 	register int16 chara;
 
@@ -50,7 +50,7 @@
  *   falling rocks, 0x88-0x8F pit);
  * - elsewhere: swamp/poison field, fire field/lava, sleep field, on the whole party.
  */
-/*C_9209*/TileEffects()
+int16 /*C_9209*/TileEffects()
 {
 	uint16 damage;
 

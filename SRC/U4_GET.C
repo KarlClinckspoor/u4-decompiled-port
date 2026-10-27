@@ -9,7 +9,7 @@
 /*
  * Acid trap: flash the character and hurt him by 0-29 HP.
  */
-/*C_70CE*/AcidTrap(chara)
+int16 /*C_70CE*/AcidTrap(chara)
 int16 chara;
 {
 	FlashChara(chara);
@@ -19,7 +19,7 @@ int16 chara;
 /*
  * The chest's content: 10 to 96 gold, added to the party's gold (capped at 9999).
  */
-/*C_70F1*/ChestGold()
+int16 /*C_70F1*/ChestGold()
 {
 	register int16 gold;
 
@@ -36,7 +36,7 @@ int16 chara;
  * Half of the chests are trapped; the character evades the trap if a d100 roll is
  * at most his dexterity + 25.
  */
-/*C_7150*/ChestTrap(chara)
+int16 /*C_7150*/ChestTrap(chara)
 int16 chara;
 {
 	register uint16 trap;
@@ -84,7 +84,7 @@ int16 chara;
  * Note: if no chest object is found the loop ends at -1 and slot -1 is cleared,
  * writing out of the arrays (cannot happen as tile_cur was a chest).
  */
-/*C_722F*/OpenChest(chara)
+int16 /*C_722F*/OpenChest(chara)
 int16 chara;
 {
 	if(CurMode == MOD_DUNGEON) {
@@ -122,7 +122,7 @@ int16 chara;
  * (G)et chest: ask who opens the chest under the party (not possible while
  * flying the balloon).
  */
-/*C_72EC*/CMD_Get()
+int16 /*C_72EC*/CMD_Get()
 {
 	register int16 chara;
 
@@ -145,7 +145,7 @@ int16 chara;
  * Open the chest under the active character in combat: it becomes a floor tile
  * (and the dungeon map's chest is removed too when the combat is a dungeon room).
  */
-/*C_7337*/COM_OpenChest()
+int16 /*C_7337*/COM_OpenChest()
 {
 	if(Combat_MAP(Combat._charaY[activeChara], Combat._charaX[activeChara]) != TIL_CHEST) {
 		w_NotHere();
@@ -160,7 +160,7 @@ int16 chara;
 /*
  * (G)et chest in combat.
  */
-/*C_73B8*/COM_GetChest()
+int16 /*C_73B8*/COM_GetChest()
 {
 	u4_puts(/*D_22A6*/"Get Chest!\n");
 	COM_OpenChest();
@@ -178,7 +178,7 @@ char /*D_22C8*/MsgBroadsidesOnly[] = "Broadsides Only!\n";
  * balloon. A monster (NPC slots 0-7, the monsters' slots) is destroyed only 1 time out of 4,
  * Lord British never; any other object is destroyed.
  */
-/*C_73C9*/CMD_Fire()
+int16 /*C_73C9*/CMD_Fire()
 {
 	int16 npc, row, stepX, stepY, range, col;
 
@@ -241,7 +241,7 @@ IGNITE
 /*
  * (I)gnite a torch: dungeon only, 100 more turns of light.
  */
-/*C_7525*/CMD_Ignite()
+int16 /*C_7525*/CMD_Ignite()
 {
 	u4_puts(/*D_22DA*/"Ignite Torch!\n");
 	if(CurMode != MOD_DUNGEON) {

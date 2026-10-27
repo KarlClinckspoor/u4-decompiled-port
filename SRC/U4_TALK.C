@@ -11,14 +11,14 @@
 typedef tHandler_tlk();
 typedef tHandler_tlk *pHandler_tlk;
 
-TLK_name();
-TLK_look();
-TLK_job();
-TLK_health();
-TLK_special1();
-TLK_special2();
-TLK_join();
-TLK_give();
+int16 TLK_name();
+int16 TLK_look();
+int16 TLK_job();
+int16 TLK_health();
+int16 TLK_special1();
+int16 TLK_special2();
+int16 TLK_join();
+int16 TLK_give();
 
 char /*D_2A7A*/MsgNoResponse[] = "Funny, no response!\n";
 
@@ -64,7 +64,7 @@ static char * D_8CCE[12];
  * Ask the citizen's yes/no question and print the answer. For a humility question,
  * Yes (bragging) costs 5 humility and No gives 10 (at most once every 16 moves).
  */
-/*C_A163*/TLK_Question()
+int16 /*C_A163*/TLK_Question()
 {
 	char answer[4];
 
@@ -108,7 +108,7 @@ static char * D_8CCE[12];
 int16 unused;
 char *text;
 #else
-/*C_A22D*/TLK_Say(text)
+int16 /*C_A22D*/TLK_Say(text)
 char *text;
 #endif
 {
@@ -119,7 +119,7 @@ char *text;
 }
 
 /*the citizen's first personal keyword*/
-/*C_A245*/TLK_special1()
+int16 /*C_A245*/TLK_special1()
 {
 #ifdef WIN32
 	TLK_Say(6, TalkStrings[5]);
@@ -129,7 +129,7 @@ char *text;
 }
 
 /*the citizen's second personal keyword*/
-/*C_A253*/TLK_special2()
+int16 /*C_A253*/TLK_special2()
 {
 #ifdef WIN32
 	TLK_Say(7, TalkStrings[6]);
@@ -139,7 +139,7 @@ char *text;
 }
 
 /*"name"*/
-/*C_A261*/TLK_name()
+int16 /*C_A261*/TLK_name()
 {
 	u4_puts(TalkStrings[1]);
 	u4_puts(/*D_2AB8*/" says: I am ");
@@ -148,20 +148,20 @@ char *text;
 }
 
 /*"look"*/
-/*C_A280*/TLK_look()
+int16 /*C_A280*/TLK_look()
 {
 	u4_puts(/*D_2AC5*/"You see ");
 	TLK_Say(3, TalkStrings[2]);
 }
 
 /*"job"*/
-/*C_A299*/TLK_job()
+int16 /*C_A299*/TLK_job()
 {
 	TLK_Say(4, TalkStrings[3]);
 }
 
 /*"health"*/
-/*C_A2AB*/TLK_health()
+int16 /*C_A2AB*/TLK_health()
 {
 	TLK_Say(5, TalkStrings[4]);
 }
@@ -194,7 +194,7 @@ static uint16 D_8CE6;
  * companion's character, found in the roster by its class, is moved to the first
  * free party slot.
  */
-/*C_A2BD*/TLK_join()
+int16 /*C_A2BD*/TLK_join()
 {
 	int16 chara;
 
@@ -238,7 +238,7 @@ static uint16 D_8CE6;
  * "give": only beggars accept gold; giving some gives 2 compassion (at most once
  * every 16 moves). The final TLK_Say(6, 0) prints nothing.
  */
-/*C_A3A2*/TLK_give()
+int16 /*C_A3A2*/TLK_give()
 {
 	int16 amount;
 
@@ -269,7 +269,7 @@ static uint16 D_8CE6;
  * (a .TLK record after its 3 bytes), and lower the case of the description's first
  * letter.
  */
-/*C_A443*/TLK_Parse(text)
+int16 /*C_A443*/TLK_Parse(text)
 register char *text;
 {
 	register char **str;
@@ -284,7 +284,7 @@ register char *text;
 /*
  * Remove the trailing spaces of string str.
  */
-/*C_A47F*/TrimRight(str)
+int16 /*C_A47F*/TrimRight(str)
 char *str;
 {
 	char *last;
@@ -298,7 +298,7 @@ char *str;
  * topics until "bye", an empty line, or the citizen joins the party. Before each
  * topic the citizen may turn away (TalkData[2]); if very unwilling, he attacks.
  */
-/*C_A4B4*/TalkToCitizen(npc)
+int16 /*C_A4B4*/TalkToCitizen(npc)
 int16 npc;
 {
 	int16 done, members;
@@ -399,16 +399,16 @@ unsigned char /*D_2CD4*/ShopRows[][8] = {
 	{0x00,0x00,0x00,0x00,0x00,0x1A,0x00,0x00} /*cove*/
 };
 
-extern SHP_weapon();
-extern SHP_armour();
-extern SHP_food();
-extern SHP_pub();
-extern SHP_reagent();
-extern SHP_healer();
-extern SHP_inn();
-extern SHP_guild();
-extern SHP_horse();
-extern SHP_hawkwind();
+extern int16 SHP_weapon();
+extern int16 SHP_armour();
+extern int16 SHP_food();
+extern int16 SHP_pub();
+extern int16 SHP_reagent();
+extern int16 SHP_healer();
+extern int16 SHP_inn();
+extern int16 SHP_guild();
+extern int16 SHP_horse();
+extern int16 SHP_hawkwind();
 
 /*the shops; 8 and 9 have no row in ShopRows (see EnterShop)*/
 pHandler_tlk /*D_2D54*/ShopHandlers[] = {
@@ -430,7 +430,7 @@ pHandler_tlk /*D_2D54*/ShopHandlers[] = {
  * is not checked). The Paws horse seller and Hawkwind in Lord British's castle are
  * special cases.
  */
-/*C_A686*/EnterShop(y)
+int16 /*C_A686*/EnterShop(y)
 unsigned char y;
 {
 	register int16 shop;
@@ -455,7 +455,7 @@ unsigned char y;
  * tile) to a merchant, which enters the shop of that row; Lord British has his own
  * conversation.
  */
-/*C_A6F3*/CMD_Talk() {
+int16 /*C_A6F3*/CMD_Talk() {
 	unsigned char y, x;
 	int16 h, npcAt, v;
 

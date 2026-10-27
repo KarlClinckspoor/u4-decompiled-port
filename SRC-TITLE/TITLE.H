@@ -158,19 +158,19 @@ extern void far /*D_708C*/*pTitle;
 
 /*====---- ----====*/
 
-extern /*C_0010*/Console(char *);
-extern /*C_0051*/Load(char *, uint16, void far *);
-extern /*C_0110*/Save(char *, uint16, void /*far */*);
+extern int16 /*C_0010*/Console(char *);
+extern int16 /*C_0051*/Load(char *, uint16, void far *);
+extern int16 /*C_0110*/Save(char *, uint16, void /*far */*);
 
-extern /*C_027A*/u4_putc();
+extern int16 /*C_027A*/u4_putc();
 
-extern cdecl Gra_DrawView(
+extern int16 cdecl Gra_DrawView(
 #if 0
 #endif
 );
-extern cdecl Gra_Dot();
-extern Gra_ClearMenu();
-extern cdecl Gra_Blit(
+extern int16 cdecl Gra_Dot();
+extern int16 Gra_ClearMenu();
+extern int16 cdecl Gra_Blit(
 #if 0
 	int16 w/*in 8 pixels blocs*/, int16 h,
 	int16 src_x/*in 8 pixels blocs*/, int16 src_y,
@@ -180,17 +180,17 @@ extern cdecl Gra_Blit(
 	int16 dst_x
 #endif
 );
-extern cdecl Gra_LoadPicture(
+extern int16 cdecl Gra_LoadPicture(
 #if 0
 #endif
 );
-extern Gra_ClearText();
-extern Gra_Init();
-extern Gra_AnimFlow();
-extern Gra_AnimFlags();
-extern Gra_ClearScreen();
-extern Gra_PutChar();
-extern cdecl Gra_BlitReveal(
+extern int16 Gra_ClearText();
+extern int16 Gra_Init();
+extern int16 Gra_AnimFlow();
+extern int16 Gra_AnimFlags();
+extern int16 Gra_ClearScreen();
+extern int16 Gra_PutChar();
+extern int16 cdecl Gra_BlitReveal(
 #if 0
 	int16 w/*in 8 pixels blocs*/, int16 h,
 	int16 src_x/*in 8 pixels blocs*/, int16 src_y,
@@ -200,28 +200,28 @@ extern cdecl Gra_BlitReveal(
 	int16 dst_x
 #endif
 );
-extern cdecl Gra_DrawViewOver(
+extern int16 cdecl Gra_DrawViewOver(
 #if 0
 #endif
 );
-extern InterleaveShapes();
-extern /*C_217E*/LoadCompressed(char *, void far *);
+extern int16 InterleaveShapes();
+extern int16 /*C_217E*/LoadCompressed(char *, void far *);
 
 /*low.asm*/
-extern /*C_244E*/low_init();
-extern /*C_2551*/low_clean();
-extern /*C_2583*/low_gra();
+extern int16 /*C_244E*/low_init();
+extern int16 /*C_2551*/low_clean();
+extern int16 /*C_2583*/low_gra();
 
-extern /*C_3030*/NewGame();
+extern int16 /*C_3030*/NewGame();
 
-extern cdecl /*C_3149*/u_delay(uint16, uint16);
-extern /*C_31ED*/u_rand_a();
+extern int16 cdecl /*C_3149*/u_delay(uint16, uint16);
+extern int16 /*C_31ED*/u_rand_a();
 extern unsigned char /*C_321E*/u_rand_b();
-extern /*C_3290*/u_getdrive();
-extern /*C_3299*/u_setdrive();
-extern /*C_32AB*/u_fexist();
-extern /*C_331E*/u_setint24();
+extern int16 /*C_3290*/u_getdrive();
+extern int16 /*C_3299*/u_setdrive();
+extern int16 /*C_32AB*/u_fexist();
+extern int16 /*C_331E*/u_setint24();
 
-extern /*C_3F77*/Unused3F77(uint32, uint32*);
+extern int16 /*C_3F77*/Unused3F77(uint32, uint32*);
 
 #endif

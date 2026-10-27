@@ -27,7 +27,7 @@ char * /*D_0BDA*/EndQuestions[] = {
 /*
  * Wait a while, or until a key is pressed (the key is then read).
  */
-/*C_2F7E*/WaitKeyOrTimeout()
+int16 /*C_2F7E*/WaitKeyOrTimeout()
 {
 	u_delay(15, 1);
 	if(u_kbhit())
@@ -48,7 +48,7 @@ static uint16 /*D_8CCA*/SavedPartySize;
  * world map at the place number place (see ExpelX). Does not return:
  * jumps back to the main loop.
  */
-/*C_2F9D*/ExpelToSurface(place)
+int16 /*C_2F9D*/ExpelToSurface(place)
 uint16 place;
 {
 	u_delay(5, 0);
@@ -73,7 +73,7 @@ uint16 place;
 /*
  * Refused at the door of the Codex chamber: back to the entrance of the Abyss.
  */
-/*C_3010*/PassageDenied()
+int16 /*C_3010*/PassageDenied()
 {
 	u4_puts(/*D_0C0B*/"\nPassage is not granted.\n");
 	ExpelToSurface(12);
@@ -83,7 +83,7 @@ uint16 place;
  * The end: the Codex is revealed and the final texts are shown. The game
  * then hangs forever (the player has to reboot).
  */
-/*C_3025*/Victory()
+int16 /*C_3025*/Victory()
 {
 	u_delay(2, 0);
 	ShakeScreen();
@@ -126,7 +126,7 @@ uint16 place;
  * Ask the question up to 3 times. Returns 1 if the reply matches answer
  * (case ignored), 0 after 3 wrong replies.
  */
-/*C_310F*/AskThrice(question, answer)
+int16 /*C_310F*/AskThrice(question, answer)
 char *question;
 char *answer;
 {
@@ -191,7 +191,7 @@ char * /*D_1620*/VirtuePictures[] = {
  * and the last one (infinity). Any failure expels the party to the surface
  * (ExpelToSurface); success ends the game (Victory).
  */
-/*C_31F4*/EndGame()
+int16 /*C_31F4*/EndGame()
 {
 	int16 i;
 	char answer[16];

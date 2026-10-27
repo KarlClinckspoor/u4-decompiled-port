@@ -16,7 +16,7 @@ char /*D_1FD8*/MsgAttackedBy[] = "\nAttacked by ";
  * the shallows, flyers go on water or land, zorns and ghosts go anywhere but
  * water and energy fields, the others walk.
  */
-/*C_4E94*/NpcCanMoveTo(npc, x, y, tile)
+int16 /*C_4E94*/NpcCanMoveTo(npc, x, y, tile)
 uint16 npc;
 unsigned char x;
 unsigned char y;
@@ -60,14 +60,14 @@ unsigned char tile;
 }
 
 /*Absolute value of value.*/
-/*C_4FBE*/u4_abs(value)
+int16 /*C_4FBE*/u4_abs(value)
 int16 value;
 {
 	return (value < 0)?-value:value;
 }
 
 /*Sign of value: -1, 0 or 1.*/
-/*C_4FD7*/u4_sign(value)
+int16 /*C_4FD7*/u4_sign(value)
 int16 value;
 {
 	return (value < 0)?-1:(value > 0)?1:0;
@@ -78,7 +78,7 @@ int16 value;
  * Probable original bug: the bounds check uses || where && was meant, so it
  * only refuses squares off the map on both axes.
  */
-/*C_4FF8*/NpcMoveInTown(npc, x, y)
+int16 /*C_4FF8*/NpcMoveInTown(npc, x, y)
 register int16 npc;
 unsigned char x;
 unsigned char y;
@@ -92,7 +92,7 @@ unsigned char y;
 }
 
 /*Move npc to (x, y), remembering its previous square.*/
-/*C_5036*/NpcMoveTo(npc, x, y)
+int16 /*C_5036*/NpcMoveTo(npc, x, y)
 register int16 npc;
 unsigned char x;
 unsigned char y;
@@ -111,7 +111,7 @@ unsigned char y;
  * Note: the first random retry never gets a negative dy (the (char) cast is
  * on the sign instead of the random number), so it is biased southward.
  */
-/*C_5062*/NpcStepOutdoors(npc, dx, dy, tries)
+int16 /*C_5062*/NpcStepOutdoors(npc, dx, dy, tries)
 int16 npc;
 int16 dx;
 int16 dy;
@@ -149,7 +149,7 @@ int16 tries;
  * else (dy == 0) the horizontal one. When that last one fails, retry in a
  * random direction, up to tries more times (not for _var 0x80 npcs).
  */
-/*C_51A7*/NpcStepInTown(npc, dx, dy, tries)
+int16 /*C_51A7*/NpcStepInTown(npc, dx, dy, tries)
 int16 npc;
 int16 dx;
 int16 dy;
@@ -191,7 +191,7 @@ Masking the sums should fix the problem:
  * random (half of the time), negative follows the party, and 0xff attacks
  * when next to it.
  */
-/*C_5293*/MoveTownNpcs()
+int16 /*C_5293*/MoveTownNpcs()
 {
 	int16 dx, dy;
 
@@ -224,7 +224,7 @@ Masking the sums should fix the problem:
  * Vector from npc to the party: *dist_x, *dist_y and their signs *dx, *dy.
  * Returns the distance |dist_x| + |dist_y|.
  */
-/*C_535B*/NpcDistance(npc, dx, dy, dist_x, dist_y)
+int16 /*C_535B*/NpcDistance(npc, dx, dy, dist_x, dist_y)
 int16 npc;
 int16 *dx;
 int16 *dy;
@@ -242,7 +242,7 @@ int16 *dist_y;
  * Pirate ship npc sails to (x, y) if it can and the wind allows its heading;
  * if it cannot go there, it turns at random.
  */
-/*C_53AF*/ShipSail(npc, x, y)
+int16 /*C_53AF*/ShipSail(npc, x, y)
 register int16 npc;
 unsigned char x;
 unsigned char y;
@@ -263,7 +263,7 @@ unsigned char y;
  * Pirate ship npc: when farther than 5 squares (or 1 time out of 4), turn to
  * face the party along the longer axis; otherwise sail one square ahead.
  */
-/*C_5443*/ShipSteer(npc)
+int16 /*C_5443*/ShipSteer(npc)
 register int16 npc;
 {
 	int16 dx, dy, dist_x, dist_y;
@@ -295,7 +295,7 @@ register int16 npc;
  * Pirate ship npc: sail in direction (dx, dy) if it is heading that way,
  * else steer.
  */
-/*C_5500*/ShipMove(npc, dx, dy)
+int16 /*C_5500*/ShipMove(npc, dx, dy)
 register int16 npc;
 int16 dx;
 int16 dy;
@@ -329,7 +329,7 @@ int16 dy;
  * squares, through any terrain. Returns 1 if it reaches the party. Another npc
  * on the way stops it, and is destroyed if it is #8-#31, else 1 time out of 4.
  */
-/*C_5569*/NpcShotHitsParty(npc, dx, dy, tile)
+int16 /*C_5569*/NpcShotHitsParty(npc, dx, dy, tile)
 int16 npc;
 unsigned char dx;
 unsigned char dy;
@@ -365,7 +365,7 @@ unsigned char tile;
 }
 
 /*npc shoots tile in direction (dx, dy); if the party is reached, everybody is hurt.*/
-/*C_564B*/NpcFireAtParty(npc, dx, dy, tile)
+int16 /*C_564B*/NpcFireAtParty(npc, dx, dy, tile)
 int16 npc;
 int16 dx;
 int16 dy;
@@ -388,7 +388,7 @@ int16 tile;
  * Pirate ship npc near the party (whose direction is (dx, dy)): fires a
  * broadside when the party is straight abeam, else moves.
  */
-/*C_568F*/ShipAttack(npc, dx, dy)
+int16 /*C_568F*/ShipAttack(npc, dx, dy)
 int16 npc;
 int16 dx;
 int16 dy;
@@ -406,7 +406,7 @@ int16 dy;
 }
 
 /*Is npc outside the loaded 32x32 map window?*/
-/*C_56D3*/NpcOffWindow(npc)
+int16 /*C_56D3*/NpcOffWindow(npc)
 int16 npc;
 {
 	return
@@ -422,7 +422,7 @@ int16 npc;
  * shoot fire half of the time; whirlpools, twisters and (3 times out of 4)
  * non-evil monsters wander, the others come towards the party.
  */
-/*C_5712*/MoveWorldNpcs()
+int16 /*C_5712*/MoveWorldNpcs()
 {
 	int16 dx, dy, dist_x, dist_y;
 	register int16 monster;
@@ -470,7 +470,7 @@ int16 npc;
 }
 
 /*Move the npcs (in a towne or outdoors).*/
-/*C_5834*/MoveNpcs()
+int16 /*C_5834*/MoveNpcs()
 {
 	if(CurMode == MOD_BUILDING)
 		MoveTownNpcs();
@@ -485,7 +485,7 @@ int16 npc;
  * ships twice as likely); on grass, scrub, forest or hills, a land monster
  * from the orc up to the balron depending on the number of moves.
  */
-/*C_5851*/SpawnMonsters()
+int16 /*C_5851*/SpawnMonsters()
 {
 	register int16 npc;
 	register unsigned char *ptile;

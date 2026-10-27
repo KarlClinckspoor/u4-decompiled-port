@@ -7,7 +7,7 @@
 #include "u4.h"
 
 /*Index of the foe (0-15) at (x, y) on the combat map, or -1.*/
-/*C_59D5*/COM_GetFighterId(x, y)
+int16 /*C_59D5*/COM_GetFighterId(x, y)
 unsigned char x;
 unsigned char y;
 {
@@ -20,7 +20,7 @@ unsigned char y;
 }
 
 /*Is every party member dead?*/
-/*C_5A04*/IsPartyWipedOut()
+int16 /*C_5A04*/IsPartyWipedOut()
 {
 	register int16 member;
 
@@ -34,7 +34,7 @@ unsigned char y;
  * Is the combat over: no party member left on the field, or no foe left
  * (in a dungeon room, only the first condition counts).
  */
-/*C_5A28*/IsCombatEnded()
+int16 /*C_5A28*/IsCombatEnded()
 {
 	register int16 who;
 
@@ -66,7 +66,7 @@ COM_Attack();*/
  * then the foes act, until the combat is over. Ctrl-S right after Alt-Z (the
  * last key of the previous round) shows the karmas.
  */
-/*C_5A6B*/COM_main()
+int16 /*C_5A6B*/COM_main()
 {
 	register uint16 cmd;
 	uint16 last_key;
@@ -167,7 +167,7 @@ COM_Attack();*/
  * removal if dead, maybe another turn with Quickness (1 time out of 2), maybe
  * waking up (1 time out of 8), and food consumption.
  */
-/*C_5D14*/COM_EndCharaTurn()
+int16 /*C_5D14*/COM_EndCharaTurn()
 {
 	if(Fighters._chtile[activeChara] == 0)
 		return;
@@ -192,7 +192,7 @@ COM_Attack();*/
  * killed, party member chara (unless -1) gets experience (max HP / 16 + 1);
  * otherwise print its state ("Fleeing!" being under 24 HP whatever its max).
  */
-/*C_5DAB*/COM_DoDamage(fighter, chara, damage)
+int16 /*C_5DAB*/COM_DoDamage(fighter, chara, damage)
 register int16 fighter;
 int16 chara;
 unsigned char damage;
@@ -242,7 +242,7 @@ unsigned char damage;
  * (secret doors, and unwalkable tiles other than water, shores, ship rails
  * and creatures). Returns 1 if it moved.
  */
-/*C_5EA2*/COM_MissileStep(dx, dy)
+int16 /*C_5EA2*/COM_MissileStep(dx, dy)
 unsigned char dx;
 unsigned char dy;
 {
@@ -270,7 +270,7 @@ unsigned char dy;
  * After a blow at range squares, a thrown magic axe flies back to the active
  * character.
  */
-/*C_5F26*/DrawAxeReturn(range)
+int16 /*C_5F26*/DrawAxeReturn(range)
 int16 range;
 {
 	int16 dy, dx;
@@ -292,7 +292,7 @@ int16 range;
  * The blow (at range squares, 0 for a hand to hand blow) missed. Flaming oil
  * still sets a fire field where it lands (but not on water).
  */
-/*C_5F9D*/w_missed(range)
+int16 /*C_5F9D*/w_missed(range)
 int16 range;
 {
 	if(range == 0)
@@ -310,7 +310,7 @@ int16 range;
  * Abyss only the magic weapons work. A dexterity under 40 may miss. The damage
  * is random, modulo strength + weapon damage (at most 255).
  */
-/*C_6012*/TryDamage(fighter, range)
+int16 /*C_6012*/TryDamage(fighter, range)
 int16 fighter;
 int16 range;
 {
@@ -349,7 +349,7 @@ int16 range;
  * The active character shoots (or throws) in direction (dx, dy): up to 11
  * squares, or the range asked for flaming oil. Daggers and oil are used up.
  */
-/*C_60F1*/COM_Shoot(dx, dy)
+int16 /*C_60F1*/COM_Shoot(dx, dy)
 int16 dx;
 int16 dy;
 {
@@ -406,7 +406,7 @@ int16 dy;
  * (A)ttack in combat: hand to hand weapons hit the next square (the halberd
  * the one after); a dagger with nobody next is thrown; ranged weapons shoot.
  */
-/*C_61D1*/COM_Attack()
+int16 /*C_61D1*/COM_Attack()
 {
 	register struct tChara *chara;
 	int16 dx, dy, foe;
@@ -451,7 +451,7 @@ int16 dy;
  * attacking a non-evil creature, costs compassion, justice and honor.
  * Odd: TIL_SHALLOWS (2) is tested as an npc tile.
  */
-/*C_628F*/CMD_Attack()
+int16 /*C_628F*/CMD_Attack()
 {
 	register int16 npc;
 	int16 dx, dy;

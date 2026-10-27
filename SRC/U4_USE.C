@@ -107,7 +107,7 @@ char * /*D_0284*/AbyssVirtueNames[] = {
  * Note: anywhere else it prints "No place to Use them!" but still goes on
  * to USE_StonesAtAltar, which then usually adds "Hmm...No effect!".
  */
-/*C_0311*/USE_Stones() {
+int16 /*C_0311*/USE_Stones() {
 	int16 color;
 
 	if(Party.mStones) {
@@ -168,7 +168,7 @@ bad_answer:
  * "Use key(s)": the parts of the Three Part Key cannot be used directly
  * (the key is used at the end of the game, in EndGame).
  */
-/*C_044C*/USE_Keys() {
+int16 /*C_044C*/USE_Keys() {
 	if(
 		((Party.mItems >> ST_KEY_T) & 1) |
 		((Party.mItems >> ST_KEY_L) & 1) |
@@ -183,7 +183,7 @@ bad_answer:
  * "Use bell": first step of opening the Abyss, only on the entrance of the
  * Abyss on the world map (0xe9, 0xe9).
  */
-/*C_0487*/USE_Bell() {
+int16 /*C_0487*/USE_Bell() {
 	if(!TST_MSK(Party.mItems, ST_BELL)) {
 		u4_puts(MsgNoneOwned);
 		return;
@@ -200,7 +200,7 @@ bad_answer:
  * "Use book": second step of opening the Abyss (after the bell),
  * on the entrance of the Abyss.
  */
-/*C_04C0*/USE_Book() {
+int16 /*C_04C0*/USE_Book() {
 	if(!TST_MSK(Party.mItems, ST_BOOK)) {
 		u4_puts(MsgNoneOwned);
 		return;
@@ -219,7 +219,7 @@ bad_answer:
  * "Use candle": third and last step of opening the Abyss (after the book),
  * on the entrance of the Abyss.
  */
-/*C_0501*/USE_Candle() {
+int16 /*C_0501*/USE_Candle() {
 	if(!TST_MSK(Party.mItems, ST_CANDLE)) {
 		u4_puts(MsgNoneOwned);
 		return;
@@ -240,7 +240,7 @@ bad_answer:
  * "Use horn": on the world map only, for 10 turns (spell_effect 1), the
  * daemons guarding the entrance of the Abyss do not appear (SpawnDaemons).
  */
-/*C_0553*/USE_Horn() {
+int16 /*C_0553*/USE_Horn() {
 	if(!TST_MSK(Party.mItems, ST_HORN)) {
 		u4_puts(MsgNoneOwned);
 		return;
@@ -259,7 +259,7 @@ bad_answer:
  * "Use wheel": on the world map, aboard a ship whose hull is at 50 (full),
  * the hull strength becomes 99.
  */
-/*C_058C*/USE_Wheel() {
+int16 /*C_058C*/USE_Wheel() {
 	if(!TST_MSK(Party.mItems, ST_WHEEL)) {
 		u4_puts(MsgNoneOwned);
 		return;
@@ -280,7 +280,7 @@ bad_answer:
  * Abyss, it is cast into the Abyss for +10 in each virtue.
  * Either way the skull is lost.
  */
-/*C_05CE*/USE_Skull() {
+int16 /*C_05CE*/USE_Skull() {
 	int16 i;
 
 	if(!TST_MSK(Party.mItems, ST_SKULL)) {
@@ -360,7 +360,7 @@ struct {
 /*
  * The (U)se command: asks for an item name and calls its handler.
  */
-/*C_07AE*/CMD_Use() {
+int16 /*C_07AE*/CMD_Use() {
 	register int16 item;
 	char answer[12];
 

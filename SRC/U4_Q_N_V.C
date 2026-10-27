@@ -14,7 +14,7 @@
  * and the map in a dungeon. Not possible in townes, castles or shrines.
  * Despite the name, the game goes on.
  */
-/*C_6F29*/CMD_Quit()
+int16 /*C_6F29*/CMD_Quit()
 {
 	u4_puts(/*D_21A2*/"Quit & Save...\n");
 	u4_putl(Party._moves, 1, '0');
@@ -42,7 +42,7 @@
 char /*D_21F4*/MsgMustLead[] = ", You must lead!\n";
 
 /*Exchange the characters *a and *b.*/
-/*C_6FF9*/SwapCharas(a, b)
+int16 /*C_6FF9*/SwapCharas(a, b)
 struct tChara *a;
 struct tChara *b;
 {
@@ -53,7 +53,7 @@ struct tChara *b;
 }
 
 /*(N)ew order: exchange two party members; the Avatar (#1) must stay first.*/
-/*C_7034*/CMD_NewOrder()
+int16 /*C_7034*/CMD_NewOrder()
 {
 	register struct tChara *pa, *pb;
 	struct tChara dummy;/*not used*/
@@ -86,7 +86,7 @@ struct tChara *b;
 }
 
 /*(V)olume: toggle the sound effects.*/
-/*C_70AD*/CMD_Volume()
+int16 /*C_70AD*/CMD_Volume()
 {
 	u4_puts(/*D_222E*/"Volume O");
 	u4_puts((SoundFlag ^= 1)?/*D_2237*/"n!\n":/*D_223B*/"ff!\n");

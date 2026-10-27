@@ -18,7 +18,7 @@ int16 /*D_08D0*/LoadedChunkY = -1;
  * freeing the previous one: only one chunk is in memory at a time.
  * Exits the program on error.
  */
-/*C_2399*/LoadMapChunk(chunkY, chunkX)
+int16 /*C_2399*/LoadMapChunk(chunkY, chunkX)
 uint16 chunkY;
 uint16 chunkX;
 {
@@ -48,7 +48,7 @@ uint16 chunkX;
  * north-west block, in blocks (0-15), and WinPos the party's position in
  * the window. These 4 functions copy each block from the world map.
  */
-/*C_249C*/LoadWindowNW()
+int16 /*C_249C*/LoadWindowNW()
 {
 	register int16 tx, ty;
 
@@ -63,7 +63,7 @@ uint16 chunkX;
 #define TMP0 (((WinBlock.x+1)&15))
 #define TMP1 (((WinBlock.y+1)&15))
 
-/*C_2517*/LoadWindowNE()
+int16 /*C_2517*/LoadWindowNE()
 {
 	register int16 tx, ty;
 
@@ -74,7 +74,7 @@ uint16 chunkX;
 				(*(MapChunks[WinBlock.y/2][TMP0/2]))[(WinBlock.y&1)*0x10+ty][(TMP0&1)*0x10+tx];
 }
 
-/*C_259F*/LoadWindowSW()
+int16 /*C_259F*/LoadWindowSW()
 {
 	register int16 tx, ty;
 
@@ -85,7 +85,7 @@ uint16 chunkX;
 				(*(MapChunks[TMP1/2][WinBlock.x/2]))[(TMP1&1)*0x10+ty][(WinBlock.x&1)*0x10+tx];
 }
 
-/*C_2624*/LoadWindowSE()
+int16 /*C_2624*/LoadWindowSE()
 {
 	register int16 tx, ty;
 
@@ -101,7 +101,7 @@ uint16 chunkX;
  * (around the position outside, Party.out_x/out_y, in a dungeon or shrine),
  * so that the party is in the middle area of the window.
  */
-/*C_26B6*/LoadWorldWindow()
+int16 /*C_26B6*/LoadWorldWindow()
 {
 	WinBlock.x = ((Party._loc < LOC_DUNGEONS)?Party._x:Party.out_x) >> 4;
 	WinPos.x = ((Party._loc < LOC_DUNGEONS)?Party._x:Party.out_x) & 15;
@@ -126,7 +126,7 @@ uint16 chunkX;
  * outdoor monsters (OUTMONST.SAV) and the party's position outside.
  * Coming out of Hythloth (0xef, 0xf0), the balloon is put nearby.
  */
-/*C_2747*/LeaveTown()
+int16 /*C_2747*/LeaveTown()
 {
 	u4_puts("Leaving...\n");
 	CurMode = MOD_VISION;
@@ -155,7 +155,7 @@ uint16 chunkX;
  * Replace the 8 outdoor monsters by daemons, all at x 0xe7 on the row
  * south of the party, unless the horn is in use (spell_effect 1).
  */
-/*C_27D9*/SpawnDaemons()
+int16 /*C_27D9*/SpawnDaemons()
 {
 	if(spell_effect != 1) {
 		register int16 i;
@@ -177,7 +177,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
  * Replace the 8 outdoor monsters by pirate ships, east of the party (the
  * ambush near the Isle of the Abyss).
  */
-/*C_280A*/SpawnPirates()
+int16 /*C_280A*/SpawnPirates()
 {
 	register int16 i;
 
@@ -194,7 +194,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
  * edge of the window, the window moves 16 tiles north: the north half
  * becomes the south half and the new north blocks are loaded.
  */
-/*C_2839*/ScrollNorth()
+int16 /*C_2839*/ScrollNorth()
 {
 	register int16 tx, ty;
 
@@ -214,7 +214,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
 /*
  * Move the party 1 tile south on the world map (see ScrollNorth).
  */
-/*C_2891*/ScrollSouth()
+int16 /*C_2891*/ScrollSouth()
 {
 	register int16 tx, ty;
 
@@ -234,7 +234,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
 /*
  * Move the party 1 tile west on the world map (see ScrollNorth).
  */
-/*C_28E9*/ScrollWest()
+int16 /*C_28E9*/ScrollWest()
 {
 	register int16 tx, ty;
 
@@ -254,7 +254,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
 /*
  * Move the party 1 tile east on the world map (see ScrollNorth).
  */
-/*C_2941*/ScrollEast()
+int16 /*C_2941*/ScrollEast()
 {
 	register int16 tx, ty;
 
@@ -283,7 +283,7 @@ unsigned char /*D_0904*/WalkableTiles[] = {
 /*
  * Returns 1 if the party can walk on the tile (see WalkableTiles), else 0.
  */
-/*C_2999*/IsWalkable(tile)
+int16 /*C_2999*/IsWalkable(tile)
 unsigned char tile;
 {
 	register int16 i;
@@ -294,14 +294,14 @@ unsigned char tile;
 	return 0;
 }
 
-/*C_29C3*/w_Blocked()
+int16 /*C_29C3*/w_Blocked()
 {
 	u4_puts("Blocked!\n");
 	sound(SND_BEEP);
 	u_kbflush();
 }
 
-/*C_29DE*/w_DriftOnly()
+int16 /*C_29DE*/w_DriftOnly()
 {
 	u4_puts("Drift Only!\n");
 	u_kbflush();
@@ -312,7 +312,7 @@ unsigned char tile;
  * 1 time in 8 in a swamp, 1 in 4 in scrub or forest, 1 in 2 in the hills
  * or in a fire field; else 0.
  */
-/*C_29EF*/IsSlowTerrain(tile)
+int16 /*C_29EF*/IsSlowTerrain(tile)
 unsigned char tile;
 {
 	switch(tile) {
@@ -328,7 +328,7 @@ unsigned char tile;
  * Returns 1 if a ship can sail on the tile: deep water, water, whirlpool
  * or twister.
  */
-/*C_2A38*/IsSailable(tile)
+int16 /*C_2A38*/IsSailable(tile)
 unsigned char tile;
 {
 	return (tile < TIL_SHALLOWS) || ((tile >= TIL_WHIRLPOOL) && (tile < TIL_RAT));
@@ -339,7 +339,7 @@ unsigned char tile;
  * in 4 into the wind (WindDir being where the wind comes from), 3 in 4 with
  * the wind behind, always across the wind.
  */
-/*C_2A5A*/WindAllows(dir)
+int16 /*C_2A5A*/WindAllows(dir)
 uint16 dir;
 {
 	if(WindDir == dir)
@@ -355,7 +355,7 @@ uint16 dir;
  * 4, else to the moongate given by the phase of Felucca.
  * Returns 1 if the party went through, else 0.
  */
-/*C_2A91*/CheckMoongate(tile)
+int16 /*C_2A91*/CheckMoongate(tile)
 unsigned char tile;
 {
 	if(tile != TIL_MOONGATE)
@@ -384,7 +384,7 @@ unsigned char tile;
  * 0 if blocked, through a moongate or out of the town.
  * In a town, walking off the map edge leaves the town.
  */
-/*C_2B19*/MoveNorth()
+int16 /*C_2B19*/MoveNorth()
 {
 	/*the entrance of Lord British's castle can only be walked into
 	  from the south, and left to the south*/
@@ -421,7 +421,7 @@ unsigned char tile;
  * faces north (against the wind or not, see WindAllows); the balloon can
  * only drift; else the party walks north (twice when galloping).
  */
-/*C_2B8C*/CMDDIR_Up()
+int16 /*C_2B8C*/CMDDIR_Up()
 {
 	if(Party._tile == TIL_SHIP_W || Party._tile == TIL_SHIP_E || Party._tile == TIL_SHIP_S) {
 		Party._tile = TIL_SHIP_N;
@@ -451,7 +451,7 @@ unsigned char tile;
 /*
  * Walk one tile south (see MoveNorth).
  */
-/*C_2C25*/MoveSouth()
+int16 /*C_2C25*/MoveSouth()
 {
 	if(!IsWalkable(tile_south)) {
 		w_Blocked();
@@ -480,7 +480,7 @@ unsigned char tile;
 /*
  * The South arrow key (see CMDDIR_Up).
  */
-/*C_2C8A*/CMDDIR_Down()
+int16 /*C_2C8A*/CMDDIR_Down()
 {
 	if(Party._tile == TIL_BALLOON) {
 		w_DriftOnly();
@@ -516,7 +516,7 @@ unsigned char tile;
 /*
  * Walk one tile west (see MoveNorth).
  */
-/*C_2D44*/MoveWest()
+int16 /*C_2D44*/MoveWest()
 {
 	if(!IsWalkable(tile_west)) {
 		w_Blocked();
@@ -545,7 +545,7 @@ unsigned char tile;
 /*
  * The West arrow key (see CMDDIR_Up). A horse turns west.
  */
-/*C_2DA9*/CMDDIR_Left()
+int16 /*C_2DA9*/CMDDIR_Left()
 {
 	if(Party._tile == TIL_BALLOON) {
 		w_DriftOnly();
@@ -578,7 +578,7 @@ unsigned char tile;
  * Walk one tile east (see MoveNorth). Arriving at (0xdd, 0xe0) on the
  * world map brings the pirates (SpawnPirates).
  */
-/*C_2E4F*/MoveEast()
+int16 /*C_2E4F*/MoveEast()
 {
 	if(!IsWalkable(tile_east)) {
 		w_Blocked();
@@ -611,7 +611,7 @@ unsigned char tile;
  * The East arrow key (see CMDDIR_Up). A horse turns east; sailing to
  * (0xdd, 0xe0) brings the pirates.
  */
-/*C_2EC5*/CMDDIR_Right()
+int16 /*C_2EC5*/CMDDIR_Right()
 {
 	if(Party._tile == TIL_BALLOON) {
 		w_DriftOnly();

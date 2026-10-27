@@ -72,7 +72,7 @@ char * /*D_7028*/LBAnswers[24] = {
  * Pause between pages of Lord British's speech: wait up to 10 seconds or until a key
  * is pressed (the key is eaten).
  */
-/*C_E1FC*/LB_Pause() {
+int16 /*C_E1FC*/LB_Pause() {
 	u_kbflush();
 	u_delay(10, 1);
 	if(u_kbhit())
@@ -83,7 +83,7 @@ char * /*D_7028*/LBAnswers[24] = {
  * Answer to "help": a hint chosen by how far the game has gone (moves, party size,
  * runes, partial Avatarhoods, stones, Bell/Book/Candle, the three-part key).
  */
-/*C_E21E*/LB_Help() {
+int16 /*C_E21E*/LB_Help() {
 	u4_puts(/*D_7058*/"He says: ");
 	if(Party._moves < 1000) {
 		u4_puts(/*D_7062*/"To survive in this hostile land thou must first know thyself! Seek ye to master thy weapons and thy magical ability!\n"); LB_Pause();
@@ -142,7 +142,7 @@ char * /*D_7028*/LBAnswers[24] = {
  * Look for word in LBKeywords (only the first 4 letters are compared, ignoring case).
  * Returns its index, or -1 if not found.
  */
-/*C_E37E*/LB_FindKeyword(word)
+int16 /*C_E37E*/LB_FindKeyword(word)
 char *word;
 {
 	int16 kw;
@@ -159,7 +159,7 @@ char *word;
 /*
  * Print one of Lord British's answers, pausing after every 13 lines.
  */
-/*C_E3D2*/LB_Speak(text)
+int16 /*C_E3D2*/LB_Speak(text)
 register char *text;
 {
 	register int16 lines;
@@ -180,7 +180,7 @@ register char *text;
 /*
  * Heal every character that is not dead: full hit points, status Good.
  */
-/*C_E408*/HealParty() {
+int16 /*C_E408*/HealParty() {
 	int16 chara;
 
 	for(chara = Party._members - 1; chara >= 0; chara --) {
@@ -194,7 +194,7 @@ register char *text;
 /*
  * Answer to "health": Lord British asks if you are well; on No he heals the party.
  */
-/*C_E442*/LB_Health() {
+int16 /*C_E442*/LB_Health() {
 	char answer;
 
 	u4_puts(/*D_784D*/"\n\n\n\n\n\nHe says: I am well, thank ye.\n\nHe asks: Art thou well?\x12\x12\b");
@@ -214,7 +214,7 @@ register char *text;
 /*
  * Raise the characteristic *stat by 1 to 8 (random), capped at 50.
  */
-/*C_E498*/RaiseStat(stat)
+int16 /*C_E498*/RaiseStat(stat)
 int16 *stat;
 {
 	*stat += U4_RND1(7)+1;
@@ -228,7 +228,7 @@ int16 *stat;
  * brings a dead one back to life) and strength, dexterity and intelligence each get
  * +1 to +8.
  */
-/*C_E4C3*/LB_LevelUp() {
+int16 /*C_E4C3*/LB_LevelUp() {
 	int16 limit, chara, newMax;
 
 	for(chara = 0; chara < Party._members; chara++) {
@@ -257,7 +257,7 @@ int16 *stat;
  * resurrects a dead leader, heals, and raises levels), then answer questions until
  * "bye" or an empty line.
  */
-/*C_E59B*/TalkToLB()
+int16 /*C_E59B*/TalkToLB()
 {
 	int16 topic;
 	char question[15];

@@ -54,7 +54,7 @@ unsigned char /*D_277E*/SpellRecipes[] = {
  * Note: choosing a reagent the party has none left of ends the mixture without
  * giving back the reagents already added: they are lost (probable original bug).
  */
-/*C_8C08*/CMD_Mix()
+int16 /*C_8C08*/CMD_Mix()
 {
 	register int16 n;
 	unsigned char saved[8];

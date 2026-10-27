@@ -80,7 +80,7 @@ static uint16 D_913E;
  * Avatar is on that path; "none", "bye" or an empty line ends. Leaving gives
  * 3 Spirituality, once per 100 moves (shared with meditation).
  */
-/*C_C922*/SHP_hawkwind()
+int16 /*C_C922*/SHP_hawkwind()
 {
 	int16 karmaLevel, virtueIdx;
 	char input[16];
@@ -185,7 +185,7 @@ unsigned char /*D_4190*/ReagentPrices[][6] = {
  * A paid purchase then gives 2 points in each of these, even after underpaying.
  * At most 99 of each reagent.
  */
-/*C_CAF6*/SHP_reagent()
+int16 /*C_CAF6*/SHP_reagent()
 {
 	char reply;
 	int16 amount, reagent, paid, shortBy;
@@ -341,7 +341,7 @@ char * /*D_4702*/WeaponPitches[] = {
  * Probable original bug: price * count is computed in 16 bits and wraps for the
  * expensive weapons (14 wands: 5000 * 14 = 70000 becomes 4464 gp).
  */
-/*C_CD1D*/WeaponShopDeal(weapon, count)
+int16 /*C_CD1D*/WeaponShopDeal(weapon, count)
 int16 weapon;
 int16 count;
 {
@@ -364,7 +364,7 @@ int16 count;
  * beeping until it is one of the shop's) and how many, until no more is wanted.
  * entry indexes the shop's stock; choice is the weapon, then the Y/N answer.
  */
-/*C_CD80*/WeaponShopBuy()
+int16 /*C_CD80*/WeaponShopBuy()
 {
 	int16 amount, entry, choice;
 
@@ -427,7 +427,7 @@ int16 count;
  * Probable original bug: when the first weapon asked for is not owned, the loop test
  * reads answer before anything was stored in it.
  */
-/*C_CEBE*/WeaponShopSell()
+int16 /*C_CEBE*/WeaponShopSell()
 {
 	int16 amount, weapon;
 	char answer;
@@ -494,7 +494,7 @@ int16 count;
 /*
  * SHOP #1 - weapons: welcome, then Buy or Sell (Space, Enter or Escape leave).
  */
-/*C_D085*/SHP_weapon()
+int16 /*C_D085*/SHP_weapon()
 {
 	char choice;
 
@@ -595,7 +595,7 @@ char * /*D_4BFC*/ArmourPitches[] = {
  * Buy count armours of the given kind if the party has the gold (at most 99 kept).
  * Probable original bug: as in WeaponShopDeal, price * count wraps in 16 bits.
  */
-/*C_D16D*/ArmourShopDeal(armour, count)
+int16 /*C_D16D*/ArmourShopDeal(armour, count)
 int16 armour;
 int16 count;
 {
@@ -616,7 +616,7 @@ int16 count;
 /*
  * Armour shop, buying: as WeaponShopBuy, with the shop's (up to 4) armours.
  */
-/*C_D1D0*/ArmourShopBuy()
+int16 /*C_D1D0*/ArmourShopBuy()
 {
 	int16 amount, entry, choice;
 
@@ -675,7 +675,7 @@ int16 count;
  * robes), for half its price; the party's gold is capped at 9999.
  * Probable original bug: as in WeaponShopSell, answer can be tested before being set.
  */
-/*C_D2F8*/ArmourShopSell()
+int16 /*C_D2F8*/ArmourShopSell()
 {
 	int16 amount, armour;
 	char answer;
@@ -742,7 +742,7 @@ int16 count;
 /*
  * SHOP #2 - armour: welcome, then Buy or Sell (Space, Enter or Escape leave).
  */
-/*C_D4AE*/SHP_armour()
+int16 /*C_D4AE*/SHP_armour()
 {
 	char choice;
 
@@ -789,7 +789,7 @@ int16 count;
  * SHOP #9 - horses: one horse per party member, 100 gp each; the party then rides
  * (Party._tile becomes a horse).
  */
-/*C_D596*/SHP_horse()
+int16 /*C_D596*/SHP_horse()
 {
 	char answer;
 
@@ -846,7 +846,7 @@ char * /*D_51BE*/GuildPitches[] = {
  * SHOP #8 - guild: torches, gems and keys, and a sextant, not on the list but
  * sold as item D. At most 99 of each.
  */
-/*C_D61E*/SHP_guild()
+int16 /*C_D61E*/SHP_guild()
 {
 	int16 item;
 	char reply;
@@ -955,7 +955,7 @@ char * /*D_54C8*/InnPitches[] = {
 /*
  * At night, the Avatar is attacked by rogues (a camp-style combat).
  */
-/*C_D7A8*/InnAmbush()
+int16 /*C_D7A8*/InnAmbush()
 {
 	int16 savedMode;
 
@@ -974,7 +974,7 @@ char * /*D_54C8*/InnPitches[] = {
  * ambushed by rogues; otherwise, in Skara Brae's inn (ShopId 5), 1 time in 4 the ghost
  * Isaac comes next to the bed.
  */
-/*C_D7D6*/InnNight()
+int16 /*C_D7D6*/InnNight()
 {
 	int16 chara;
 
@@ -1020,7 +1020,7 @@ unsigned char /*D_567A*/InnRoomPrices[] = {30,60,90, 0};
  * SHOP #7 - inn: not on horseback. Offers the room (or one of 3 rooms at the
  * Wayfarer's Inn), takes the gold and spends the night (InnNight).
  */
-/*C_D8DD*/SHP_inn()
+int16 /*C_D8DD*/SHP_inn()
 {
 	int16 room;
 	char answer;
@@ -1111,7 +1111,7 @@ char * /*D_57AC*/HealerKeepers[] = {
  * Probable original bug: AskChara returns -2 for '0', but the callers only test for -1
  * and then use Party.chara[-2].
  */
-/*C_DA05*/HealerAskWho()
+int16 /*C_DA05*/HealerAskWho()
 {
 	register int16 chara;
 
@@ -1127,7 +1127,7 @@ char * /*D_57AC*/HealerKeepers[] = {
 /*
  * Ask whether to pay price gold; if Yes, take it and return 1, else return 0.
  */
-/*C_DA3E*/HealerAskPay(price)
+int16 /*C_DA3E*/HealerAskPay(price)
 int16 price;
 {
 	char answer;
@@ -1148,7 +1148,7 @@ int16 price;
  * The healer's spell on a party member: flash the view and its status line with
  * a magic sound.
  */
-/*C_DA79*/HealerSpell(chara)
+int16 /*C_DA79*/HealerSpell(chara)
 int16 chara;
 {
 	Gra_InvertView();
@@ -1161,7 +1161,7 @@ int16 chara;
 /*
  * Healer: cure poison for 100 gp, for free when the party cannot pay.
  */
-/*C_DAA2*/HealerCure()
+int16 /*C_DAA2*/HealerCure()
 {
 	int16 chara;
 
@@ -1192,7 +1192,7 @@ int16 chara;
 /*
  * Healer: restore a member's HP to the maximum for 200 gp.
  */
-/*C_DB29*/HealerHeal()
+int16 /*C_DB29*/HealerHeal()
 {
 	int16 chara;
 
@@ -1218,7 +1218,7 @@ int16 chara;
 /*
  * Healer: bring a dead member back to life for 300 gp.
  */
-/*C_DB93*/HealerResurrect()
+int16 /*C_DB93*/HealerResurrect()
 {
 	int16 chara;
 
@@ -1245,7 +1245,7 @@ int16 chara;
  * Healer: ask the Avatar to give 100 HP of blood: Yes gives 5 Sacrifice, No costs 5
  * (other answers neither). dummy is an unused local of the original.
  */
-/*C_DBF5*/HealerBlood()
+int16 /*C_DBF5*/HealerBlood()
 {
 	char answer;
 	int16 dummy;
@@ -1268,7 +1268,7 @@ int16 chara;
  * SHOP #6 - healer: curing, healing and resurrection as long as wanted; then, if the
  * Avatar has at least 400 HP, the blood donation.
  */
-/*C_DC4D*/SHP_healer()
+int16 /*C_DC4D*/SHP_healer()
 {
 	int16 service;
 	char answer;
@@ -1368,7 +1368,7 @@ char * /*D_5F42*/PubAnswers[] = {
  * party can pay. Returns 1 to leave the pub (nothing ordered or not a single plate
  * afforded), 0 otherwise.
  */
-/*C_DD24*/PubFood()
+int16 /*C_DD24*/PubFood()
 {
 	int16 plates, sold;
 
@@ -1417,7 +1417,7 @@ char * /*D_5F42*/PubAnswers[] = {
  * Probable original bug: when no more gold is given (Enter), the test for the beep
  * checks money instead of extra, so the "could not hep ya" message is always shown.
  */
-/*C_DE35*/PubAle()
+int16 /*C_DE35*/PubAle()
 {
 	int16 money;
 	char ans;
@@ -1497,7 +1497,7 @@ char * /*D_5F42*/PubAnswers[] = {
 /*
  * SHOP #4 - pub: Food or Ale, as long as wanted.
  */
-/*C_DFAF*/SHP_pub()
+int16 /*C_DFAF*/SHP_pub()
 {
 	char choice;
 
@@ -1568,7 +1568,7 @@ char * /*D_6390*/FoodShopKeepers[] = {
  * Probable original bug: packs is a char, so amounts of 128 or more typed (up to 999)
  * wrap around: 200 packs is read as -56 ("Too bad"), 300 as 44.
  */
-/*C_E088*/SHP_food()
+int16 /*C_E088*/SHP_food()
 {
 	char packs;
 	char answer;

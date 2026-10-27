@@ -171,7 +171,7 @@ unsigned char /*D_2468*/WeaponIsRanged[] = {0x00,0x00,0x00,0xFF,0x00,0x00,0x00,0
  * (2-tile animations, 0x80-0x8F) give 0-7, the others (4-tile animations) 8-35.
  * The humans (tiles below 0x80) were meant to give 36-51 (see below).
  */
-/*C_7C25*/MonsterIndex(tile)
+int16 /*C_7C25*/MonsterIndex(tile)
 unsigned char tile;
 {
 	if(tile >= TIL_PIRATE_W) {
@@ -243,7 +243,7 @@ char * /*D_2512*/CombatMapFiles[] = {
  * is on a ship, the ship-at-sea or ship-at-shore map; when the foe is on water, the
  * shore map; else the map of the terrain under the party.
  */
-/*C_7C65*/LoadCombatMap()
+int16 /*C_7C65*/LoadCombatMap()
 {
 	register int16 map;
 
@@ -304,7 +304,7 @@ char * /*D_258E*/DngCombatMapFiles[] = {
  * Combat with a monster met in a dungeon corridor: the map depends on the tile the
  * party stands on.
  */
-/*C_7D50*/DungeonCombat()
+int16 /*C_7D50*/DungeonCombat()
 {
 #ifdef WIN32
 	if(Load(DngCombatMapFiles[DngRoomMapIndex[tile_cur>>4]], sizeof(struct tCombat), &Combat) == -1)
@@ -319,7 +319,7 @@ char * /*D_258E*/DngCombatMapFiles[] = {
 /*
  * Combat at night in an inn (see InnAmbush).
  */
-/*C_7D92*/InnCombat()
+int16 /*C_7D92*/InnCombat()
 {
 #ifdef WIN32
 	if(Load(/*D_259C*/"INN.CON", sizeof(struct tCombat), &Combat) == -1)
@@ -334,7 +334,7 @@ char * /*D_258E*/DngCombatMapFiles[] = {
  * Start an outdoor/town combat against CombatFoeTile: clear the fighters, load
  * the map, fight.
  */
-/*C_7DBC*/CombatBegin()
+int16 /*C_7DBC*/CombatBegin()
 {
 	register int16 slot;
 
@@ -357,7 +357,7 @@ char * /*D_258E*/DngCombatMapFiles[] = {
  * ground under it (outdoors the map is the 32x32 window at WinBlock), remove it
  * from the map, fight.
  */
-/*C_7DFE*/StartCombat(npc)
+int16 /*C_7DFE*/StartCombat(npc)
 register uint16 npc;
 {
 	CombatFoeTile = Area._npc._tile[npc];
@@ -387,7 +387,7 @@ register uint16 npc;
  * (1/8), or by the partner's partner (1/32).
  * A foe gets HP = (maxHP / 2) | random(maxHP).
  */
-/*C_7E7E*/PlaceFoes()
+int16 /*C_7E7E*/PlaceFoes()
 {
 	register int16 count, fighter;
 	int16 i, hp;
@@ -435,7 +435,7 @@ register uint16 npc;
  * Run a combat on the loaded map, then come back to the previous mode (a camp
  * combat stays in MOD_COM_CAMP and does not change SavedMode).
  */
-/*C_7FD7*/RunCombat()
+int16 /*C_7FD7*/RunCombat()
 {
 	if(CurMode != MOD_COM_CAMP) {
 		SavedMode = CurMode;
@@ -453,7 +453,7 @@ register uint16 npc;
  * the map and the triggers, and fight. Room 15 of the dungeons other than the Abyss
  * is an altar room (Truth, Love or Courage, depending on the party's x).
  */
-/*C_7FFD*/EnterDungeonRoom()
+int16 /*C_7FFD*/EnterDungeonRoom()
 {
 	struct /*dungeon room info*/ {
 		/*the 4 triggers (see RoomTriggers)*/
@@ -550,7 +550,7 @@ register uint16 npc;
 /*
  * After a combat: redraw the dungeon view if needed, flush the keyboard.
  */
-/*C_8214*/CombatCleanup()
+int16 /*C_8214*/CombatCleanup()
 {
 	if(SavedMode == MOD_DUNGEON)
 		DNG_LookAround();
@@ -564,7 +564,7 @@ register uint16 npc;
  * "(slot >= (SavedMode == MOD_OUTDOORS)) ? 8 : 0" (original bug): outdoors the
  * search goes down to slot 1 (and returns slot 0 when none is free).
  */
-/*C_8228*/FreeNpcSlot()
+int16 /*C_8228*/FreeNpcSlot()
 {
 	register int16 slot;
 
@@ -586,7 +586,7 @@ register uint16 npc;
  * Note: SavedMode is never MOD_COM_CAMP (see CombatEnd), so the first test of the
  * third case is always true.
  */
-/*C_8283*/CombatSpoils()
+int16 /*C_8283*/CombatSpoils()
 {
 	register int16 tile;/*then the NPC slot*/
 
@@ -651,7 +651,7 @@ unsigned char /*D_261A*/AltarRoomExits[][4] = {
  * MOD_COM_CAMP; probably meant CurMode, so the camp/inn ambushes also leave
  * spoils, at the stale CombatFoeX/Y for the inn).
  */
-/*C_837A*/CombatEnd()
+int16 /*C_837A*/CombatEnd()
 {
 	register int16 chara;
 

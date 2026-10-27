@@ -12,7 +12,7 @@
 /*
  * Shake the screen (4 times up and down).
  */
-/*C_095E*/ShakeScreen()
+int16 /*C_095E*/ShakeScreen()
 {
 	Gra_ShiftUp(); Gra_ShiftDown();
 	Gra_ShiftUp(); Gra_ShiftDown();
@@ -23,7 +23,7 @@
 /*
  * Give xp experience points to the character chara (max 9999).
  */
-/*C_097D*/XP_inc(chara, xp)
+int16 /*C_097D*/XP_inc(chara, xp)
 int16 chara;
 int16 xp;
 {
@@ -32,7 +32,7 @@ int16 xp;
 		Party.chara[chara]._XP = 9999;
 }
 
-/*C_09A3*/w_Pass()
+int16 /*C_09A3*/w_Pass()
 {
 	u4_puts("Pass\n");
 }
@@ -40,7 +40,7 @@ int16 xp;
 /*
  * Give amount hit points to the character chara, up to its maximum.
  */
-/*C_09B1*/HP_inc(chara, amount)
+int16 /*C_09B1*/HP_inc(chara, amount)
 int16 chara;
 int16 amount;
 {
@@ -52,7 +52,7 @@ int16 amount;
 /*
  * Flash the status line of the character chara, with the "hurt" sound.
  */
-/*C_09D9*/FlashChara(chara)
+int16 /*C_09D9*/FlashChara(chara)
 int16 chara;
 {
 	Gra_InvertStatusLine(chara);
@@ -64,7 +64,7 @@ int16 chara;
  * Increase a virtue (karma points, max 99). A virtue at 0 has been
  * achieved (the party has its eighth of avatarhood) and does not change.
  */
-/*C_09F8*/karma_inc(karma, amount)
+int16 /*C_09F8*/karma_inc(karma, amount)
 U16 *karma;
 uint16 amount;
 {
@@ -81,7 +81,7 @@ uint16 amount;
  * Probable original bug: *karma is unsigned, so the "<= 0" test only catches
  * 0; a virtue lower than amount wraps around to a huge value instead of 1.
  */
-/*C_0A17*/karma_dec(karma, amount)
+int16 /*C_0A17*/karma_dec(karma, amount)
 U16 *karma;
 uint16 amount;
 {
@@ -103,7 +103,7 @@ uint16 amount;
  * Look for an NPC/monster (Area._npc, indexes last down to 0) at (x, y).
  * Returns its index, or -1 if there is none.
  */
-/*C_0A58*/FindNpcAt(last, x, y)
+int16 /*C_0A58*/FindNpcAt(last, x, y)
 int16 last;
 unsigned char x;
 unsigned char y;
@@ -122,7 +122,7 @@ unsigned char y;
 /*
  * FindNpcAt for the current map: 8 monsters outdoors, 32 NPCs elsewhere.
  */
-/*C_0A8B*/FindLocalNpcAt(x, y)
+int16 /*C_0A8B*/FindLocalNpcAt(x, y)
 unsigned char x;
 unsigned char y;
 {
@@ -132,7 +132,7 @@ unsigned char y;
 /*
  * a % b, or 0 when b is 0.
  */
-/*C_0AB1*/SafeModulo(a, b)
+int16 /*C_0AB1*/SafeModulo(a, b)
 int16 a;
 int16 b;
 {
@@ -145,7 +145,8 @@ int16 b;
  * The tile of the character chara: its class's tile, or TIL_SLEEPING
  * if it is asleep.
  */
-/*C_0ACF*/CharaTile(chara)
+int16 /*C_0ACF*/CharaTile(chara)
+int16 chara;
 {
 	if(Party.chara[chara]._stat == 'S')
 		return TIL_SLEEPING;
@@ -158,7 +159,7 @@ int16 b;
  * ...), TIL_SEAHORSE, TIL_RAT, TIL_BAT, TIL_SPIDER, TIL_INSECTS and
  * TIL_PYTHON; else returns 0.
  */
-/*C_0AFE*/IsNonEvil(tile)
+int16 /*C_0AFE*/IsNonEvil(tile)
 unsigned char tile;
 {
 	if(tile < TIL_PIRATE_W ||
@@ -175,7 +176,7 @@ unsigned char tile;
  * waits for a key so that the text can be read.
  * Returns the number of characters printed.
  */
-/*C_0B38*/u4_puts(txt)
+int16 /*C_0B38*/u4_puts(txt)
 register char *txt;
 {
 	register int16 i;
@@ -223,7 +224,7 @@ register char *txt;
  * value, but then goes on with the negative value (no return) and prints
  * padding and garbage after it. The game only prints positive values.
  */
-/*C_0C03*/u4_putl(value, width, pad)
+int16 /*C_0C03*/u4_putl(value, width, pad)
 int32 value;
 int16 width;
 char pad;
@@ -250,7 +251,7 @@ char pad;
  * goes to the next line when the line is full (a space at the end of a
  * line is dropped).
  */
-/*C_0C9F*/u4_putc(c)
+int16 /*C_0C9F*/u4_putc(c)
 unsigned char c;
 {
 	switch(c) {
@@ -282,7 +283,7 @@ unsigned char c;
  * and state; then the food, the spell effect and the ship's hull (on a
  * ship) or the gold. The text cursor is kept.
  */
-/*C_0CF7*/dspl_Stats()
+int16 /*C_0CF7*/dspl_Stats()
 {
 	register int16 i;
 	register struct tChara *pChara;
@@ -326,7 +327,7 @@ unsigned char c;
 /*
  * Redraw the gold in the status area (the text cursor is kept).
  */
-/*C_0E0E*/dspl_Gold() {
+int16 /*C_0E0E*/dspl_Gold() {
 	int16 prevCol, prevRow;
 
 	prevCol = txt_X;
@@ -342,7 +343,7 @@ unsigned char c;
  * Returns 1 if the character chara exists and is alive: state 'G' (good),
  * 'P' (poisoned) or 'S' (asleep).
  */
-/*C_0E4E*/isCharaAlive(chara)
+int16 /*C_0E4E*/isCharaAlive(chara)
 int16 chara;
 {
 	if(chara >= Party._members)
@@ -356,7 +357,7 @@ int16 chara;
 /*
  * Returns 1 if the character chara exists and can act: state 'G' or 'P'.
  */
-/*C_0E82*/isCharaConscious(chara)
+int16 /*C_0E82*/isCharaConscious(chara)
 int16 chara;
 {
 	if(chara >= Party._members)
@@ -373,7 +374,7 @@ int16 chara;
  * weapons and armour, with 200 gold and 200 food. Does not return: jumps
  * back to the main loop.
  */
-/*C_0EB1*/PartyDeath()
+int16 /*C_0EB1*/PartyDeath()
 {
 	int16 i;
 
@@ -455,7 +456,7 @@ int16 chara;
  * Returns 1 if at least one character is conscious, 0 if the living ones
  * are all asleep. If the whole party is dead, calls PartyDeath (no return).
  */
-/*C_10FD*/CheckPartyAlive()
+int16 /*C_10FD*/CheckPartyAlive()
 {
 	register int16 i;
 
@@ -475,7 +476,7 @@ int16 chara;
  * The character chara takes damage hit points.
  * Returns 0 if it survives, 1 if it dies.
  */
-/*C_1135*/hitChara(chara, damage)
+int16 /*C_1135*/hitChara(chara, damage)
 uint16 damage;
 int16 chara;
 {
@@ -494,42 +495,42 @@ int16 chara;
 	return 1;
 }
 
-/*C_1188*/w_What()
+int16 /*C_1188*/w_What()
 {
 	u4_puts("What?\n");
 	u_kbflush();
 }
 
-/*C_1199*/w_Cant_t()
+int16 /*C_1199*/w_Cant_t()
 {
 	u4_puts("Can't!\n");
 	u_kbflush();
 }
 
-/*C_11AA*/w_NotHere()
+int16 /*C_11AA*/w_NotHere()
 {
 	u4_puts("Not Here!\n");
 	u_kbflush();
 }
 
-/*C_11BB*/w_Disabled()
+int16 /*C_11BB*/w_Disabled()
 {
 	u4_puts("Disabled!\n");
 	u_kbflush();
 }
 
-/*C_11CC*/w_OnlyOnFoot()
+int16 /*C_11CC*/w_OnlyOnFoot()
 {
 	u4_puts("Only on foot!\n");
 	u_kbflush();
 }
 
-/*C_11DD*/w_SlowProgress()
+int16 /*C_11DD*/w_SlowProgress()
 {
 	u4_puts("Slow progress!\n");
 }
 
-/*C_11EB*/w_NoneLeft()
+int16 /*C_11EB*/w_NoneLeft()
 {
 	u4_puts("None left!\n");
 }
@@ -539,7 +540,7 @@ int16 chara;
  * a beep until one is typed. Returns it (upper case), -1 for Enter/Space,
  * -2 for Escape.
  */
-/*C_11F9*/AskLetter(prompt, lo, hi)
+int16 /*C_11F9*/AskLetter(prompt, lo, hi)
 char *prompt;
 char lo;
 char hi;
@@ -577,7 +578,7 @@ char hi;
  * 1 by itself. Returns the character's index (0-based), -1 if none was
  * chosen, -2 for '0'.
  */
-/*C_1287*/AskChara(prompt)
+int16 /*C_1287*/AskChara(prompt)
 char *prompt;
 {
 	register int16 key;
@@ -601,7 +602,7 @@ char *prompt;
  * Backspace or Enter give no direction (0, 0); any other key beeps and
  * asks again.
  */
-/*C_12D6*/AskDir(prompt, dx, dy)
+int16 /*C_12D6*/AskDir(prompt, dx, dy)
 char *prompt;
 register int16 *dx;
 register int16 *dy;
@@ -648,7 +649,7 @@ register int16 *dy;
  * Consume amount food. Returns 1 if there was not enough (food becomes 0),
  * else 0.
  */
-/*C_138B*/food_dec(amount)
+int16 /*C_138B*/food_dec(amount)
 int16 amount;
 {
 	Party._food -= amount;
@@ -664,7 +665,7 @@ int16 amount;
  * class: mage 2*int, bard/paladin/ranger int, druid 3/2*int, tinker int/2,
  * others 0 (max 99).
  */
-/*C_13B6*/MP_recover()
+int16 /*C_13B6*/MP_recover()
 {
 	register struct tChara *p;
 	int16 chara;
@@ -697,7 +698,7 @@ int16 amount;
  * Probable original bug: for an empty answer the final loop reads buf[-1]
  * (and clears the bytes before buf as long as they are spaces).
  */
-/*C_1445*/u4_gets(buf, size)
+int16 /*C_1445*/u4_gets(buf, size)
 register char *buf;
 uint16 size;
 {
@@ -778,7 +779,7 @@ unsigned char tile;
  * Probable original bug: Party._ship is unsigned, so "< 0" is never true:
  * the ship never sinks here and the hull wraps around.
  */
-/*C_1584*/DamageAllParty()
+int16 /*C_1584*/DamageAllParty()
 {
 	register int16 i;
 	int16 damage;
@@ -816,7 +817,7 @@ unsigned char tile;
  * Wait for Y or N (or Space, Escape, Enter), beeping at other keys.
  * Returns the key (upper case).
  */
-/*C_162F*/AskY_N()
+int16 /*C_162F*/AskY_N()
 {
 	int16 key;
 

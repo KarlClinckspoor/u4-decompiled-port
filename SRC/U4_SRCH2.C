@@ -16,7 +16,7 @@ char * /*D_2E04*/MsgHmmmNoEffect[] = {/*D_2DF0*/"\nHmmm--No Effect!\n"};
  * Hurt character #chara for 100 * hundreds hit points, flashing its status line
  * and playing the "hurt" sound three times.
  */
-/*C_B730*/HurtChara(chara, hundreds)
+int16 /*C_B730*/HurtChara(chara, hundreds)
 int16 chara;
 int16 hundreds;
 {
@@ -32,7 +32,7 @@ int16 hundreds;
  * Add amount to the characteristic (strength, dexterity or intelligence) *stat,
  * capped at 50.
  */
-/*C_B770*/AddStat(stat, amount)
+int16 /*C_B770*/AddStat(stat, amount)
 int16 *stat;
 int16 amount;
 {
@@ -54,7 +54,7 @@ int16 /*D_2E7E*/BallStats[][8] = {
  * Search found a magic ball: a chosen character touches it, takes damage and gains
  * +5 in the characteristic(s) of this dungeon's ball. The ball is removed from the map.
  */
-/*C_B795*/TouchBall()
+int16 /*C_B795*/TouchBall()
 {
 	int16 chara;
 
@@ -87,7 +87,7 @@ int16 /*D_2E7E*/BallStats[][8] = {
  * the low nibble of the tile: 0 nothing, 1 heals fully, 2 hurts, 3 cures poison,
  * 4 poisons (and hurts).
  */
-/*C_B863*/DrinkFountain()
+int16 /*C_B863*/DrinkFountain()
 {
 	int16 chara;
 
@@ -136,7 +136,7 @@ int16 /*D_2E7E*/BallStats[][8] = {
  * Search found an altar with a stone: gives this dungeon's stone once (Hythloth and
  * the Abyss have none), with +5 honor and 200 experience to the first character.
  */
-/*C_B93F*/FindStone()
+int16 /*C_B93F*/FindStone()
 {
 	if(
 		Party._loc == LOC_HYTHLOTH || Party._loc == LOC_ABYSS ||
@@ -157,7 +157,7 @@ int16 /*D_2E7E*/BallStats[][8] = {
  * (S)earch in a dungeon: the high nibble of the current tile tells what is here
  * (0x70 magic ball, 0x90 fountain, 0xB0 altar with a stone).
  */
-/*C_B9B2*/DNG_Search()
+int16 /*C_B9B2*/DNG_Search()
 {
 	u4_puts(/*D_2F52*/"Search...\n");
 	switch(tile_cur & 0xf0) {
