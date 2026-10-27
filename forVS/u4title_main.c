@@ -7,20 +7,20 @@
 
 #include "common.h"
 
-unsigned D_31C0;
+unsigned /*D_31C0*/cursor_enabled;
 struct tParty Party;
 void *pShapes;
 void *pCharset;
-unsigned D_7082;
+unsigned /*D_7082*/TwoDrives;
 unsigned equip_flags;
 struct tPSP *far_psp;
 void *pAnim;
 unsigned cursor_rate;
-unsigned D_6E80;
-unsigned D_6E80;
+unsigned /*D_6E80*/MonstersShown;
+unsigned /*D_6E80*/MonstersShown;
 unsigned speed_info;
-struct t_500 D_6976;
-unsigned D_7078;
+struct tArea /*D_6976*/Area;
+unsigned /*D_7078*/GraphicsType;
 unsigned txt_X;
 void *pTitle;
 unsigned txt_Y;
@@ -29,7 +29,7 @@ unsigned txt_Y;
 int u_kbhit() {
 	CONSOLE("u_kbhit\n");
 	CMN_pumpmessages();
-	t_callback();
+	AnimateMonsters();
 
 	return CMN_kbhit != 0;
 }
@@ -55,7 +55,7 @@ __cdecl u_delay(unsigned a, unsigned b) {
 	while(a) {
 		a --;
 		CMN_pumpmessages();
-		t_callback();
+		AnimateMonsters();
 		if(b && CMN_kbhit != 0)
 			break;
 	}
@@ -73,7 +73,7 @@ unsigned char u_rand_b() {
 	return rand();
 }
 
-Gra_putchar(char c) {
+Gra_PutChar(char c) {
 #if 0
 	CONSOLE("Gra_putchar(%d,%d,", txt_X, txt_Y);
 	switch(c) {
@@ -91,14 +91,14 @@ Gra_putchar(char c) {
 
 	FAKE_RET;
 }
-__cdecl Gra_dot(int y, int x, int col) {
+__cdecl Gra_Dot(int y, int x, int col) {
 	CMN_beginScene();
 	CMN_putpixel(x, y, col);
 	CMN_endScene();
 
 	FAKE_RET;
 }
-Gra_animFlow(unsigned tile) {
+Gra_AnimFlow(unsigned tile) {
 	int i;
 	unsigned char *p;
 	unsigned short AX,DX;
@@ -119,7 +119,7 @@ Gra_animFlow(unsigned tile) {
 	FAKE_RET;
 }
 static char random() { return (char)(rand() & 0xff); }
-Gra_animFlag() {
+Gra_AnimFlags() {
 	unsigned char *p;
 	unsigned short temp;
 	CONSOLE("Gra_animFlag\n");
@@ -146,7 +146,7 @@ Gra_animFlag() {
 	FAKE_RET;
 }
 
-__cdecl Gra_0(
+__cdecl Gra_DrawView(
 	int height/*bp04*/, int width/*bp06*/, unsigned char *pSrc_0/*bp08*/,
 	int dst_y/*bp0a*/,
 	unsigned dst_ofs/*bp0c*/, unsigned dst_seg/*bp0e*/,
@@ -173,14 +173,14 @@ __cdecl Gra_0(
 	FAKE_RET;
 }
 /*clear view zone*/
-Gra_2() {
+Gra_ClearMenu() {
 	CONSOLE("Gra_2 \"clear view zone\"\n");
 	CMN_clear(1, 13, 38, 10, 0);
 
 	FAKE_RET;
 }
 
-__cdecl Gra_3(
+__cdecl Gra_Blit(
 	int width_in_char/*bp04*/, int height/*bp06*/,
 	int src_x_in_char/*bp08*/, int src_y/*bp0a*/,
 	void *p/*bp0e:bp0c*/,
@@ -241,13 +241,13 @@ __cdecl Gra_3(
 	FAKE_RET;
 }
 /*clear text zone*/
-Gra_5() {
+Gra_ClearText() {
 	CONSOLE("Gra_5 \"clear text zone\"\n");
 	CMN_clear(0, 19, 40, 6, 0);
 
 	FAKE_RET;
 }
-__cdecl Gra_B(
+__cdecl Gra_BlitReveal(
 	int width_in_char/*bp04*/, int height/*bp06*/,
 	int src_x_in_char/*bp08*/, int src_y/*bp0a*/,
 	void *p/*bp0e:bp0c*/,
@@ -256,11 +256,11 @@ __cdecl Gra_B(
 	int dst_x_in_char/*bp14*/
 ) {
 	CONSOLE("Gra_B==>");
-	Gra_3(width_in_char, height, src_x_in_char, src_y, p, dst_y, somecounter, dst_x_in_char);
+	Gra_Blit(width_in_char, height, src_x_in_char, src_y, p, dst_y, somecounter, dst_x_in_char);
 
 	FAKE_RET;
 }
-__cdecl Gra_C(int height, int width, void *p_0, int dst_y, void *dst, int dst_x_in_byte) {
+__cdecl Gra_DrawViewOver(int height, int width, void *p_0, int dst_y, void *dst, int dst_x_in_byte) {
 	unsigned char *pSrc;
 	unsigned char *dst_0;
 	int i, j;
@@ -299,7 +299,7 @@ void output_func(unsigned char root, unsigned char *destination, long* position)
     (*position)++;
 }
 
-__cdecl Gra_inflate(const char *fname, void *dest) {
+__cdecl Gra_LoadPicture(const char *fname, void *dest) {
 	char path[256];
 	int fd;
 
@@ -331,7 +331,7 @@ __cdecl Gra_inflate(const char *fname, void *dest) {
 
 	FAKE_RET;
 }
-Gra_clrscr() {
+Gra_ClearScreen() {
 	CONSOLE("Gra_clrscr\n");
 	CMN_clear(0, 0, 40, 25, 0);
 
@@ -351,10 +351,10 @@ _ffree(void *p) {
 	FAKE_RET;
 }
 //-- for EGA? --
-sizzleShapes() {
+InterleaveShapes() {
 	FAKE_RET;
 }
-C_217E(char *a, void *b) {
+LoadCompressed(char *a, void *b) {
 	FAKE_RET;
 }
 //-- --
@@ -365,10 +365,10 @@ low_clean() {
 	FAKE_RET;
 }
 /*set int 24h handler*/
-C_331E() {
+u_setint24() {
 	FAKE_RET;
 }
-Gra_init() {
+Gra_Init() {
 	CMN_createWindow(320 * RATIO, 200 * RATIO, pShapes, pCharset);
 
 	FAKE_RET;
@@ -392,16 +392,16 @@ low_init() {
 }
 
 /*get some floppy #?*/
-C_32AB(int a) {
+u_fexist(int a) {
 	return 1;
 }
 int current_drive = 0;
 /*current drive*/
-int C_3290() {
+int u_getdrive() {
 	return current_drive;
 }
 /*current drive*/
-C_3299(int num) {
+u_setdrive(int num) {
 	current_drive = num;
 
 	FAKE_RET;

@@ -1,0 +1,7 @@
+tools/*.zip
+tools/MSC400/
+tools/masm300/
+tools/MASM300.EXE
+__pycache__/
+*.OBJ
+*.MAP

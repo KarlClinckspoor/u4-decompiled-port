@@ -33,7 +33,7 @@ LOCATE
 
 ----------------------------------------*/
 
-unsigned char D_2334[] = {
+unsigned char /*D_2334*/ClassMasks[] = {
 	/*weapons class masks*/
 	0xFF,0xFF,0xFF,0xFF,0x7F,0x6F,0x6F,0x7E,0x7E,0xFF,0x2C,0x0C,0x2E,0x5E,0xD0,0xFF,
 	/*D_2344*//*armor class masks*/
@@ -41,18 +41,18 @@ unsigned char D_2334[] = {
 };
 
 /*"may not use"*/
-C_75DC(bp08, bp06, bp04)
+/*C_75DC*/w_MayNotUse(bp08, bp06, bp04)
 int bp08;
 int bp06;
 int bp04;
 {
 	u4_puts(/*D_2322*/"\nA ");
-	u4_puts(D_1E98[77 + (int)Party.chara[bp08]._class]);
+	u4_puts(Names[77 + (int)Party.chara[bp08]._class]);
 	u4_puts(/*D_2326*/" may NOT use ");
 	if(bp04)
 		u4_putc('a');
 	Gra_CR();
-	u4_puts(D_1E98[37 + bp06]);
+	u4_puts(Names[37 + bp06]);
 	Gra_CR();
 	sound(1);
 }
@@ -70,15 +70,15 @@ int bp04;
 		if((loc_A = AskChara(/*D_236B*/"for:\x12\x12\b")) < 0)
 			return;
 	}
-	Gra_13();
-	C_4832();
+	Gra_ClearStatus();
+	ZtatsWeapons();
 	txt_Y = 23; txt_X = 24;
 	loc_B = AskLetter(/*D_2373*/"Weapon:\x12\x12\b", 'A', 'P');
-	Gra_13();
-	C_4649();
+	Gra_ClearStatus();
+	ZtatsClearTitle();
 	dspl_Stats();
 	if(CurMode >= MOD_COMBAT)
-		Gra_11(activeChara);
+		Gra_InvertStatusLine(activeChara);
 	if(loc_B < 0)
 		return;
 	loc_B -= 'A';
@@ -87,8 +87,8 @@ int bp04;
 		return;
 	}
 	if(loc_B != 0) {
-		if(((0x80 >> Party.chara[loc_A]._class) & D_2334[loc_B]) == 0) {
-			C_75DC(loc_A, loc_B, 1);
+		if(((0x80 >> Party.chara[loc_A]._class) & ClassMasks[loc_B]) == 0) {
+			w_MayNotUse(loc_A, loc_B, 1);
 			return;
 		}
 	}
@@ -99,7 +99,7 @@ int bp04;
 	if(loc_B != 0) 
 		Party._weapons[loc_B] --;
 	Party.chara[loc_A]._weapon = loc_B;
-	u4_puts(D_1E98[37 + loc_B]);
+	u4_puts(Names[37 + loc_B]);
 	Gra_CR();
 }
 
@@ -111,15 +111,15 @@ int bp04;
 	u4_puts(/*D_237E*/"Wear Armour\n");
 	if((loc_A = AskChara(/*D_238B*/"for:\x12\x12\b")) < 0)
 		return;
-	Gra_13();
-	C_48F8();
+	Gra_ClearStatus();
+	ZtatsArmour();
 	txt_Y = 23; txt_X = 24;
 	loc_B = AskLetter(/*D_2393*/"Armour:\x12\x12\b", 'A', 'H');
-	Gra_13();
-	C_4649();
+	Gra_ClearStatus();
+	ZtatsClearTitle();
 	dspl_Stats();
 	if(CurMode >= MOD_COMBAT)
-		Gra_11(activeChara);
+		Gra_InvertStatusLine(activeChara);
 	if(loc_B < 0)
 		return;
 	loc_B -= 'A';
@@ -128,8 +128,8 @@ int bp04;
 		return;
 	}
 	if(loc_B != 0) {
-		if(((0x80 >> Party.chara[loc_A]._class) & D_2334[loc_B + 0x10]) == 0) {
-			C_75DC(loc_A, loc_B + 0x10, 0);
+		if(((0x80 >> Party.chara[loc_A]._class) & ClassMasks[loc_B + 0x10]) == 0) {
+			w_MayNotUse(loc_A, loc_B + 0x10, 0);
 			return;
 		}
 	}
@@ -140,6 +140,6 @@ int bp04;
 	if(loc_B != 0)
 		Party._armors[loc_B] --;
 	Party.chara[loc_A]._armor = loc_B;
-	u4_puts(D_1E98[53 + loc_B]);
+	u4_puts(Names[53 + loc_B]);
 	Gra_CR();
 }

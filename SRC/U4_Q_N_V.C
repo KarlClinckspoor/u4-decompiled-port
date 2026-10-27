@@ -23,21 +23,21 @@
 	if(Save(/*D_21C5*/"PARTY.SAV", sizeof(struct tParty), &Party) == -1)
 		exit(3);
 	if(Party._loc == 0) {
-		if(Save(/*D_21CF*/"MONSTERS.SAV", sizeof(struct tNPC), &(D_8742._npc)) == -1)
+		if(Save(/*D_21CF*/"MONSTERS.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 			exit(3);
 	}
 	if(Party._loc < 0x11 || Party._loc > 0x18)
 		return;
-	if(Save(/*D_21DC*/"MONSTERS.SAV", sizeof(struct tNPC), &(D_8742._npc)) == -1)
+	if(Save(/*D_21DC*/"MONSTERS.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
-	if(Save(/*D_21E9*/"DNGMAP.SAV", sizeof(tMap8x8x8), &(D_8742._map)) == -1)
+	if(Save(/*D_21E9*/"DNGMAP.SAV", sizeof(tMap8x8x8), &(Area._map)) == -1)
 		exit(3);
 }
 
-char D_21F4[] = ", You must lead!\n";
+char /*D_21F4*/MsgMustLead[] = ", You must lead!\n";
 
 /*exchange two party members ?*/
-C_6FF9(bp06, bp04)
+/*C_6FF9*/SwapCharas(bp06, bp04)
 struct tChara *bp06;
 struct tChara *bp04;
 {
@@ -59,7 +59,7 @@ struct tChara *bp04;
 	loc_A = &(Party.chara[loc_C]);
 	if(loc_A == &(Party.chara[0])) {
 		u4_puts(Party.chara[0]._name);
-		u4_puts(D_21F4);
+		u4_puts(MsgMustLead);
 		return;
 	}
 	if((loc_D = AskChara(/*D_2220*/"    with #\x12\x12\b")) < 0)
@@ -67,15 +67,15 @@ struct tChara *bp04;
 	loc_B = &(Party.chara[loc_D]);
 	if(loc_B == &(Party.chara[0])) {
 		u4_puts(Party.chara[0]._name);
-		u4_puts(D_21F4);
+		u4_puts(MsgMustLead);
 		return;
 	}
 	if(loc_A == loc_B) {
 		w_What();
 		return;
 	}
-	C_6FF9(loc_A, loc_B);
-	Gra_13();
+	SwapCharas(loc_A, loc_B);
+	Gra_ClearStatus();
 	dspl_Stats();
 }
 

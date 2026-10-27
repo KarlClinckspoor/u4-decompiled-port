@@ -7,12 +7,12 @@ XO	ENDS
 XOE	SEGMENT PUBLIC WORD 'BSS'
 XOE	ENDS
 
-PUBLIC D_6E80
+PUBLIC MonstersShown
 PUBLIC Party
-PUBLIC D_7078
+PUBLIC GraphicsType
 PUBLIC pShapes
 PUBLIC pAnim
-PUBLIC D_7082
+PUBLIC TwoDrives
 PUBLIC pCharset
 PUBLIC txt_X
 PUBLIC txt_Y
@@ -24,12 +24,12 @@ PUBLIC pTitle
 c_common	SEGMENT PUBLIC PARA 'BSS'
 	ASSUME DS:DGROUP
 
-D_6E80	dw ?	;2 monster callback flag
+MonstersShown	dw ?	;D_6E80 2 monster callback flag
 Party	db 1F6h dup(?)	;D_6E82
-D_7078	dw ?	;graphic adapter
+GraphicsType	dw ?	;D_7078 graphic adapter
 pShapes	dd ?	;D_707A
 pAnim	dd ?	;D_707E
-D_7082	dw ?
+TwoDrives	dw ?	;D_7082
 pCharset	dd ?	;D_7084
 txt_X	dw ?	;D_7088
 txt_Y	dw ?	;D_708A

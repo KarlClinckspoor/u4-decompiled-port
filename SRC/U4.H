@@ -42,10 +42,10 @@
 #define ST_CAST_SKULL  1
 #define ST_SKULL       0
 
-#define DNG_X_p(x, dir) (((x) + D_080C[(dir)]) & 7)
-#define DNG_X_m(x, dir) (((x) - D_080C[(dir)]) & 7)
-#define DNG_Y_p(y, dir) (((y) + D_0810[(dir)]) & 7)
-#define DNG_Y_m(y, dir) (((y) - D_0810[(dir)]) & 7)
+#define DNG_X_p(x, dir) (((x) + DirDX[(dir)]) & 7)
+#define DNG_X_m(x, dir) (((x) - DirDX[(dir)]) & 7)
+#define DNG_Y_p(y, dir) (((y) + DirDY[(dir)]) & 7)
+#define DNG_Y_m(y, dir) (((y) - DirDY[(dir)]) & 7)
 
 #define u4_lower(c) ((c) + 'a' - 'A')
 #define u4_isupper(c) ((c) >= 'A' && (c) <= 'Z')
@@ -70,7 +70,7 @@ struct tNPC /*size:0x100*/ {
 };
 
 /* *.ULT/*.DNG */
-struct t_500 {
+struct tArea {
 	/*DNGMAP.SAV*/
 	union {
 		tMap8x8x8 x8x8x8;
@@ -87,17 +87,17 @@ struct tChara /*size:0x27*/ {
 	/*+08*/U16 _dex;
 	/*+0a*/U16 _int;
 	/*+0c*/U16 _MP;
-	/*+0e*/char __0e[2];
+	/*+0e*/char _unused0e[2];
 	/*+10*/U16 _weapon;
 	/*+12*/U16 _armor;
 	/*+14*/char _name[16];
-	/*+24*/char p_24;/*sex char*/
+	/*+24*/char _sex;/*sex char*/
 	/*+25*/char _class;
 	/*+26*/char _stat;
 };
 
 struct tParty /*size:0x1f6*/ {
-	/*+000*/unsigned long f_000;/*a counter*/
+	/*+000*/unsigned long _tick;/*a counter*/
 	/* */
 	/*+004*/unsigned long _moves;
 	/*+008*/struct tChara chara[8];
@@ -125,16 +125,16 @@ struct tParty /*size:0x1f6*/ {
 	/*+1d4,+1d5*/unsigned char _x, _y;
 	/*+1d6*/unsigned char mStones;
 	/*+1d7*/unsigned char mRunes;
-	/*+1d8*/U16 f_1d8;/*characters #*/
+	/*+1d8*/U16 _members;/*characters #*/
 	/*+1da*/U16 _tile;
-	/*+1dc*/U16 f_1dc;/*isFlying or light[dungeon]*/
+	/*+1dc*/U16 _fly_light;/*isFlying or light[dungeon]*/
 	/*+1de/+1e0*/U16 _trammel,_felucca;/*moons phase*/
 	/*+1e2*/U16 _ship;/*hull integrity*/
-	/*+1e4*/U16 f_1e4;/*did met with LB*/
-	/*+1e6*/U16 f_1e6;/*last hole up&camp*/
-	/*+1e8*/U16 f_1e8;/*last found*/
-	/*+1ea*/U16 f_1ea;/*last meditation/Hawkwind*/
-	/*+1ec*/U16 f_1ec;/*last karma-conversation*/
+	/*+1e4*/U16 _metLB;/*did met with LB*/
+	/*+1e6*/U16 _lastCamp;/*last hole up&camp*/
+	/*+1e8*/U16 _lastFound;/*last found*/
+	/*+1ea*/U16 _lastMeditate;/*last meditation/Hawkwind*/
+	/*+1ec*/U16 _lastTalk;/*last karma-conversation*/
 	/*+1ee,+1ef*/unsigned char out_x, out_y;
 	/*+1f0*/U16 _dir;/*[dungeon]*/
 	/*+1f2*/S16 _z;/*[dungeon]*/
@@ -156,7 +156,7 @@ struct tCombat/*size:0xc0*/ {
 
 #define Combat_MAP(a,b) (Combat._map[(a)*11+(b)])
 
-struct t_68 {
+struct tFighters {
 	/*000*/char _x[16],_y[16];
 	/*020*/char _HP[16];
 	/*030*/char _tile[16],_gtile[16];
@@ -179,18 +179,18 @@ extern /*C_07AE*/CMD_Use();
 #include "u4_file.h"
 
 /*u4_util*/
-extern /*C_095E*/shakefx();
+extern /*C_095E*/ShakeScreen();
 extern /*C_097D*/XP_inc(int, int);
 extern /*C_09B1*/HP_inc(int, int);
-extern C_09D9(int);
+extern /*C_09D9*/FlashChara(int);
 extern /*C_09A3*/w_Pass();
 extern /*C_09F8*/karma_inc(char *, int);
 extern /*C_0A17*/karma_dec(char *, int);
-extern C_0A58(int, unsigned char, unsigned char);
-extern C_0A8B(unsigned char, unsigned char);
+extern /*C_0A58*/FindNpcAt(int, unsigned char, unsigned char);
+extern /*C_0A8B*/FindTownNpcAt(unsigned char, unsigned char);
 extern /*C_0AB1*/SafeModulo(int, int);
-extern C_0ACF(int);
-extern C_0AFE(unsigned char);
+extern /*C_0ACF*/CharaTile(int);
+extern /*C_0AFE*/IsNonEvil(unsigned char);
 extern /*C_0B38*/u4_puts(char *);
 extern /*C_0C03*/u4_putl(long, int, char);
 extern /*C_0C9F*/u4_putc(int);
@@ -198,7 +198,7 @@ extern /*C_0CF7*/dspl_Stats();
 extern /*C_0E0E*/dspl_Gold();
 extern /*C_0E4E*/isCharaAlive(unsigned);
 extern /*C_0E82*/isCharaConscious(int);
-extern C_10FD();
+extern /*C_10FD*/CheckPartyAlive();
 extern /*C_1135*/hitChara(unsigned, int);
 extern /*C_1188*/w_What();
 extern /*C_1199*/w_Cant_t();
@@ -213,8 +213,8 @@ extern /*C_12D6*/AskDir(char *, int *, int *);
 extern /*C_138B*/food_dec(int);
 extern /*C_13B6*/MP_recover();
 extern /*C_1445*/u4_gets(char *, int);
-extern char *C_1513(int);
-extern C_1584();
+extern char * /*C_1513*/CreatureName(int);
+extern /*C_1584*/DamageAllParty();
 extern /*C_162F*/AskY_N();
 extern long /*C_169C*/AskInt(int);
 /*u4_util2*/
@@ -233,11 +233,11 @@ extern int cdecl /*C_17C5*/u_kbhit();
 extern int cdecl /*C_17F4*/u_kbread();
 extern void cdecl /*C_1804*/u_kbflush();
 
-extern unsigned char C_1814();
-extern C_181D(unsigned);
-extern C_182F(char *);
-extern C_184F();
-extern C_18A2();
+extern unsigned char /*C_1814*/u_getdrive();
+extern /*C_181D*/u_setdrive(unsigned);
+extern /*C_182F*/u_fexist(char *);
+extern /*C_184F*/u_diskcheck();
+extern /*C_18A2*/u_setint24();
 
 extern cdecl sound();
 
@@ -246,103 +246,103 @@ extern cdecl sound();
 #include "u4_graph.h"
 
 /*u4_map*/
-extern C_26B6();
-extern C_2747();
-extern C_2839();
-extern C_2891();
-extern C_28E9();
-extern C_2941();
+extern /*C_26B6*/LoadWorldWindow();
+extern /*C_2747*/LeaveTown();
+extern /*C_2839*/ScrollNorth();
+extern /*C_2891*/ScrollSouth();
+extern /*C_28E9*/ScrollWest();
+extern /*C_2941*/ScrollEast();
 extern /*C_29C3*/w_Blocked();
 extern /*C_29DE*/w_DriftOnly();
-extern C_29EF(unsigned char);
-extern C_2999(unsigned char);
-extern C_2A5A(unsigned int);
+extern /*C_29EF*/IsSlowTerrain(unsigned char);
+extern /*C_2999*/IsWalkable(unsigned char);
+extern /*C_2A5A*/WindAllows(unsigned int);
 extern /*C_2B8C*/CMDDIR_Up();
 extern /*C_2C8A*/CMDDIR_Down();
 extern /*C_2DA9*/CMDDIR_Left();
 extern /*C_2EC5*/CMDDIR_Right();
 /*u4_end*/
-extern C_31F4();
+extern /*C_31F4*/EndGame();
 /**/
-extern C_36C7();
-extern C_3A80();
-extern C_3C54();
-extern /*C_3DC8*/t_callback();
-extern C_3E94();
+extern /*C_36C7*/DrawView();
+extern /*C_3A80*/UpdateMoons();
+extern /*C_3C54*/DrawCombat();
+extern /*C_3DC8*/RefreshView();
+extern /*C_3E94*/LoadDungeon();
 extern /*C_4018*/CMD_Enter();
 extern /*C_41C0*/CMD_X_it();
 extern /*C_4253*/CMD_Board();
 extern /*C_42E8*/CMD_Yell();
-extern C_431D();
+extern /*C_431D*/AutoCloseDoor();
 extern /*C_4353*/CMD_Open();
 extern /*C_43F8*/CMD_Jimmy();
 extern /*C_4477*/CMD_Klimb();
 extern /*C_44EE*/CMD_Descend();
-extern C_4649();
-extern C_4832();
-extern C_48F8();
-extern C_4987();
-extern C_4BC7();
-extern C_4C42();
+extern /*C_4649*/ZtatsClearTitle();
+extern /*C_4832*/ZtatsWeapons();
+extern /*C_48F8*/ZtatsArmour();
+extern /*C_4987*/ZtatsEquipment();
+extern /*C_4BC7*/ZtatsReagents();
+extern /*C_4C42*/ZtatsMixtures();
 extern /*C_4E45*/CMD_Ztats();
 extern /*C_4FBE*/u4_abs(int);
 extern /*C_4FD7*/u4_sign(int);
-extern C_5834();
-extern C_5851();
+extern /*C_5834*/MoveNpcs();
+extern /*C_5851*/SpawnMonsters();
 extern /*C_59D5*/COM_GetFighterId(unsigned char, unsigned char);
 extern /*C_5A6B*/COM_main();
 extern /*C_5DAB*/COM_DoDamage(int, int, unsigned char);
 extern /*C_5EA2*/COM_CheckHitable(unsigned char, unsigned char);
 extern /*C_628F*/CMD_Attack();
-extern C_636D(int);
+extern /*C_636D*/IsUndead(int);
 extern /*C_6E4A*/CMD_Cast();
 extern /*C_6F29*/CMD_Quit();
-extern C_6FF9(char *, char *);
-extern C_722F(int);
-extern C_7337();
+extern /*C_6FF9*/SwapCharas(char *, char *);
+extern /*C_722F*/OpenChest(int);
+extern /*C_7337*/COM_OpenChest();
 extern /*C_7631*/CMD_Ready();
 extern /*C_7525*/CMD_Ignite();
 extern /*C_7034*/CMD_NewOrder();
 extern /*C_70AD*/CMD_Volume();
 extern /*C_72EC*/CMD_Get();
-extern C_73B8();
+extern /*C_73B8*/COM_GetChest();
 extern /*C_73C9*/CMD_Fire();
 extern /*C_755E*/CMD_Locate();
 extern /*C_7732**/CMD_Wear();
-extern C_7918();
-extern C_7B89();
-extern C_7BAF();
-extern C_7BD5();
-extern C_7BFD();
-extern C_7C25(unsigned);
-extern C_7D50();
-extern C_7D92();
-extern C_7DBC();
-extern C_7DFE(int);
-extern C_7FD7();
-extern C_7FFD();
-extern C_837A();
+extern /*C_7918*/MoveVortices();
+extern /*C_7B89*/COM_North();
+extern /*C_7BAF*/COM_South();
+extern /*C_7BD5*/COM_East();
+extern /*C_7BFD*/COM_West();
+extern /*C_7C25*/MonsterIndex(unsigned);
+extern /*C_7D50*/DungeonCombat();
+extern /*C_7D92*/InnCombat();
+extern /*C_7DBC*/CombatBegin();
+extern /*C_7DFE*/StartCombat(int);
+extern /*C_7FD7*/RunCombat();
+extern /*C_7FFD*/EnterDungeonRoom();
+extern /*C_837A*/CombatEnd();
 extern /*C_84D2*/DNG_main();
 extern /*C_8AB0*/CMD_HoleUp();
 extern /*C_8C08*/CMD_Mix();
 extern /*C_913A*/CMD_Search();
-extern C_9209();
-extern C_9414();
-extern C_95AA();
-extern C_9F7B();
+extern /*C_9209*/TileEffects();
+extern /*C_9414*/DNG_MoveMonsters();
+extern /*C_95AA*/DNG_SpawnMonsters();
+extern /*C_9F7B*/COM_FoesTurn();
 extern /*C_A6F3*/CMD_Talk();
-extern C_ADEF();
-extern C_AE41();
-extern C_B677();
-extern C_B9B2();
-extern C_B9EF(unsigned);
-extern C_C403();
+extern /*C_ADEF*/RenderSprites3D();
+extern /*C_AE41*/DNG_LookAround();
+extern /*C_B677*/DNG_Render();
+extern /*C_B9B2*/DNG_Search();
+extern /*C_B9EF*/ShowTownMap(unsigned);
+extern /*C_C403*/ShowMap();
 extern /*C_C41D*/CMD_Peer();
 /*u4_init*/
-extern C_C51C();
+extern /*C_C51C*/GameInit();
 /* */
-extern C_E59B();
-extern C_E72C();
+extern /*C_E59B*/TalkToLB();
+extern /*C_E72C*/EnterShrine();
 
 /*====---- initialized ----====*/
 
@@ -354,49 +354,49 @@ extern struct tPSP far *far_psp;/*D_0078*/
 
 extern unsigned /*D_0672*/cursor_rate;
 extern char cdecl /*D_06A6*/SoundFlag;
-extern unsigned D_07F8;
+extern unsigned /*D_07F8*/TurnDone;
 extern U16 /*D_07FA*/*pKarmas[];
 extern int /*D_080A*/activeCharaX;
-extern char D_080C[], D_0810[];
-extern char D_0814[], D_081C[];/*moongates positions*/
-extern char *D_0824[];
-extern char D_0844[];
-extern char D_0864[];
-extern char *D_0884[];
-extern char *D_0894[];
+extern char /*D_080C*/DirDX[], /*D_0810*/DirDY[];
+extern char /*D_0814*/MoongateX[], /*D_081C*/MoongateY[];/*moongates positions*/
+extern char * /*D_0824*/TownFiles[];
+extern char /*D_0844*/LocationX[];
+extern char /*D_0864*/LocationY[];
+extern char * /*D_0884*/StoneColors[];
+extern char * /*D_0894*/DungeonFiles[];
 /*strings*/
-extern char *D_1E98[];
+extern char * /*D_1E98*/Names[];
 
-extern unsigned char D_23D2[];
-extern unsigned char D_2450[];
-extern unsigned char D_2460[];
-extern unsigned char D_2468[];
+extern unsigned char /*D_23D2*/MonsterMaxHP[];
+extern unsigned char /*D_2450*/WeaponDamage[];
+extern unsigned char /*D_2460*/ArmorDefense[];
+extern unsigned char /*D_2468*/WeaponIsRanged[];
 
 /*====---- uninitialized ----====*/
 extern unsigned /*D_8728*/speed_info;
 extern unsigned /*D_872B*/equip_flags;
 extern void far *patch_tandy;/*D_872D*/
-extern struct t_500 D_8742;
+extern struct tArea /*D_8742*/Area;
 
 /*====---- c_common ----====*/
-extern unsigned char D_9140;
-extern unsigned char D_9141;
-extern int D_9142;
+extern unsigned char /*D_9140*/CombatFoeY;
+extern unsigned char /*D_9141*/MoongateTile;
+extern int /*D_9142*/ShopId;
 extern struct tParty /*D_9144*/Party;
-extern tMap32x32 far *D_933A[][8];
-extern int D_943A;/* graphic adaptater type */
+extern tMap32x32 far * /*D_933A*/MapChunks[][8];
+extern int /*D_943A*/GraphicsType;/* graphic adaptater type */
 extern unsigned char /*D_943C*/tile_forward;
-extern int D_943E;
-extern unsigned D_9440;
+extern int /*D_943E*/AltarRoom;
+extern unsigned /*D_9440*/LineOfSight;
 extern unsigned char /*D_9442,D_9443*/ship_x, ship_y;
 extern unsigned char /*D_9444*/tile_cur;
-extern char D_9445;
-extern unsigned D_9446;
-extern char D_9448;
-extern char D_944A[];
-extern unsigned char D_9452;
+extern char /*D_9445*/OpenGateX;
+extern unsigned /*D_9446*/Redraw3D;
+extern char /*D_9448*/OpenGateY;
+extern char /*D_944A*/CharaAnimTile[];
+extern unsigned char /*D_9452*/CombatFoe;
 extern void far /*D_9454*/*pShapes;
-extern jmp_buf D_9458;
+extern jmp_buf /*D_9458*/GameLoopJmp;
 
 #define MOD_VISION   0
 #define MOD_OUTDOORS 1
@@ -408,43 +408,43 @@ extern jmp_buf D_9458;
 #define MOD_SHRINE   7
 extern unsigned /*D_946A*/CurMode;
 
-struct aStruct {
+struct tPos {
 	unsigned char x, y;
 };
 
-extern unsigned char D_946C;
-extern unsigned /*D_946E*/spell_cnt;
+extern unsigned char /*D_946C*/CombatGround;
+extern unsigned /*D_946E*/spell_turns;
 extern struct tCombat /*D_9470*/Combat;
-extern struct t_68 /*D_9530*/Fighters;
+extern struct tFighters /*D_9530*/Fighters;
 extern int /*D_9598*/File_DNG;
 extern int /*D_959A*/activeChara;
-extern struct aStruct D_959C;
+extern struct tPos /*D_959C*/WinPos;
 extern unsigned char /*D_959E*/tile_east;
 extern void far /*D_95A0*/*pCharset;
-extern char /*D_95A4*/spell_sta;
-extern struct aStruct D_95A5;
+extern char /*D_95A4*/spell_effect;
+extern struct tPos /*D_95A5*/WinBlock;
 extern int /*D_95A8*/txt_X;
 extern char /*D_95AA*/tile_north;
 extern unsigned /*D_95AC*/activeCharaY;
 extern unsigned /*D_95AE*/hit_tile;
 extern unsigned char /*D_95B0,D_95B1*/hit_x, hit_y;
-extern unsigned char D_95B2[];
+extern unsigned char /*D_95B2*/RoomTriggerData[];
 extern unsigned char /*D_95C2*/tile_west;
 extern unsigned char /*D_95C3*/tile_south;
 extern int /*D_95C4*/txt_Y;
-extern unsigned D_95C6;
-extern int D_95C8;
+extern unsigned /*D_95C6*/Gallop;
+extern int /*D_95C8*/CursorBlink;
 extern unsigned char /*D_95CA*/tile_back;
-extern int D_95CC;
-extern unsigned char D_95CE[];/*current .tlk data*/
-extern char D_96EE;/*room exit x[dungeon]*/
+extern int /*D_95CC*/SavedMode;
+extern unsigned char /*D_95CE*/TalkData[];/*current .tlk data*/
+extern char /*D_96EE*/RoomExitX;/*room exit x[dungeon]*/
 extern int /*D_96F0*/File_MAP;
 extern unsigned /*D_96F2*/WindDir;
-extern char D_96F4;/*room exit y[dungeon]*/
+extern char /*D_96F4*/RoomExitY;/*room exit y[dungeon]*/
 extern int /*D_96F6*/File_TLK;
-extern unsigned char D_96F8;
-extern unsigned char D_96F9[11*11];
-extern unsigned char D_9772;
+extern unsigned char /*D_96F8*/CombatFoeTile;
+extern unsigned char /*D_96F9*/ViewTiles[11*11];
+extern unsigned char /*D_9772*/CombatFoeX;
 
 #ifdef WIN32
 	#pragma pack()

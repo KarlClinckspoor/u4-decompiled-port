@@ -6,27 +6,27 @@
 
 #include "u4.h"
 
-/*C_891E();
-C_895F();
-C_899F();
-C_89BD();
-C_89DB();
-C_8A1F();
-C_87E2();*/
+/*DNG_Advance();
+DNG_Retreat();
+DNG_TurnLeft();
+DNG_TurnRight();
+DNG_Klimb();
+DNG_Descend();
+DNG_EndOfTurn();*/
 
 /*C_84D2*/DNG_main()
 {
 	register unsigned si;
 	int bp_04;
 
-	D_9446 = 1;
+	Redraw3D = 1;
 	u_kbflush();
 	bp_04 = 0;
 	do {
-		C_9209();
+		TileEffects();
 		u4_putc(0x10);
-		t_callback();
-		if(C_10FD()) {
+		RefreshView();
+		if(CheckPartyAlive()) {
 			u_delay(25, 1);
 			si = u_kbhit()?u_kbread():KBD_SPACE;
 			if(u4_isupper((unsigned char)si))
@@ -34,25 +34,25 @@ C_87E2();*/
 			switch(si) {
 				case KBD_SPACE: w_Pass(); break;
 				case KBD_UP:
-				case 0x487e: C_891E(); break;
+				case 0x487e: DNG_Advance(); break;
 				case KBD_LEFT:
-				case 0x4b7c: C_899F(); break;
+				case 0x4b7c: DNG_TurnLeft(); break;
 				case KBD_DOWN:
-				case 0x5060: C_895F(); break;
+				case 0x5060: DNG_Retreat(); break;
 				case KBD_RIGHT:
-				case 0xf400: C_89BD(); break;
+				case 0xf400: DNG_TurnRight(); break;
 				case KBD_C: CMD_Cast(); break;
-				case KBD_D: C_8A1F(); break;/*(D)escend [dungeon]*/
+				case KBD_D: DNG_Descend(); break;/*(D)escend [dungeon]*/
 				case KBD_G: CMD_Get(); break;
 				case KBD_H: CMD_HoleUp(); break;
 				case KBD_I: CMD_Ignite(); break;
-				case KBD_K: C_89DB(); break;/*(K)limb [dungeon]*/
+				case KBD_K: DNG_Klimb(); break;/*(K)limb [dungeon]*/
 				case KBD_M: CMD_Mix(); break;
 				case KBD_N: CMD_NewOrder(); break;
 				case KBD_P: CMD_Peer(); break;
 				case KBD_Q: CMD_Quit(); break;
 				case KBD_R: CMD_Ready(); break;
-				case KBD_S: C_B9B2(); break;/*(S)earch [dungeon]*/
+				case KBD_S: DNG_Search(); break;/*(S)earch [dungeon]*/
 				case KBD_U: CMD_Use(); break;
 				case KBD_V: CMD_Volume(); break;
 				case KBD_W: CMD_Wear(); break;
@@ -69,30 +69,30 @@ C_87E2();*/
 				case KBD_Y: w_NotHere(); sound(2); break;
 				case KBD_CTRL_S:
 					if(bp_04 == KBD_ALT_Z) {
-						C_1C21();
+						CheatShowKarma();
 						break;
 					}
 				default:
 					u4_puts(/*D_2626*/"Bad command\n");
 					sound(2);
-					D_07F8 = 0;
+					TurnDone = 0;
 			}
-			C_AE41();
+			DNG_LookAround();
 		} else {
 			u4_puts(/*D_2633*/"Zzzzz\n");
 		}
-		if(D_07F8 != 0 && Party._z >= 0)
-			C_87E2();
+		if(TurnDone != 0 && Party._z >= 0)
+			DNG_EndOfTurn();
 		else
-			D_07F8 = 1;
+			TurnDone = 1;
 		bp_04 = si;
 	} while(Party._z >= 0);
-	C_2747();
+	LeaveTown();
 	dclose(File_DNG);
 	File_DNG = 0;
 }
 
-C_8743()
+/*C_8743*/DNG_CheckEncounter()
 {
 	register int si;
 
@@ -104,77 +104,77 @@ C_8743()
 		(tile_cur & 0xf0) == 0xD0 ||
 		(tile_cur & 0xf0) == 0xF0
 	) return 0;
-	D_96F8 = D_9452 = TIL_90 + (tile_cur & 0x0f) * 4 - 4;
-	D_8742._map.x8x8x8[Party._z][Party._y][Party._x] &= 0xf0;
+	CombatFoeTile = CombatFoe = TIL_RAT + (tile_cur & 0x0f) * 4 - 4;
+	Area._map.x8x8x8[Party._z][Party._y][Party._x] &= 0xf0;
 	for(si = 0x1f; si >= 0; si --) {
 		if(
-			D_8742._npc._var[si] == Party._z &&
-			D_8742._npc._x[si] == Party._x &&
-			D_8742._npc._y[si] == Party._y
+			Area._npc._var[si] == Party._z &&
+			Area._npc._x[si] == Party._x &&
+			Area._npc._y[si] == Party._y
 		) {
-			D_8742._npc._var[si] =
-			D_8742._npc._tile[si] =
-			D_8742._npc._x[si] =
-			D_8742._npc._y[si] = 0;
+			Area._npc._var[si] =
+			Area._npc._tile[si] =
+			Area._npc._x[si] =
+			Area._npc._y[si] = 0;
 			break;
 		}
 	}
-	C_7D50();
+	DungeonCombat();
 
 	return 1;
 }
 
-C_87E2()
+/*C_87E2*/DNG_EndOfTurn()
 {
 	register int si;
 	register struct tChara *di;
 
-	C_10FD();
-	for(di = &(Party.chara[0]), si = 0; si < Party.f_1d8; di ++, si++) {
+	CheckPartyAlive();
+	for(di = &(Party.chara[0]), si = 0; si < Party._members; di ++, si++) {
 		if(di->_stat == 'S' && U4_RND1(7) == 0) {
 			di->_stat = 'G';
 		} else if(di->_stat == 'P') {
 			hitChara(si, 2);
-			Gra_11(si);
+			Gra_InvertStatusLine(si);
 			sound(6);
-			Gra_11(si);
+			Gra_InvertStatusLine(si);
 		}
 	}
-	if(food_dec(Party.f_1d8)) {
+	if(food_dec(Party._members)) {
 		u4_puts(/*D_263A*/"\nStarving!!!\n");
-		for(si = 0; si < Party.f_1d8; si++) {
+		for(si = 0; si < Party._members; si++) {
 			if(isCharaAlive(si))
 				hitChara(si, 2);
 		}
-		for(si = Party.f_1d8; --si >= 0; )
-			Gra_11(si);
+		for(si = Party._members; --si >= 0; )
+			Gra_InvertStatusLine(si);
 		sound(6);
-		for(si = Party.f_1d8; --si >= 0; )
-			Gra_11(si);
+		for(si = Party._members; --si >= 0; )
+			Gra_InvertStatusLine(si);
 	}
 	MP_recover();
-	C_9414();
-	C_95AA();
-	if(Party.f_1dc)
-		Party.f_1dc --;
+	DNG_MoveMonsters();
+	DNG_SpawnMonsters();
+	if(Party._fly_light)
+		Party._fly_light --;
 	Party._moves ++;
-	if(spell_cnt) {
-		if(--spell_cnt == 0)
-			spell_sta = 7;
+	if(spell_turns) {
+		if(--spell_turns == 0)
+			spell_effect = 7;
 	}
-	if(Party.f_1dc == 0)
+	if(Party._fly_light == 0)
 		u4_puts(/*D_2648*/"It's Dark!\n");
 	dspl_Stats();
-	if(C_8743() == 0) {
+	if(DNG_CheckEncounter() == 0) {
 		while((tile_cur & 0xf0) == 0xd0) {
-			C_10FD();/*check death*/
-			C_7FFD();/*enter dungeon room*/
-			C_B677();/*render 3d*/
+			CheckPartyAlive();/*check death*/
+			EnterDungeonRoom();/*enter dungeon room*/
+			DNG_Render();/*render 3d*/
 		}
 	}
 }
 
-C_88E8(bp06, bp04)
+/*C_88E8*/DNG_CanEnter(bp06, bp04)
 unsigned char bp06;
 unsigned bp04;
 {
@@ -191,10 +191,10 @@ unsigned bp04;
 }
 
 /*Advance*/
-C_891E()
+/*C_891E*/DNG_Advance()
 {
 	u4_puts(/*D_2654*/"Advance\n");
-	if(!C_88E8(tile_forward, 0)) {
+	if(!DNG_CanEnter(tile_forward, 0)) {
 		w_Blocked();
 		return;
 	}
@@ -203,10 +203,10 @@ C_891E()
 }
 
 /*Retreat*/
-C_895F()
+/*C_895F*/DNG_Retreat()
 {
 	u4_puts(/*D_265D*/"Retreat\n");
-	if(!C_88E8(tile_back, 1)) {
+	if(!DNG_CanEnter(tile_back, 1)) {
 		w_Blocked();
 		return;
 	}
@@ -215,23 +215,23 @@ C_895F()
 }
 
 /*Turn Left*/
-C_899F()
+/*C_899F*/DNG_TurnLeft()
 {
 	u4_puts(/*D_2666*/"Turn Left\n");
 	Party._dir = (Party._dir - 1) & 3;
-	D_07F8 = 0;
+	TurnDone = 0;
 }
 
 /*Turn Right*/
-C_89BD()
+/*C_89BD*/DNG_TurnRight()
 {
 	u4_puts(/*D_2671*/"Turn Right\n");
 	Party._dir = (Party._dir + 1) & 3;
-	D_07F8 = 0;
+	TurnDone = 0;
 }
 
 /*(K)limb [dungeon]*/
-C_89DB()
+/*C_89DB*/DNG_Klimb()
 {
 	u4_puts(/*D_267D*/"Klimb ");
 	if(
@@ -250,7 +250,7 @@ C_89DB()
 }
 
 /*(D)escend [dungeon]*/
-C_8A1F()
+/*C_8A1F*/DNG_Descend()
 {
 	u4_puts(/*D_2693*/"Descend ");
 	if(

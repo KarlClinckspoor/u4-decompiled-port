@@ -20,8 +20,8 @@
 #define u4_toupper2(c) if(u4_islower(c)) (c) += 'A' - 'a'
 #define u4_tolower(c) if(u4_isupper(c)) (c) += 'a' - 'A'
 
-extern unsigned D_0036;
-extern unsigned D_0038;
+extern unsigned /*D_0036*/Monster1Pos;
+extern unsigned /*D_0038*/Monster2Pos;
 
 struct tPSP {
 	unsigned char _00[0x80];
@@ -31,16 +31,16 @@ struct tPSP {
 extern struct tPSP far *far_psp;/*D_041C*/
 
 extern unsigned /*D_31BC*/cursor_rate;
-extern unsigned D_31C0;
+extern unsigned /*D_31C0*/cursor_enabled;
 
-extern unsigned char D_3380[];
-extern unsigned char D_33F8[];
-extern unsigned char D_3438[];
-extern unsigned char D_344A[];
-extern unsigned char D_345C[];
-extern unsigned char D_346E[];
-extern unsigned char D_3683[19*5];
-extern unsigned char D_36E2[];
+extern unsigned char /*D_3380*/Monster1Seq[];
+extern unsigned char /*D_33F8*/Monster2Seq[];
+extern unsigned char /*D_3438*/MonsterFrameY[];
+extern unsigned char /*D_344A*/Monster1FrameX[];
+extern unsigned char /*D_345C*/Monster2FrameX[];
+extern unsigned char /*D_346E*/SignatureDots[];
+extern unsigned char /*D_3683*/ViewBackground[19*5];
+extern unsigned char /*D_36E2*/ViewScript[];
 
 /*====---- ----====*/
 
@@ -48,21 +48,21 @@ extern unsigned /*D_692E*/speed_info;
 extern unsigned /*D_6931*/equip_flags;
 
 struct tNPC {
-	unsigned char _000[32];/*__6D76*/
-	unsigned char _020[32];/*__6D96*/
-	unsigned char _040[32];/*__6DB6*/
-	unsigned char _060[32];/*__6DD6*/
-	unsigned char _080[32];/*__6DF6*/
-	unsigned char _0A0[32];/*__6E16*/
-	unsigned char _0C0[32];/*__6E36*/
-	unsigned char _0E0[32];/*__6E56*/
+	unsigned char _gtile[32];/*__6D76*/
+	unsigned char _x[32];/*__6D96*/
+	unsigned char _y[32];/*__6DB6*/
+	unsigned char _tile[32];/*__6DD6*/
+	unsigned char _old_x[32];/*__6DF6*/
+	unsigned char _old_y[32];/*__6E16*/
+	unsigned char _var[32];/*__6E36*/
+	unsigned char _tlkidx[32];/*__6E56*/
 };
 
 typedef unsigned char tMap32x32[32][32];
 typedef unsigned char tMap8x8x8[8][8][8];
 
 /* *.ULT/*.DNG */
-struct t_500 {
+struct tArea {
 	/*DNGMAP.SAV*/
 	union {
 		tMap8x8x8 x8x8x8;
@@ -72,10 +72,10 @@ struct t_500 {
 	struct tNPC /*__6D76/__6976.__400*/_npc;
 };
 
-extern struct t_500 D_6976;
+extern struct tArea /*D_6976*/Area;
 
 /*====---- c_common ----====*/
-extern unsigned /*D_6E80*/D_6E80;
+extern unsigned /*D_6E80*/MonstersShown;
 
 
 struct tChara /*size:0x27*/ {
@@ -85,17 +85,17 @@ struct tChara /*size:0x27*/ {
 	/*+08*/U16 _dex;
 	/*+0a*/U16 _int;
 	/*+0c*/U16 _MP;
-	/*+0e*/char __0e[2];
+	/*+0e*/char _unused0e[2];
 	/*+10*/U16 _weapon;
 	/*+12*/U16 _armor;
 	/*+14*/char _name[16];
-	/*+24*/char p_24;
+	/*+24*/char _sex;
 	/*+25*/char _class;
 	/*+26*/char _stat;
 };
 
 struct tParty /*size:0x1f6*/ {
-	/*+000*/unsigned long f_000;/*a counter*/
+	/*+000*/unsigned long _tick;/*a counter*/
 	/* */
 	/*+004*/unsigned long _moves;
 	/*+008*/struct tChara chara[8];
@@ -111,29 +111,29 @@ struct tParty /*size:0x1f6*/ {
 	/*+152*/U16 _spiri;
 	/*+154*/U16 _humil;
 	/* */
-	/*+156*/U16 f_156;/*torches*/
-	/*+158*/U16 f_158;/*Gems*/
-	/*+15a*/U16 f_15a;/*Keys*/
-	/*+15c*/U16 f_15c;/*Sextants*/
-	/*+15e*/U16 f_15e[8];/*Armors*/
-	/*+16e*/U16 f_16e[16];/*Weapons*/
-	/*+18e*/U16 f_18e[8];/*Reagents*/
-	/*+19e*/U16 f_19e[26];/*Mixtures*/
-	/*+1d2*/U16 f_1d2;/*Items mask*/
+	/*+156*/U16 _torches;/*torches*/
+	/*+158*/U16 _gems;/*Gems*/
+	/*+15a*/U16 _keys;/*Keys*/
+	/*+15c*/U16 _sextants;/*Sextants*/
+	/*+15e*/U16 _armors[8];/*Armors*/
+	/*+16e*/U16 _weapons[16];/*Weapons*/
+	/*+18e*/U16 _reagents[8];/*Reagents*/
+	/*+19e*/U16 _mixtures[26];/*Mixtures*/
+	/*+1d2*/U16 mItems;/*Items mask*/
 	/*+1d4,+1d5*/unsigned char _x, _y;
-	/*+1d6*/unsigned char f_1d6;/*Stones mask*/
-	/*+1d7*/unsigned char f_1d7;/*Runes mask*/
-	/*+1d8*/U16 f_1d8;/*characters #*/
-	/*+1da*/U16 f_1da;
-	/*+1dc*/U16 f_1dc;
-	/*+1de/+1e0*/U16 f_1de,f_1e0;/*moons phase*/
-	/*+1e2*/U16 f_1e2;/*hull integrity*/
-	/*+1e4*/U16 f_1e4;/*did met with LB*/
-	/*+1e6*/U16 f_1e6;/*last hole up&camp*/
-	/*+1e8*/U16 f_1e8;/*last found*/
-	/*+1ea*/U16 f_1ea;/*last meditation/Hawkwind*/
-	/*+1ec*/U16 f_1ec;/*last karma-conversation*/
-	/*+1ee/+1ef*/unsigned char f_1ee, f_1ef;
+	/*+1d6*/unsigned char mStones;/*Stones mask*/
+	/*+1d7*/unsigned char mRunes;/*Runes mask*/
+	/*+1d8*/U16 _members;/*characters #*/
+	/*+1da*/U16 _tile;
+	/*+1dc*/U16 _fly_light;
+	/*+1de/+1e0*/U16 _trammel,_felucca;/*moons phase*/
+	/*+1e2*/U16 _ship;/*hull integrity*/
+	/*+1e4*/U16 _metLB;/*did met with LB*/
+	/*+1e6*/U16 _lastCamp;/*last hole up&camp*/
+	/*+1e8*/U16 _lastFound;/*last found*/
+	/*+1ea*/U16 _lastMeditate;/*last meditation/Hawkwind*/
+	/*+1ec*/U16 _lastTalk;/*last karma-conversation*/
+	/*+1ee/+1ef*/unsigned char out_x, out_y;
 	/*+1f0*/U16 _dir;/*[dungeon]*/
 	/*+1f2*/S16 _z;/*[dungeon]*/
 	/*+1f4*/U16 _loc;
@@ -144,10 +144,10 @@ struct tParty /*size:0x1f6*/ {
 #endif
 
 extern struct tParty /*D_6E82*/Party;
-extern unsigned /*D_7078*/D_7078;
+extern unsigned /*D_7078*/GraphicsType;
 extern void far /*D_707A*/*pShapes;
 extern void far /*D_707E*/*pAnim;
-extern unsigned /*D_7082*/D_7082;
+extern unsigned /*D_7082*/TwoDrives;
 extern void far /*D_7084*/*pCharset;
 extern unsigned /*D_7088*/txt_X;
 extern unsigned /*D_708A*/txt_Y;
@@ -162,13 +162,13 @@ extern /*C_0110*/Save(char *, unsigned, void /*far */*);
 
 extern /*C_027A*/u4_putc();
 
-extern cdecl Gra_0(
+extern cdecl Gra_DrawView(
 #if 0
 #endif
 );
-extern cdecl Gra_dot();
-extern Gra_2();
-extern cdecl Gra_3(
+extern cdecl Gra_Dot();
+extern Gra_ClearMenu();
+extern cdecl Gra_Blit(
 #if 0
 	int w/*in 8 pixels blocs*/, int h,
 	int src_x/*in 8 pixels blocs*/, int src_y,
@@ -178,17 +178,17 @@ extern cdecl Gra_3(
 	int dst_x
 #endif
 );
-extern cdecl Gra_inflate(
+extern cdecl Gra_LoadPicture(
 #if 0
 #endif
 );
-extern Gra_5();
-extern Gra_init();
-extern Gra_animFlow();
-extern Gra_animFlag();
-extern Gra_clrscr();
-extern Gra_putchar();
-extern cdecl Gra_B(
+extern Gra_ClearText();
+extern Gra_Init();
+extern Gra_AnimFlow();
+extern Gra_AnimFlags();
+extern Gra_ClearScreen();
+extern Gra_PutChar();
+extern cdecl Gra_BlitReveal(
 #if 0
 	int w/*in 8 pixels blocs*/, int h,
 	int src_x/*in 8 pixels blocs*/, int src_y,
@@ -198,28 +198,28 @@ extern cdecl Gra_B(
 	int dst_x
 #endif
 );
-extern cdecl Gra_C(
+extern cdecl Gra_DrawViewOver(
 #if 0
 #endif
 );
-extern sizzleShapes();
-extern C_217E(char *, void far *);
+extern InterleaveShapes();
+extern /*C_217E*/LoadCompressed(char *, void far *);
 
 /*low.asm*/
 extern /*C_244E*/low_init();
 extern /*C_2551*/low_clean();
 extern /*C_2583*/low_gra();
 
-extern C_3030();
+extern /*C_3030*/NewGame();
 
 extern cdecl /*C_3149*/u_delay(unsigned, unsigned);
 extern /*C_31ED*/u_rand_a();
 extern unsigned char /*C_321E*/u_rand_b();
-extern C_3290();
-extern C_3299();
-extern C_32AB();
-extern C_331E();
+extern /*C_3290*/u_getdrive();
+extern /*C_3299*/u_setdrive();
+extern /*C_32AB*/u_fexist();
+extern /*C_331E*/u_setint24();
 
-extern C_3F77(unsigned long, unsigned long*);
+extern /*C_3F77*/Unused3F77(unsigned long, unsigned long*);
 
 #endif

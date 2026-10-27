@@ -10,12 +10,12 @@
 #include <stdlib.h>
 
 /*shake screen + noise*/
-/*C_095E*/shakefx()
+/*C_095E*/ShakeScreen()
 {
-	Gra_04(); Gra_03();
-	Gra_04(); Gra_03();
-	Gra_04(); Gra_03();
-	Gra_04(); Gra_03();
+	Gra_ShiftUp(); Gra_ShiftDown();
+	Gra_ShiftUp(); Gra_ShiftDown();
+	Gra_ShiftUp(); Gra_ShiftDown();
+	Gra_ShiftUp(); Gra_ShiftDown();
 }
 
 /*increase exp (max 9999)*/
@@ -43,12 +43,12 @@ int bp04;
 		si[0] = si[1];
 }
 
-C_09D9(bp04)
+/*C_09D9*/FlashChara(bp04)
 int bp04;
 {
-	Gra_11(bp04);
+	Gra_InvertStatusLine(bp04);
 	sound(7);
-	Gra_11(bp04);
+	Gra_InvertStatusLine(bp04);
 }
 
 /*increment karma (max 99)*/
@@ -70,10 +70,10 @@ unsigned bp04;
 {
 	if(*bp06 == 0) {
 		*bp06 = 99;
-		Gra_19();
+		Gra_VirtueGlyph();
 		txt_X = 31;
 		txt_Y = 10;
-		u4_putc(spell_sta);
+		u4_putc(spell_effect);
 		u4_puts("\n Thou hast lost\n  an Eighth!\n");
 	}
 	*bp06 -= bp04;
@@ -82,7 +82,7 @@ unsigned bp04;
 }
 
 /*findEnemyAt*/
-C_0A58(bp08, bp06, bp04)
+/*C_0A58*/FindNpcAt(bp08, bp06, bp04)
 int bp08;
 unsigned char bp06;
 unsigned char bp04;
@@ -90,19 +90,19 @@ unsigned char bp04;
 	register int i;
 	for(i = bp08; i >= 0; i--) {
 		if(
-			D_8742._npc._tile[i] != 0 &&
-			D_8742._npc._x[i] == bp06 &&
-			D_8742._npc._y[i] == bp04
+			Area._npc._tile[i] != 0 &&
+			Area._npc._x[i] == bp06 &&
+			Area._npc._y[i] == bp04
 		) break;
 	}
 	return i;
 }
 
-C_0A8B(bp06, bp04)
+/*C_0A8B*/FindTownNpcAt(bp06, bp04)
 unsigned char bp06;
 unsigned char bp04;
 {
-	return C_0A58((Party._loc == 0)?7:31, bp06, bp04);
+	return FindNpcAt((Party._loc == 0)?7:31, bp06, bp04);
 }
 
 /*C_0AB1*/SafeModulo(bp06, bp04)
@@ -115,25 +115,25 @@ int bp04;
 }
 
 /*get character sprite id ?*/
-C_0ACF(bp04)
+/*C_0ACF*/CharaTile(bp04)
 {
 	if(Party.chara[bp04]._stat == 'S')
-		return TIL_38;
-	return (Party.chara[bp04]._class << 1) + TIL_20;
+		return TIL_SLEEPING;
+	return (Party.chara[bp04]._class << 1) + TIL_MAGE;
 }
 
 /*isNotEvil
- returns 1 if param in {TIL_00~TIL_7F,TIL_8A,TIL_90,TIL_94,TIL_98,TIL_B4,TIL_CC}
+ returns 1 if param in {TIL_DEEP_WATER~TIL_WALL,TIL_SEAHORSE,TIL_RAT,TIL_BAT,TIL_SPIDER,TIL_INSECTS,TIL_PYTHON}
  i.e.      if the creatures's defeat leads to karma increase
  else returns 0
 */
-C_0AFE(bp04)
+/*C_0AFE*/IsNonEvil(bp04)
 unsigned char bp04;
 {
-	if(bp04 < TIL_80 ||
-		bp04 == TIL_8A || bp04 == TIL_90 ||
-		bp04 == TIL_94 || bp04 == TIL_98 ||
-		bp04 == TIL_B4 || bp04 == TIL_CC
+	if(bp04 < TIL_PIRATE_W ||
+		bp04 == TIL_SEAHORSE || bp04 == TIL_RAT ||
+		bp04 == TIL_BAT || bp04 == TIL_SPIDER ||
+		bp04 == TIL_INSECTS || bp04 == TIL_PYTHON
 	) return 1;
 	return 0;
 }
@@ -207,7 +207,7 @@ unsigned char bp04;
 		case '\b':
 			if(txt_X > 1) {
 				txt_X --;
-				Gra_putchar(' ');
+				Gra_PutChar(' ');
 			}
 		break;
 		case '\n':
@@ -215,14 +215,14 @@ unsigned char bp04;
 		break;
 		case ' ':
 			if(txt_X <= 39) {
-				Gra_putchar(bp04);
+				Gra_PutChar(bp04);
 				txt_X ++;
 			}
 		break;
 		default:
 			if(txt_X > 39)
 				Gra_CR();
-			Gra_putchar(bp04);
+			Gra_PutChar(bp04);
 			txt_X ++;
 	}
 }
@@ -235,12 +235,12 @@ unsigned char bp04;
 	int loc_B/*bp_04*/;
 	int loc_A/*bp_02*/, loc_E/*bp_0a*/;
 
-	Gra_19();
+	Gra_VirtueGlyph();
 	loc_E = txt_Y;
 	loc_A = txt_X;
 	for(
 		loc_B = 0, loc_D = &(Party.chara[0]);
-		loc_B < Party.f_1d8;
+		loc_B < Party._members;
 		loc_D++, loc_B++
 	) {
 		txt_Y = loc_B + 1;
@@ -257,8 +257,8 @@ unsigned char bp04;
 	u4_putc('F'); u4_putc(':');
 	u4_putl(Party._food / 100, 4, '0');
 	u4_putc(' ');
-	u4_putc(spell_sta);
-	if(Party._tile < TIL_14) {
+	u4_putc(spell_effect);
+	if(Party._tile < TIL_HORSE_W) {
 		u4_puts(" SHP:");
 		u4_putl(Party._ship, 2, '0');
 	} else {
@@ -286,7 +286,7 @@ unsigned char bp04;
 /*C_0E4E*/isCharaAlive(bp04)
 int bp04;
 {
-	if(bp04 >= Party.f_1d8)
+	if(bp04 >= Party._members)
 		return 0;
 	switch(Party.chara[bp04]._stat) {
 		case 'G': case 'P': case 'S': return 1;
@@ -298,7 +298,7 @@ int bp04;
 /*C_0E82*/isCharaConscious(bp04)
 int bp04;
 {
-	if(bp04 >= Party.f_1d8)
+	if(bp04 >= Party._members)
 		return 0;
 	switch(Party.chara[bp04]._stat) {
 		case 'G': case 'P': return 1;
@@ -307,18 +307,18 @@ int bp04;
 }
 
 /*death/revive*/
-C_0EB1()
+/*C_0EB1*/PartyDeath()
 {
 	int bp_02;
 
-	for(bp_02 = Party.f_1d8 - 1; bp_02 >= 0; bp_02 --) {
+	for(bp_02 = Party._members - 1; bp_02 >= 0; bp_02 --) {
 		Party.chara[bp_02]._stat = 'D';
 		Party.chara[bp_02]._HP[0] = 0;
 	}
-	Gra_13();
+	Gra_ClearStatus();
 	dspl_Stats();
 	u_delay(5, 0);
-	Gra_10();
+	Gra_ClearView();
 	CurMode = MOD_VISION;
 	u4_puts("\n\n\nAll is Dark...\n");
 	u_delay(5, 0);
@@ -337,7 +337,7 @@ C_0EB1()
 	u_delay(5, 0);
 	u4_puts("I feel motion...\n");
 	u_delay(5, 0);
-	Party._tile = TIL_1F;
+	Party._tile = TIL_AVATAR;
 	Party._x = 0x13; Party._y = 0x08;
 	Party.out_x = 0x56;
 	Party.out_y = 0x6c;
@@ -351,25 +351,25 @@ C_0EB1()
 		File_TLK = 0;/*bug??*/
 	}
 	if(Party._loc == 0) {
-		if(Save("OUTMONST.SAV", sizeof(struct tNPC), &(D_8742._npc)) == -1)
+		if(Save("OUTMONST.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 			exit(3);
 	}
-	if(Load("LCB_2.ULT", sizeof(struct t_500), &D_8742) == -1)
+	if(Load("LCB_2.ULT", sizeof(struct tArea), &Area) == -1)
 		exit(3);
 	File_TLK = dopen("LCB.TLK", 0);
 	CurMode = MOD_BUILDING;
 	Party._loc = 0x01;
-	Party.f_1dc = 0;
-	D_95CC = MOD_OUTDOORS;
-	spell_cnt = 0;
+	Party._fly_light = 0;
+	SavedMode = MOD_OUTDOORS;
+	spell_turns = 0;
 	hit_tile = 0;
-	spell_sta = 7;
-	D_9440 = 1;
-	D_95C6 = 0;
-	t_callback();
-	C_3A80();
+	spell_effect = 7;
+	LineOfSight = 1;
+	Gallop = 0;
+	RefreshView();
+	UpdateMoons();
 	u4_puts("\n\nLord British says: I have pulled thy spirit and some possessions from the void.  Be more careful in the future!\n");
-	for(bp_02 = Party.f_1d8 - 1; bp_02 >= 0; bp_02 --) {
+	for(bp_02 = Party._members - 1; bp_02 >= 0; bp_02 --) {
 		Party.chara[bp_02]._stat = 'G';
 		Party.chara[bp_02]._HP[0] = Party.chara[bp_02]._HP[1];
 	}
@@ -381,17 +381,17 @@ C_0EB1()
 	Party._gold = 200;
 	dspl_Stats();
 	u_kbflush();
-	longjmp(D_9458, -1);
+	longjmp(GameLoopJmp, -1);
 }
 
 /*
 returns 1: at least one chara conscious
 returns 0: all charas disabled and at least one alive*/
-C_10FD()
+/*C_10FD*/CheckPartyAlive()
 {
 	register int si;
 
-	for(si = Party.f_1d8 - 1; si >= 0; si --) {
+	for(si = Party._members - 1; si >= 0; si --) {
 		if(isCharaAlive(si)) {
 			for(; si >= 0; si--) {
 				if(isCharaConscious(si))
@@ -400,7 +400,7 @@ C_10FD()
 			return 0;
 		}
 	}
-	C_0EB1();
+	PartyDeath();
 }
 
 /*character bp06 takes bp04 hits
@@ -420,7 +420,7 @@ int bp06;
 	si->_HP[0] = 0;
 	si->_stat = 'D';
 	if(CurMode >= MOD_COMBAT)
-		D_944A[bp06] = Fighters._chtile[bp06] = TIL_38;
+		CharaAnimTile[bp06] = Fighters._chtile[bp06] = TIL_SLEEPING;
 	dspl_Stats();
 	return 1;
 }
@@ -503,12 +503,12 @@ char *bp04;
 {
 	register int si;
 
-	if(Party.f_1d8 == 1) {
+	if(Party._members == 1) {
 		u4_puts(bp04);
 		u4_puts("1\n");
 		return 0;
 	}
-	si = AskLetter(bp04, '0', '0' + Party.f_1d8);
+	si = AskLetter(bp04, '0', '0' + Party._members);
 	if(si == '0')
 		return -2;
 	if(si < 0)
@@ -576,7 +576,7 @@ int bp04;
 	register struct tChara *si;
 	int bp_04;
 
-	for(bp_04 = Party.f_1d8 - 1; bp_04 >= 0; bp_04 --) {
+	for(bp_04 = Party._members - 1; bp_04 >= 0; bp_04 --) {
 		if(isCharaAlive(bp_04)) {
 			register int di;
 			si = &(Party.chara[bp_04]);
@@ -652,37 +652,37 @@ unsigned bp04;
 }
 
 /*get creature name*/
-char *C_1513(bp04)
+char * /*C_1513*/CreatureName(bp04)
 unsigned char bp04;
 {
-	if(bp04 >= TIL_80) {
-		if(bp04 >= TIL_90)
-			return D_1E98[9 + (bp04 - TIL_80)/4 - (TIL_90 - TIL_80)/4];
+	if(bp04 >= TIL_PIRATE_W) {
+		if(bp04 >= TIL_RAT)
+			return Names[9 + (bp04 - TIL_PIRATE_W)/4 - (TIL_RAT - TIL_PIRATE_W)/4];
 		else
-			return D_1E98[1 + (bp04 - TIL_80)/2];
+			return Names[1 + (bp04 - TIL_PIRATE_W)/2];
 	}
-	if(bp04 == TIL_38)
-		return D_1E98[159];
-	if(bp04 < TIL_20 || bp04 >= TIL_60 || (bp04 >= TIL_30 && bp04 < TIL_50))
-		return D_1E98[20];/*"Phantom"*/
-	return D_1E98[77 + (bp04 & 0x1f)/2];
+	if(bp04 == TIL_SLEEPING)
+		return Names[159];
+	if(bp04 < TIL_MAGE || bp04 >= TIL_LETTER_A || (bp04 >= TIL_30 && bp04 < TIL_GUARD))
+		return Names[20];/*"Phantom"*/
+	return Names[77 + (bp04 & 0x1f)/2];
 }
 
 /*all party damage*/
-C_1584()
+/*C_1584*/DamageAllParty()
 {
 	register int loc_B;
 	int loc_A;
 
-	for(loc_B = Party.f_1d8 - 1; loc_B >= 0; loc_B --)
-		Gra_11(loc_B);
+	for(loc_B = Party._members - 1; loc_B >= 0; loc_B --)
+		Gra_InvertStatusLine(loc_B);
 	sound(6);
-	shakefx();
-	for(loc_B = Party.f_1d8 - 1; loc_B >= 0; loc_B --)
-		Gra_11(loc_B);
-	if(CurMode >= MOD_COMBAT || Party._tile > TIL_13) {
+	ShakeScreen();
+	for(loc_B = Party._members - 1; loc_B >= 0; loc_B --)
+		Gra_InvertStatusLine(loc_B);
+	if(CurMode >= MOD_COMBAT || Party._tile > TIL_SHIP_S) {
 		/*normal case*/
-		for(loc_B = Party.f_1d8 - 1; loc_B >= 0; loc_B --) {
+		for(loc_B = Party._members - 1; loc_B >= 0; loc_B --) {
 			if(U4_RND1(1) && isCharaAlive(loc_B)) {
 				loc_A = U4_RND3(15) + 10;
 				if(CurMode < MOD_COMBAT || Fighters._chtile[loc_B])
@@ -693,11 +693,11 @@ C_1584()
 		/*on ship*/
 		if((Party._ship -= 10) < 0) {
 			Party._ship = 0;
-			for(loc_B = Party.f_1d8; --loc_B >= 0; )
-				Gra_11(loc_B);
+			for(loc_B = Party._members; --loc_B >= 0; )
+				Gra_InvertStatusLine(loc_B);
 			dspl_Stats();
 			u4_puts("Thy Ship Sinks!\n");
-			C_0EB1();
+			PartyDeath();
 		}
 	}
 	dspl_Stats();

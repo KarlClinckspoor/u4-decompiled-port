@@ -6,7 +6,7 @@
 
 #include "u4.h"
 
-unsigned char D_2F72[] = {
+unsigned char /*D_2F72*/GemMapStyle[] = {
 	0x0C,0x0B,0x0A,0x01,0x01,0x09,0x02,0x08,0x07,0x05,0x05,0x05,0x05,0x04,0x04,0x04,
 	0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x04,0x05,0x04,0x04,0x05,0x05,0x06,0x06,0x05,
 	0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,
@@ -17,10 +17,10 @@ unsigned char D_2F72[] = {
 	0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x06,0x00,0x07
 };
 
-int D_2FF2[] = {0x20, 0x06, 0x05, 0x04, 0x24, 0x20, 0x20, 0x0F, 0x54, 0x46, 0x5E, 0x00, 0x0E, 0x0E, 0x02, 0x03};
+int /*D_2FF2*/DngMapChars[] = {0x20, 0x06, 0x05, 0x04, 0x24, 0x20, 0x20, 0x0F, 0x54, 0x46, 0x5E, 0x00, 0x0E, 0x0E, 0x02, 0x03};
 
 #define MK_COORD(a, b) (((a)+8)*4 + (b))
-#define PT(x,y,c) Gra_dot(MK_COORD(loc_A,(x)),MK_COORD(loc_C,(y)),(c));
+#define PT(x,y,c) Gra_Dot(MK_COORD(loc_A,(x)),MK_COORD(loc_C,(y)),(c));
 /*green?*/
 #define PT_1(x,y) PT((x),(y),1)
 /*blue?*/
@@ -30,18 +30,23 @@ int D_2FF2[] = {0x20, 0x06, 0x05, 0x04, 0x24, 0x20, 0x20, 0x0F, 0x54, 0x46, 0x5E
 
 static unsigned char D_8CFC[600];
 static unsigned char D_8F54[22][22];
+/*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
+ uninitialised statics in the order of its symbol table, which depends on the names.
+ Renaming them would move them; the readable names are macros.*/
+#define FloodStack D_8CFC
+#define FloodSeen D_8F54
 
-C_B9EF(bp04/*display player pos*/)
+/*C_B9EF*/ShowTownMap(bp04/*display player pos*/)
 unsigned bp04;
 {
 	int loc_A, loc_B, loc_C;
 
 	loc_B = CurMode; CurMode = MOD_VISION;
-	Gra_10();
+	Gra_ClearView();
 	for(loc_A = 0; loc_A < 32; loc_A++) {
 	for(loc_C = 0; loc_C < 32; loc_C++) {
-		if(D_8742._map.x32x32[loc_A][loc_C] < 0x80) {
-			switch(D_2F72[D_8742._map.x32x32[loc_A][loc_C]]) {
+		if(Area._map.x32x32[loc_A][loc_C] < 0x80) {
+			switch(GemMapStyle[Area._map.x32x32[loc_A][loc_C]]) {
 				case 1:/*grass*/
 					PT_1(0,1);
 					PT_1(1,3);
@@ -163,10 +168,10 @@ unsigned bp04;
 /*C_C174*/
 	for(; !u_kbhit(); loc_C++) {
 		if(bp04) {
-			Gra_dot_XOR(MK_COORD(D_959C.y,0), MK_COORD(D_959C.x,loc_C&3), 3);
-			Gra_dot_XOR(MK_COORD(D_959C.y,1), MK_COORD(D_959C.x,loc_C&3), 3);
-			Gra_dot_XOR(MK_COORD(D_959C.y,2), MK_COORD(D_959C.x,loc_C&3), 3);
-			Gra_dot_XOR(MK_COORD(D_959C.y,3), MK_COORD(D_959C.x,loc_C&3), 3);
+			Gra_DotXor(MK_COORD(WinPos.y,0), MK_COORD(WinPos.x,loc_C&3), 3);
+			Gra_DotXor(MK_COORD(WinPos.y,1), MK_COORD(WinPos.x,loc_C&3), 3);
+			Gra_DotXor(MK_COORD(WinPos.y,2), MK_COORD(WinPos.x,loc_C&3), 3);
+			Gra_DotXor(MK_COORD(WinPos.y,3), MK_COORD(WinPos.x,loc_C&3), 3);
 		}
 	}
 	u_kbread();
@@ -175,31 +180,31 @@ unsigned bp04;
 #undef PT
 #undef MK_COORD
 
-C_C23B()
+/*C_C23B*/ShowDungeonMap()
 {
 	int loc_A, loc_B;
 	register unsigned loc_C;
 	int loc_D, loc_E, loc_F;
 
 	loc_E = CurMode; CurMode = MOD_VISION;
-	Gra_10();
+	Gra_ClearView();
 	txt_Y = 21; do { txt_X = 21; do {
-		D_8F54[txt_Y][txt_X] = 0;
+		FloodSeen[txt_Y][txt_X] = 0;
 	} while(--txt_X >= 0); } while(--txt_Y >= 0);
 
 	loc_C = 0;
-	D_8CFC[loc_C++] = txt_Y = 11;
-	D_8CFC[loc_C++] = txt_X = 11;
-	D_8CFC[loc_C++] = Party._y;
-	D_8CFC[loc_C++] = Party._x;
-	D_8F54[10][10] = 1;
-	Gra_putchar(0x01);
+	FloodStack[loc_C++] = txt_Y = 11;
+	FloodStack[loc_C++] = txt_X = 11;
+	FloodStack[loc_C++] = Party._y;
+	FloodStack[loc_C++] = Party._x;
+	FloodSeen[10][10] = 1;
+	Gra_PutChar(0x01);
 /*C_C2B5*/
 	do {
-		loc_F = D_8CFC[--loc_C];
-		loc_A = D_8CFC[--loc_C];
-		txt_X = D_8CFC[--loc_C] - 1;
-		txt_Y = D_8CFC[--loc_C] - 1;
+		loc_F = FloodStack[--loc_C];
+		loc_A = FloodStack[--loc_C];
+		txt_X = FloodStack[--loc_C] - 1;
+		txt_Y = FloodStack[--loc_C] - 1;
 		for(loc_B = -1; loc_B < 2; txt_X ++, txt_Y -= 3, loc_B++) {
 /*C_C2E0*/
 			for(loc_D = -1; loc_D < 2; txt_Y ++, loc_D++) {
@@ -210,18 +215,18 @@ C_C23B()
 					if(
 						txt_Y < 1 || txt_Y > 22 ||
 						txt_X < 1 || txt_X > 22 ||
-						D_8F54[txt_Y-1][txt_X-1]
+						FloodSeen[txt_Y-1][txt_X-1]
 					) continue;
 /*C_C347*/
-					Gra_putchar(D_2FF2[D_8742._map.x8x8x8[Party._z][bp_10][bp_0e] >> 4]);
-					if((D_8742._map.x8x8x8[Party._z][bp_10][bp_0e] & 0xf0) != 0xf0) {
-						D_8CFC[loc_C++] = txt_Y;
-						D_8CFC[loc_C++] = txt_X;
-						D_8CFC[loc_C++] = bp_10;
-						D_8CFC[loc_C++] = bp_0e;
+					Gra_PutChar(DngMapChars[Area._map.x8x8x8[Party._z][bp_10][bp_0e] >> 4]);
+					if((Area._map.x8x8x8[Party._z][bp_10][bp_0e] & 0xf0) != 0xf0) {
+						FloodStack[loc_C++] = txt_Y;
+						FloodStack[loc_C++] = txt_X;
+						FloodStack[loc_C++] = bp_10;
+						FloodStack[loc_C++] = bp_0e;
 						if(loc_C >= 600)
 							loc_C = 0;
-						D_8F54[txt_Y-1][txt_X-1] = 1;
+						FloodSeen[txt_Y-1][txt_X-1] = 1;
 					}
 				}
 /*C_C33E*/
@@ -233,15 +238,15 @@ C_C23B()
 	u_kbflush();
 	u_kbread();
 	CurMode = loc_E;
-	D_9446 = 1;
+	Redraw3D = 1;
 }
 
-C_C403()
+/*C_C403*/ShowMap()
 {
 	if(Party._loc >= 0x11) {
-		C_C23B();
+		ShowDungeonMap();
 	} else {
-		C_B9EF(1);
+		ShowTownMap(1);
 	}
 }
 
@@ -254,5 +259,5 @@ C_C403()
 	}
 	u4_puts(/*D_301B*/"a Gem!\n");
 	Party._gems --;
-	C_C403();
+	ShowMap();
 }

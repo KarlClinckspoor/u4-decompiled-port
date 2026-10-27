@@ -1,6 +1,6 @@
 EXTRN _exit:NEAR
 
-EXTRN _C_23C3:NEAR
+EXTRN _Inflate:NEAR
 
 DGROUP	GROUP _DATA,CONST,_BSS
 
@@ -40,7 +40,7 @@ Lines	dw 0000h,2000h,0050h,2050h,00A0h,20A0h,00F0h,20F0h	;  0~  7
 	dw 1E00h,3E00h,1E50h,3E50h,1EA0h,3EA0h,1EF0h,3EF0h	;192~199
 D_03CC	db 35h
 D_03CD	db 9Bh
-D_03CE	dw OFFSET _TEXT:GR_0_CGA
+DriverTable	dw OFFSET _TEXT:GR_0_CGA	;D_03CE
 	dw OFFSET _TEXT:GR_0_EGA
 	dw OFFSET _TEXT:GR_0_TANDY
 	dw OFFSET _TEXT:GR_DOT_CGA
@@ -105,7 +105,7 @@ _BSS	SEGMENT PUBLIC WORD 'BSS'
 ;----------------------------------------
 D_3A86	db 10h dup(?)	;random seed[only 4 bytes used]
 ;-- sizzle --
-sizzleBuff	db 80h dup(?)	;D_3A96
+InterleaveBuf	db 80h dup(?)	;D_3A96
 ;-- --
 D_3B16	dw ?,?	;inflated file buffer far
 D_3B1A	dw ?	;counter
@@ -114,7 +114,7 @@ D_3B1E	dw ?	;inflated file buffer near
 ;----------------------------------------
 EXTRN patch_tandy:DWORD
 
-EXTRN D_7078:WORD	;graphic adapter?
+EXTRN GraphicsType:WORD	;graphic adapter?
 EXTRN pShapes:DWORD
 EXTRN pCharset:DWORD
 EXTRN txt_X:WORD
@@ -125,66 +125,66 @@ _BSS	ENDS
 _TEXT	SEGMENT PUBLIC BYTE 'CODE'
 	ASSUME CS:_TEXT
 ;----------------------------------------
-PUBLIC _Gra_0
-_Gra_0:	;1186
+PUBLIC _Gra_DrawView
+_Gra_DrawView:	;1186
 	MOV	BX,0
 	JMP	SHORT C_11C5
-PUBLIC _Gra_dot
-_Gra_dot:	;118B
+PUBLIC _Gra_Dot
+_Gra_Dot:	;118B
 	MOV	BX,1
 	JMP	SHORT C_11C5
-PUBLIC Gra_2
-Gra_2:	;1190
+PUBLIC Gra_ClearMenu
+Gra_ClearMenu:	;1190
 	MOV	BX,2
 	JMP	SHORT C_11C5
-PUBLIC _Gra_3
-_Gra_3:	;1195
+PUBLIC _Gra_Blit
+_Gra_Blit:	;1195
 	MOV	BX,3
 	JMP	SHORT C_11C5
-PUBLIC _Gra_inflate
-_Gra_inflate:	;119A
+PUBLIC _Gra_LoadPicture
+_Gra_LoadPicture:	;119A
 	MOV	BX,4
 	JMP	SHORT C_11C5
-PUBLIC Gra_5
-Gra_5:	;119F
+PUBLIC Gra_ClearText
+Gra_ClearText:	;119F
 	MOV	BX,5
 	JMP	SHORT C_11C5
-PUBLIC Gra_init
-Gra_init:	;11A4
+PUBLIC Gra_Init
+Gra_Init:	;11A4
 	MOV	BX,6
 	JMP	SHORT C_11C5
-PUBLIC Gra_animFlow
-Gra_animFlow:	;11A9
+PUBLIC Gra_AnimFlow
+Gra_AnimFlow:	;11A9
 	MOV	BX,7
 	JMP	SHORT C_11C5
-PUBLIC Gra_animFlag
-Gra_animFlag:	;11AE
+PUBLIC Gra_AnimFlags
+Gra_AnimFlags:	;11AE
 	MOV	BX,8
 	JMP	SHORT C_11C5
-PUBLIC Gra_putchar
-Gra_putchar:	;11B3
+PUBLIC Gra_PutChar
+Gra_PutChar:	;11B3
 	MOV	BX,9
 	JMP	SHORT C_11C5
-PUBLIC Gra_clrscr
-Gra_clrscr:	;11B8
+PUBLIC Gra_ClearScreen
+Gra_ClearScreen:	;11B8
 	MOV	BX,0Ah
 	JMP	SHORT C_11C5
-PUBLIC _Gra_C
-_Gra_C:	;11BD
+PUBLIC _Gra_DrawViewOver
+_Gra_DrawViewOver:	;11BD
 	MOV	BX,0Ch
 	JMP	SHORT C_11C5
-PUBLIC _Gra_B
-_Gra_B:	;11C2
+PUBLIC _Gra_BlitReveal
+_Gra_BlitReveal:	;11C2
 	MOV	BX,0Bh
 ;----
 C_11C5:
 	MOV	AX,BX
 	SHL	BX,1
 	ADD	BX,AX	;BX *= 3
-	ADD	BX,[D_7078]
+	ADD	BX,[GraphicsType]
 	DEC	BX
 	SHL	BX,1
-	JMP	D_03CE[BX]
+	JMP	DriverTable[BX]
 ;----------------------------------------
 GR_0_TANDY:	;11D8
 	PUSH	BP
@@ -1091,7 +1091,7 @@ GR_INFLATE_TANDY:
 	LEA	AX,[CB_tandy]
 	PUSH	AX
 	PUSH	[BP+04]
-	CALL	_C_23C3	;load&inflate?
+	CALL	_Inflate	;load&inflate?
 	ADD	SP,4
 	;%%
 	CMP	AX,-1
@@ -1148,7 +1148,7 @@ GR_INFLATE_EGA:
 	LEA	AX,[CB_ega]
 	PUSH	AX
 	PUSH	[BP+04]
-	CALL	_C_23C3	;load&inflate?
+	CALL	_Inflate	;load&inflate?
 	ADD	SP,4
 	;%%
 	CMP	AX,-1
@@ -1228,7 +1228,7 @@ GR_INFLATE_CGA:
 	LEA	AX,[CB_cga]
 	PUSH	AX
 	PUSH	[BP+04]
-	CALL	_C_23C3	;load&inflate?
+	CALL	_Inflate	;load&inflate?
 	ADD	SP,4
 	;%%
 	CMP	AX,-1
@@ -1449,8 +1449,8 @@ C_1B8C:
 	ADD	AX,28h
 	LOOP	C_1B8C
 	;--
-	CALL	sizzleCharset
-	CALL	sizzleShapes
+	CALL	InterleaveCharset
+	CALL	InterleaveShapes
 	;--
 	POP	ES
 	POP	BP
@@ -2001,8 +2001,8 @@ C_208A	ENDP
 ASSUME DS:DGROUP,SS:NOTHING
 ;----------------------------------------
 ;(TITLE.EXE:_C_20B4/AVATAR.EXE:C_2341)
-PUBLIC sizzleCharset
-sizzleCharset	PROC NEAR
+PUBLIC InterleaveCharset
+InterleaveCharset	PROC NEAR
 	PUSH	SI
 	PUSH	DI
 	PUSH	ES
@@ -2012,7 +2012,7 @@ sizzleCharset	PROC NEAR
 	MOV	CX,80h
 C_20C0:
 	MOV	DH,8
-	MOV	BX,OFFSET DGROUP:sizzleBuff
+	MOV	BX,OFFSET DGROUP:InterleaveBuf
 C_20C5:
 	MOV	DL,4
 C_20C7:
@@ -2040,7 +2040,7 @@ C_20C7:
 	JNZ	C_20C5
 	MOV	DX,CX
 	;--
-	MOV	SI,OFFSET DGROUP:sizzleBuff
+	MOV	SI,OFFSET DGROUP:InterleaveBuf
 	MOV	CX,10h
 	REPZ	MOVSW
 	;--
@@ -2052,11 +2052,11 @@ C_20C7:
 	POP	DI
 	POP	SI
 	RET	
-sizzleCharset	ENDP
+InterleaveCharset	ENDP
 ;----------------------------------------C_210C
 ;(TITLE.EXE:_C_210C/AVATAR.EXE:C_22CF)
-PUBLIC sizzleShapes
-sizzleShapes	PROC NEAR
+PUBLIC InterleaveShapes
+InterleaveShapes	PROC NEAR
 	PUSH	SI
 	PUSH	DI
 	PUSH	ES
@@ -2066,7 +2066,7 @@ sizzleShapes	PROC NEAR
 	MOV	CX,100h
 C_2118:
 	MOV	DH,10h
-	MOV	BX,OFFSET DGROUP:sizzleBuff
+	MOV	BX,OFFSET DGROUP:InterleaveBuf
 C_211D:
 	MOV	DL,8
 C_211F:
@@ -2102,7 +2102,7 @@ C_211F:
 	JNZ	C_211D
 	MOV	DX,CX
 	;--
-	MOV	SI,OFFSET DGROUP:sizzleBuff
+	MOV	SI,OFFSET DGROUP:InterleaveBuf
 	MOV	CX,40h
 	REPZ	MOVSW
 	;--
@@ -2114,7 +2114,7 @@ C_211F:
 	POP	DI
 	POP	SI
 	RET
-sizzleShapes	ENDP
+InterleaveShapes	ENDP
 ;----------------------------------------
 
 ;----------------------------------------
@@ -2123,8 +2123,8 @@ ASSUME DS:NOTHING,SS:DGROUP
 ;inflate[frontend]
 ;[bp+08] file name
 ;[bp+04] far pointer
-PUBLIC C_217E
-C_217E	PROC NEAR
+PUBLIC LoadCompressed
+LoadCompressed	PROC NEAR	;C_217E
 	PUSH	BP
 	MOV	BP,SP
 	;--
@@ -2136,7 +2136,7 @@ C_217E	PROC NEAR
 	LEA	AX,[CB_dummy]
 	PUSH	AX
 	PUSH	[BP+08]
-	CALL	_C_23C3	;load&inflate?
+	CALL	_Inflate	;load&inflate?
 	ADD	SP,4
 	;%%
 	CMP	AX,-1
@@ -2148,7 +2148,7 @@ C_217E	PROC NEAR
 C_21A9:	;--
 	POP	BP
 	RET	6
-C_217E	ENDP
+LoadCompressed	ENDP	;C_217E
 ;----------------------------------------C_21AD
 CB_dummy:
 	PUSH	ES

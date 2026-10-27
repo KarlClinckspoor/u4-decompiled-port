@@ -15,7 +15,7 @@
 #define RG_nightshade (0x80>>6)
 #define RG_mandrake   (0x80>>7)
 
-unsigned char D_277E[] = {
+unsigned char /*D_277E*/SpellRecipes[] = {
 	/*A*/RG_ginseng|RG_garlic,
 	/*B*/RG_spiderSilk|RG_bloodMoss,
 	/*C*/RG_ginseng|RG_garlic,
@@ -53,24 +53,24 @@ unsigned char D_277E[] = {
 
 	loc_D = 0;
 	do {
-		Gra_13();
-		C_4649();
-		C_4C42();
+		Gra_ClearStatus();
+		ZtatsClearTitle();
+		ZtatsMixtures();
 		txt_Y = 23;
 		txt_X = 24;
 		u4_puts(/*D_270C*/"Mix Reagents\n");
 		if((loc_C = AskLetter(/*D_271A*/"For Spell:\x12\x12\b", 'A', 'Z')) < 0)
 			break;
 		loc_C -= 'A';
-		u4_puts(D_1E98[101 + loc_C]);
+		u4_puts(Names[101 + loc_C]);
 		Gra_CR();
-		Gra_13();
-		C_4649();
+		Gra_ClearStatus();
+		ZtatsClearTitle();
 		for(si = 7; si >= 0; si --)
 			loc_A[si] = Party._reagents[si];
 		loc_E = 0;
 		while(1) {
-			C_4BC7();
+			ZtatsReagents();
 			txt_Y = 23;
 			txt_X = 24;
 			if((loc_B = AskLetter(/*D_2728*/"Reagent:\x12\x12\b", 'A', 'H')) == -2) {
@@ -85,7 +85,7 @@ unsigned char D_277E[] = {
 				} else {
 					u4_puts(/*D_2745*/"\nYou mix the Reagents, and...\n");
 					loc_B = 0;
-					if(D_277E[loc_C] == loc_E) {
+					if(SpellRecipes[loc_C] == loc_E) {
 						u4_puts(/*D_2764*/"Success!\n\n");
 						Party._mixtures[loc_C] ++;
 						if(Party._mixtures[loc_C] > 99)
@@ -105,7 +105,7 @@ unsigned char D_277E[] = {
 			Party._reagents[loc_B] --;
 		}
 	} while(loc_D == 0);
-	Gra_13();
-	C_4649();
+	Gra_ClearStatus();
+	ZtatsClearTitle();
 	dspl_Stats();
 }

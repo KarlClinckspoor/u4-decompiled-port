@@ -4,7 +4,7 @@
  * reverse-coded by Ergonomy Joe in 2012
  */
 
-char *D_1E98[] = {
+char * /*D_1E98*/Names[] = {
 /*0 - null*/
 	/*D_19F2*/"",
 /*1 - sea creatures D_1E9A*/

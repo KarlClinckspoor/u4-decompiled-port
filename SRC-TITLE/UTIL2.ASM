@@ -1,7 +1,7 @@
 EXTRN u4_puts:NEAR
 EXTRN u4_putc:NEAR
-EXTRN Gra_putchar:NEAR
-EXTRN t_callback:NEAR
+EXTRN Gra_PutChar:NEAR
+EXTRN AnimateMonsters:NEAR
 
 EXTRN MSG_DSKERR:BYTE
 EXTRN MSG_SYSERR:BYTE
@@ -14,7 +14,7 @@ EXTRN txt_X:WORD
 EXTRN txt_Y:WORD
 
 PUBLIC cursor_rate
-PUBLIC D_31C0
+PUBLIC cursor_enabled
 
 DGROUP	GROUP _DATA,_BSS
 ;########################################
@@ -23,7 +23,7 @@ _DATA	SEGMENT PUBLIC WORD 'DATA'
 ;----------------------------------------
 cursor_rate	dw 0	;D_31BC
 D_31BE	dw 0
-D_31C0	dw 0FFFFh	;display cursor flag
+cursor_enabled	dw 0FFFFh	;D_31C0 display cursor flag
 ;----------------------------------------
 _DATA	ENDS
 ;########################################
@@ -32,12 +32,12 @@ _BSS	SEGMENT PUBLIC WORD 'BSS'
 ;random seeds
 PUBLIC seed_128
 seed_128	db 10h dup(?)	;D_6966
-;-- struct t_500 --
-PUBLIC D_6976
-D_6976	db 500h dup(?)
+;-- struct tArea --
+PUBLIC Area
+Area	db 500h dup(?)	;D_6976
 ;--
-D_6E76	db ?	;cursor state {0, 1, 2, 3}
-D_6E77	dw ?	;cursor update counter
+cursor_state	db ?	;D_6E76 cursor state {0, 1, 2, 3}
+cursor_count	dw ?	;D_6E77 cursor update counter
 	db ?	;padding?
 ;----------------------------------------
 _BSS	ENDS
@@ -53,7 +53,7 @@ _u_delay	PROC NEAR
 	MOV	BP,SP
 	PUSH	SI
 	;--
-	MOV	D_6E77,1
+	MOV	cursor_count,1
 	;--
 	MOV	AX,cursor_rate
 	MOV	D_31BE,AX
@@ -81,31 +81,31 @@ C_317D:	;--
 	TEST	AX,0FFFFh
 	JNZ	C_31D9
 C_318C:	;--
-	CALL	t_callback
+	CALL	AnimateMonsters
 	;============
 	;== cursor ==
 	;============
 	MOV	AX,[BP+06]
-	AND	AX,D_31C0
+	AND	AX,cursor_enabled
 	JZ	C_31CD
 	;-- update shape
 	MOV	AX,D_31BE
 	CMP	AX,cursor_rate
 	JNZ	C_31B9
-	DEC	D_6E77
+	DEC	cursor_count
 	JNZ	C_31CD
-	DEC	D_6E76
-	AND	D_6E76,3
+	DEC	cursor_state
+	AND	cursor_state,3
 	;-- display
-	MOV	AL,D_6E76
+	MOV	AL,cursor_state
 	ADD	AL,1Ch
 	PUSH	AX
-	CALL	Gra_putchar
+	CALL	Gra_PutChar
 C_31B9:	;-- reload cursor counter
 	MOV	AX,1
 	ADD	AX,cursor_rate
 	MUL	speed_info
-	MOV	D_6E77,AX
+	MOV	cursor_count,AX
 	;--
 	MOV	AX,cursor_rate
 	MOV	D_31BE,AX
@@ -120,12 +120,12 @@ C_31CD:	;==   ==
 	JNZ	C_317D
 C_31D9:	;--
 	MOV	AX,[BP+06]
-	AND	AX,D_31C0
+	AND	AX,cursor_enabled
 	JZ	C_31E8
 	;-- delete cursor --
 	MOV	AL,' '
 	PUSH	AX
-	CALL	Gra_putchar
+	CALL	Gra_PutChar
 C_31E8:	;--
 	POP	SI
 	MOV	SP,BP
@@ -187,14 +187,14 @@ u_rand_b	PROC NEAR
 	RET
 u_rand_b	ENDP
 ;----------------------------------------C_3241
-;increment Party.f_000
+;increment Party._tick
 ;returns:
 ; 1 if key is pressed
 ; 0 if not
 PUBLIC u_kbhit
 u_kbhit	PROC NEAR
 	CALL	u_rand_a
-	;-- increment (unsigned long)Party.f_000
+	;-- increment (unsigned long)Party._tick
 	INC	WORD PTR Party
 	JNZ	C_324E
 	INC	WORD PTR Party+2
@@ -213,7 +213,7 @@ C_3263:	;-- remove <CTRL C>
 	MOV	AH,0	;wait for keypress and read character
 	INT	16h
 C_3267:	;--
-	CALL	t_callback
+	CALL	AnimateMonsters
 	;-- returns 0
 	MOV	AX,0
 C_326D:	;-- --
@@ -259,19 +259,19 @@ C_328F:	;--
 u_kbflush	ENDP
 ;----------------------------------------
 ;get current default drive
-PUBLIC C_3290
-C_3290	PROC NEAR
+PUBLIC u_getdrive
+u_getdrive	PROC NEAR	;C_3290
 	MOV	AH,19h	;get current default drive
 	INT	21h
 	INC	AL
 	MOV	AH,0
 	;--
 	RET
-C_3290	ENDP
+u_getdrive	ENDP	;C_3290
 ;----------------------------------------
 ;select disk
-PUBLIC C_3299
-C_3299	PROC NEAR
+PUBLIC u_setdrive
+u_setdrive	PROC NEAR	;C_3299
 	PUSH	BP
 	MOV	BP,SP
 	;--
@@ -283,11 +283,11 @@ C_3299	PROC NEAR
 	;--
 	POP	BP
 	RET	2
-C_3299	ENDP
+u_setdrive	ENDP	;C_3299
 ;----------------------------------------
 ;test file
-PUBLIC C_32AB
-C_32AB	PROC NEAR
+PUBLIC u_fexist
+u_fexist	PROC NEAR	;C_32AB
 	PUSH	BP
 	MOV	BP,SP
 	;--
@@ -308,13 +308,13 @@ C_32BE:	;--
 C_32C7:	;--
 	POP	BP
 	RET	2
-C_32AB	ENDP
+u_fexist	ENDP	;C_32AB
 ;----------------------------------------
 ;piracy check function ?(not called)
 ;succes => 0
 ;failure => -1
-PUBLIC C_32CB
-C_32CB	PROC NEAR
+PUBLIC u_diskcheck
+u_diskcheck	PROC NEAR	;C_32CB
 	PUSHF
 	PUSH	BX
 	PUSH	AX
@@ -374,14 +374,14 @@ C_330F:	;--
 	POP	BX
 	POPF
 	RET
-C_32CB	ENDP
+u_diskcheck	ENDP	;C_32CB
 ;----------------------------------------
 ;set critical error handler
-PUBLIC C_331E
-C_331E	PROC NEAR
+PUBLIC u_setint24
+u_setint24	PROC NEAR	;C_331E
 	PUSH	DS
 	;--
-	LEA	DX,INT_332F
+	LEA	DX,Int24Handler
 	MOV	AX,CS
 	MOV	DS,AX
 	MOV	AH,25h	;set new interrupt vector
@@ -390,9 +390,9 @@ C_331E	PROC NEAR
 	;--
 	POP	DS
 	RET
-C_331E	ENDP
+u_setint24	ENDP	;C_331E
 ;----
-INT_332F:
+Int24Handler:
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	BX

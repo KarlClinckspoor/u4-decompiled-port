@@ -281,8 +281,8 @@ C_22D5	ENDP
 ;load file + inflate(callback)?
 ;[bp+04] file name
 ;[bp+06] callback(AL)
-PUBLIC _C_23C3
-_C_23C3	PROC NEAR
+PUBLIC _Inflate
+_Inflate	PROC NEAR	;C_23C3
 	PUSH	BP
 	MOV	BP,SP
 	SUB	SP,4
@@ -350,7 +350,7 @@ C_243F:	;** **
 	MOV	SP,BP
 	POP	BP
 	RET
-_C_23C3	ENDP
+_Inflate	ENDP	;C_23C3
 
 _TEXT	ENDS
 

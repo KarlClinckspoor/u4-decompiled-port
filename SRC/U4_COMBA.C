@@ -19,11 +19,11 @@ unsigned char _y;
 }
 
 /*party all out ?*/
-C_5A04()
+/*C_5A04*/IsPartyWipedOut()
 {
 	register int si;
 
-	for(si = Party.f_1d8 - 1; si >= 0; si --)
+	for(si = Party._members - 1; si >= 0; si --)
 		if(isCharaAlive(si))
 			return 0;
 	return 1;
@@ -53,8 +53,8 @@ C_5A5F:
 	return 1;
 }
 
-/*C_5D14();
-C_61D1();*/
+/*COM_EndCharaTurn();
+COM_Attack();*/
 
 /*C_5A6B*/COM_main()
 {
@@ -63,22 +63,22 @@ C_61D1();*/
 
 	u_kbflush();
 	bp_04 = 0;
-	D_96EE = D_96F4 = 0;
+	RoomExitX = RoomExitY = 0;
 	do {
-		for(activeChara = 0; /*C_5A88:*/activeChara < Party.f_1d8 && !IsCombatEnded(); activeChara++) {
+		for(activeChara = 0; /*C_5A88:*/activeChara < Party._members && !IsCombatEnded(); activeChara++) {
 /*C_5A9E*/
 			if(Fighters._chtile[activeChara] && isCharaConscious(activeChara)) {
-				D_95C8 = 4;
-				Gra_11(activeChara);
+				CursorBlink = 4;
+				Gra_InvertStatusLine(activeChara);
 				activeCharaX = Combat._charaX[activeChara];
 				activeCharaY = Combat._charaY[activeChara];
 				u4_puts(Party.chara[activeChara]._name);
 				u4_puts(/*D_1FE6*/" with ");
-				u4_puts(D_1E98[37 + Party.chara[activeChara]._weapon]);
+				u4_puts(Names[37 + Party.chara[activeChara]._weapon]);
 				Gra_CR();
 				u4_putc(0x10);
-				D_95C8 = 2;
-				C_3C54();
+				CursorBlink = 2;
+				DrawCombat();
 				u_delay(25, 1);
 				si = u_kbhit()?u_kbread():KBD_SPACE;
 				if(u4_isupper((unsigned char)si))
@@ -86,16 +86,16 @@ C_61D1();*/
 				switch(si) {
 					case KBD_SPACE: w_Pass(); break;
 					case 0x487e:
-					case KBD_UP: C_7B89(); break;
+					case KBD_UP: COM_North(); break;
 					case 0x4b7c:
-					case KBD_LEFT: C_7BFD(); break;
+					case KBD_LEFT: COM_West(); break;
 					case 0x5060:
-					case KBD_DOWN: C_7BAF(); break;
+					case KBD_DOWN: COM_South(); break;
 					case 0xf400:
-					case KBD_RIGHT: C_7BD5(); break;
-					case KBD_A: C_61D1(); break;/*(A)ttack(combat)*/
+					case KBD_RIGHT: COM_East(); break;
+					case KBD_A: COM_Attack(); break;/*(A)ttack(combat)*/
 					case KBD_C: CMD_Cast(); break;
-					case KBD_G: C_73B8(); break;/*(G)et chest(combat)*/
+					case KBD_G: COM_GetChest(); break;/*(G)et chest(combat)*/
 					case KBD_R: CMD_Ready(); break;
 					case KBD_U: CMD_Use(); break;
 					case KBD_V: CMD_Volume(); break;
@@ -121,52 +121,52 @@ C_61D1();*/
 					case KBD_Y: w_NotHere(); break;
 					case KBD_CTRL_S:
 						if(bp_04 == KBD_ALT_Z) {
-							C_1C21();
+							CheatShowKarma();
 							break;
 						}
 					default:
 						u4_puts(/*D_1FED*/"Bad command\n");
 						sound(2);
-						Gra_11(activeChara);
+						Gra_InvertStatusLine(activeChara);
 						activeChara --;
 					continue;
 				}
-				Gra_11(activeChara);
+				Gra_InvertStatusLine(activeChara);
 				activeCharaX = -1;
 				dspl_Stats();
 			}
-			if(!D_07F8) {
-				D_07F8 = 1;
+			if(!TurnDone) {
+				TurnDone = 1;
 				activeChara --;
 			} else {
-				C_5D14();
+				COM_EndCharaTurn();
 			}
 /*C_5C09*/
 		}
 /*C_5CEF:*/
-		C_9F7B();
+		COM_FoesTurn();
 		bp_04 = si;
 	} while(!IsCombatEnded());
-	if(!C_5A04())
-		C_837A();
-	D_07F8 = 1;
+	if(!IsPartyWipedOut())
+		CombatEnd();
+	TurnDone = 1;
 }
 
-C_5D14()
+/*C_5D14*/COM_EndCharaTurn()
 {
 	if(Fighters._chtile[activeChara] == 0)
 		return;
 	if(isCharaConscious(activeChara))
-		C_9209();
+		TileEffects();
 	if(!isCharaAlive(activeChara)) {
 		Fighters._chtile[activeChara] = 0;
-	} else if(isCharaConscious(activeChara) && spell_sta == 'Q' && U4_RND1(1)) {
+	} else if(isCharaConscious(activeChara) && spell_effect == 'Q' && U4_RND1(1)) {
 		/*Quickness!*/
 		activeChara --;
 		return;
 	} else if(Party.chara[activeChara]._stat == 'S' && !U4_RND1(7)) {
 		Party.chara[activeChara]._stat = 'G';
-		D_944A[activeChara] = Fighters._chtile[activeChara] = C_0ACF(activeChara);
+		CharaAnimTile[activeChara] = Fighters._chtile[activeChara] = CharaTile(activeChara);
 		dspl_Stats();
 	}
 	food_dec(1);
@@ -177,14 +177,14 @@ register int _npcId;
 int _charaId;
 unsigned char _damage;
 {
-	u4_puts(C_1513(Fighters._tile[_npcId]));
+	u4_puts(CreatureName(Fighters._tile[_npcId]));
 	u4_putc(' ');
-	if(Fighters._tile[_npcId] != TIL_5E && (Fighters._HP[_npcId] -= _damage) < 0) {
+	if(Fighters._tile[_npcId] != TIL_LORD_BRITISH && (Fighters._HP[_npcId] -= _damage) < 0) {
 		u4_puts(/*D_1FFA*/"Killed!\n");
 		if(_charaId != -1) {
 			register int di;
 
-			di = D_23D2[C_7C25(Fighters._tile[_npcId])] / 16 + 1;
+			di = MonsterMaxHP[MonsterIndex(Fighters._tile[_npcId])] / 16 + 1;
 			XP_inc(_charaId, di);
 			u4_puts(/*D_2003*/"Exp. ");
 			u4_putl(di, 1, ' ');
@@ -194,7 +194,7 @@ unsigned char _damage;
 	} else {
 		int loc_D, loc_C, loc_B, loc_A;
 
-		loc_B = loc_A = D_23D2[C_7C25(Fighters._tile[_npcId])] / 2;/*50% HP*/
+		loc_B = loc_A = MonsterMaxHP[MonsterIndex(Fighters._tile[_npcId])] / 2;/*50% HP*/
 		loc_B >>= 1;/*25% HP*/
 		loc_C = loc_B + loc_A;/*75% HP*/
 		loc_D = Fighters._HP[_npcId];
@@ -228,11 +228,11 @@ unsigned char /*bp04*/_dir_y;
 	if(loc_C > 10 || loc_A > 10)
 		return 0;
 	loc_B = Combat_MAP(loc_A, loc_C);
-	if(loc_B == TIL_49)
+	if(loc_B == TIL_SECRET_DOOR)
 		return 0;
-	if(loc_B <= TIL_80 && loc_B > TIL_02 && loc_B != TIL_48)
-		if(loc_B < TIL_31 || loc_B > TIL_34)
-			if(!C_2999(loc_B))
+	if(loc_B <= TIL_PIRATE_W && loc_B > TIL_SHALLOWS && loc_B != TIL_SHIP_RAIL)
+		if(loc_B < TIL_SHORE_1 || loc_B > TIL_SHORE_4)
+			if(!IsWalkable(loc_B))
 				return 0;
 
 	hit_x = loc_C;
@@ -249,10 +249,10 @@ int /*bp04*/_range;
 		return;
 	bp_02 = u4_sign(Combat._charaX[activeChara] - hit_x);
 	bp_04 = u4_sign(Combat._charaY[activeChara] - hit_y);
-	hit_tile = TIL_4D;
+	hit_tile = TIL_MISSILE;
 	while(_range) {
 		COM_CheckHitable(bp_02, bp_04);
-		C_3C54();
+		DrawCombat();
 		_range --;
 	}
 	hit_tile = 0;
@@ -265,9 +265,9 @@ int /*bp04*/_range;
 		sound(4);
 	hit_tile = 0;
 	u4_puts(/*D_2042*/"Missed!\n");
-	if(Party.chara[activeChara]._weapon == 9 && hit_x < 11 && hit_y < 11 && Combat_MAP(hit_y, hit_x) >= TIL_03)
-		Combat_MAP(hit_y, hit_x) = TIL_46;
-	C_3C54();
+	if(Party.chara[activeChara]._weapon == 9 && hit_x < 11 && hit_y < 11 && Combat_MAP(hit_y, hit_x) >= TIL_SWAMP)
+		Combat_MAP(hit_y, hit_x) = TIL_FIRE_FIELD;
+	DrawCombat();
 	DrawBlow(_range);
 }
 
@@ -285,7 +285,7 @@ int /*bp04*/_range;
 		w_missed(_range);
 		return;
 	}
-	hit_tile = (loc_C->_weapon == 14)?TIL_4E:TIL_4F;
+	hit_tile = (loc_C->_weapon == 14)?TIL_MAGIC_BOLT:TIL_HIT_FLASH;
 	/*dexterity test*/
 	if(loc_C->_dex < 40 && U4_RND1(0xff) > loc_C->_dex + 0x80) {
 		w_missed(_range);
@@ -293,13 +293,13 @@ int /*bp04*/_range;
 	}
 	/*success*/
 	loc_B = &(Combat_MAP(Combat._npcY[_npcId], Combat._npcX[_npcId]));
-	if(loc_C->_weapon == 9 && *loc_B >= TIL_03)
-		*loc_B = TIL_46;
+	if(loc_C->_weapon == 9 && *loc_B >= TIL_SWAMP)
+		*loc_B = TIL_FIRE_FIELD;
 	/*damage points*/
 	loc_A = loc_C->_str;
-	loc_A += D_2450[loc_C->_weapon];
+	loc_A += WeaponDamage[loc_C->_weapon];
 	loc_A = SafeModulo(U4_RND1(0xff), u4_min(loc_A, 0xff));
-	C_3C54();
+	DrawCombat();
 	sound(6);
 	hit_tile = 0;
 	COM_DoDamage(_npcId, activeChara, loc_A);
@@ -307,7 +307,7 @@ int /*bp04*/_range;
 }
 
 /*projectile weapon?*/
-C_60F1(_dir_x, _dir_y)
+/*C_60F1*/COM_Shoot(_dir_x, _dir_y)
 int _dir_x;
 int _dir_y;
 {
@@ -334,7 +334,7 @@ int _dir_y;
 		}
 	}
 	/*-- --*/
-	hit_tile = (loc_A->_weapon != 14)?TIL_4D:TIL_4E;
+	hit_tile = (loc_A->_weapon != 14)?TIL_MISSILE:TIL_MAGIC_BOLT;
 	sound(4);
 	/*note:when using flaming oil with range '0'
 	 this loop is never entered, and so loc_B stays
@@ -348,7 +348,7 @@ int _dir_y;
 			return;
 		}
 		loc_C ++;
-		C_3C54();
+		DrawCombat();
 		if((loc_B = COM_GetFighterId(hit_x, hit_y)) != -1)
 			break;
 	}
@@ -361,7 +361,7 @@ int _dir_y;
 }
 
 /*(A)ttack [combat]*/
-C_61D1()
+/*C_61D1*/COM_Attack()
 {
 	register struct tChara *loc_C;
 	int loc_A, loc_B, loc_D;
@@ -373,14 +373,14 @@ C_61D1()
 	hit_x = Combat._charaX[activeChara];
 	hit_y = Combat._charaY[activeChara];
 
-	if(!D_2468[loc_C->_weapon]) {/*is not range weapon?*/
+	if(!WeaponIsRanged[loc_C->_weapon]) {/*is not range weapon?*/
 		if(loc_C->_weapon == 10) {/*Halberd*/
 			hit_x += loc_A;
 			hit_y += loc_B;
 		}
 		if(COM_CheckHitable(loc_A, loc_B)) {
-			hit_tile = TIL_4D;
-			C_3C54();
+			hit_tile = TIL_MISSILE;
+			DrawCombat();
 			hit_tile = 0;
 			sound(4);
 
@@ -389,13 +389,13 @@ C_61D1()
 				return;
 			}
 			if(loc_C->_weapon == 2) {/*dagger?*/
-				C_60F1(loc_A, loc_B);
+				COM_Shoot(loc_A, loc_B);
 				return;
 			}
 		}
 		w_missed(0);
 	} else {
-		C_60F1(loc_A, loc_B);
+		COM_Shoot(loc_A, loc_B);
 		return;
 	}
 }
@@ -405,7 +405,7 @@ C_61D1()
 	register int loc_C;
 	int loc_A, loc_B;
 
-	if(CurMode <= MOD_BUILDING && Party.f_1dc != 0) {
+	if(CurMode <= MOD_BUILDING && Party._fly_light != 0) {
 		u4_puts(/*D_2066*/"Attack\n");
 		w_DriftOnly();
 		return;
@@ -415,10 +415,10 @@ C_61D1()
 	if(!(loc_A|loc_B))
 		return;
 	if(
-		(loc_C = C_0A8B(Party._x + loc_A, Party._y + loc_B)) == -1 ||
-		D_8742._npc._tile[loc_C] == TIL_8C ||
-		D_8742._npc._tile[loc_C] == TIL_02 ||
-		D_8742._npc._tile[loc_C] == TIL_8E
+		(loc_C = FindTownNpcAt(Party._x + loc_A, Party._y + loc_B)) == -1 ||
+		Area._npc._tile[loc_C] == TIL_WHIRLPOOL ||
+		Area._npc._tile[loc_C] == TIL_SHALLOWS ||
+		Area._npc._tile[loc_C] == TIL_TWISTER
 	) {
 		u4_puts(/*D_2077*/"Nothing to Attack!\n");
 		return;
@@ -426,15 +426,15 @@ C_61D1()
 	if(CurMode == MOD_BUILDING) {
 		register int di;
 		for(di = 31; di >= 0; di --)
-			if(D_8742._npc._tile[di] == TIL_50 || D_8742._npc._tile[di] == TIL_5E) {
-				D_8742._npc._var[di] = 0xff;
-				D_8742._npc._tlkidx[di] = 0;
+			if(Area._npc._tile[di] == TIL_GUARD || Area._npc._tile[di] == TIL_LORD_BRITISH) {
+				Area._npc._var[di] = 0xff;
+				Area._npc._tlkidx[di] = 0;
 			}
 	}
-	if(CurMode == MOD_BUILDING || C_0AFE(D_8742._npc._tile[loc_C])) {
+	if(CurMode == MOD_BUILDING || IsNonEvil(Area._npc._tile[loc_C])) {
 		karma_dec(&(Party._compa), 5);
 		karma_dec(&(Party._justi), 5);
 		karma_dec(&(Party._honor), 5);
 	}
-	C_7DFE(loc_C);
+	StartCombat(loc_C);
 }

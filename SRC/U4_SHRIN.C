@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 /*---- mantras*/
-char *D_8322[] = {
+char * /*D_8322*/Mantras[] = {
 	/*D_7B62*/"ahm",
 	/*D_7B66*/"mu",
 	/*D_7B69*/"ra",
@@ -21,7 +21,7 @@ char *D_8322[] = {
 	/*D_7B7C*/"lum"
 };
 /*---- visions*/
-char *D_8332[][3] = {
+char * /*D_8332*/ShrineVisions[][3] = {
 	{
 		/*D_7B80*/"Take not the gold of others found in towns and castles for yours it is not!\n",
 		/*D_7BCD*/"Cheat not the merchants and peddlers for tis an evil thing to do!\n",
@@ -57,7 +57,7 @@ char *D_8332[][3] = {
 	}
 };
 /*---- visions 2*/
-char *D_8362[] = {
+char * /*D_8362*/VisionRunes[] = {
 	/*D_82DF*/"rune_1",/*I*/
 	/*D_82E6*/"rune_2",/*N*/
 	/*D_82ED*/"rune_0",/*F*/
@@ -69,20 +69,20 @@ char *D_8362[] = {
 };
 
 /*display avatarhood vision I.N.F.I.N.I.T.Y*/
-C_E6DF(bp04)
+/*C_E6DF*/ShowVision(bp04)
 int bp04;
 {
 	char bp_14[20];
 
 	CurMode = MOD_VISION;
-	strcpy(bp_14, D_8362[bp04]);
-	strcat(bp_14, (D_943A == 1)?/*D_8317*/".pic":/*D_831C*/".ega");
-	Gra_10();
-	Gra_16(bp_14, 0, 0);
+	strcpy(bp_14, VisionRunes[bp04]);
+	strcat(bp_14, (GraphicsType == 1)?/*D_8317*/".pic":/*D_831C*/".ega");
+	Gra_ClearView();
+	Gra_LoadPicture(bp_14, 0, 0);
 }
 
 /*enter a shrine*/
-C_E72C()
+/*C_E72C*/EnterShrine()
 {
 	int loc_A, loc_B, loc_C;
 	char loc_D[16];
@@ -108,15 +108,15 @@ C_E755:
 		goto C_E755;
 	}
 	loc_E -= '0';
-	if(loc_E == 0 || strnicmp(loc_D, D_1E98[151 + loc_A], 16)) {
+	if(loc_E == 0 || strnicmp(loc_D, Names[151 + loc_A], 16)) {
 		u4_puts(/*D_8445*/"\nThou art unable to focus thy thoughts on this subject!\n");
 		goto C_E755;
 	}
-	if(Party._moves / 100 == Party.f_1ea) {
+	if(Party._moves / 100 == Party._lastMeditate) {
 		u4_puts(/*D_847E*/"\nThy mind is still weary from thy last Meditation!\n");
 		goto C_E755;
 	}
-	Party.f_1ea = Party._moves / 100;
+	Party._lastMeditate = Party._moves / 100;
 	u4_puts(/*D_84B2*/"Begin Meditation\n");
 	for(loc_B = 0; loc_B < loc_E; loc_B ++) {
 		for(loc_C = 0; loc_C < 0x10; loc_C ++) {
@@ -127,7 +127,7 @@ C_E755:
 		u4_puts(/*D_84C4*/"\nMantra: ");
 		u4_gets(loc_D, 15);
 		Gra_CR();
-		if(strnicmp(loc_D, D_8322[loc_A], 0x10)) {
+		if(strnicmp(loc_D, Mantras[loc_A], 0x10)) {
 			u4_puts(/*D_84CE*/"\nThou art not able to focus thy thoughts with that Mantra!\n");
 			karma_dec(&(Party._spiri), 3);
 			goto C_E755;
@@ -139,18 +139,18 @@ C_E755:
 		u_kbflush();
 		u_kbread();
 		Gra_CR();
-		u4_puts(D_8332[loc_A][loc_E - 1]);
+		u4_puts(ShrineVisions[loc_A][loc_E - 1]);
 	} else {
 		u4_puts(/*D_853E*/"\nThou hast achieved partial Avatarhood in the Virtue of\n");
-		u4_puts(D_1E98[151 + loc_A]);
-		Gra_09(); sound(9, 0xff); Gra_09();
+		u4_puts(Names[151 + loc_A]);
+		Gra_InvertView(); sound(9, 0xff); Gra_InvertView();
 		Gra_CR();
 		*(pKarmas[loc_A]) = 0;
 		dspl_Stats();
 		u_kbflush();
 		u_kbread();
 		u4_puts(/*D_8577*/"\n\nThou art granted a vision!\n");
-		C_E6DF(loc_A);
+		ShowVision(loc_A);
 		u_kbflush();
 	}
 	u_kbread();

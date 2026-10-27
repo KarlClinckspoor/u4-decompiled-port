@@ -5,32 +5,32 @@ X_FAR	EQU 4
 _TEXT	SEGMENT
 	ASSUME CS:_TEXT
 ;----------------------------------------
-C_0000	dw OFFSET _TEXT:C_0C5B	;called through Gra_00
-C_0002	dw OFFSET _TEXT:C_01E6	;called through Gra_01 
-C_0004	dw OFFSET _TEXT:C_027A	;called through Gra_02
-C_0006	dw OFFSET _TEXT:C_02EE	;called through Gra_03
-C_0008	dw OFFSET _TEXT:C_033E	;called through Gra_04
-C_000A	dw OFFSET _TEXT:C_0392	;called through Gra_05
-C_000C	dw OFFSET _TEXT:C_05A8	;called through Gra_dot
+C_0000	dw OFFSET _TEXT:C_0C5B	;called through Gra_ActiveBox
+C_0002	dw OFFSET _TEXT:C_01E6	;called through Gra_ZoomTileRow 
+C_0004	dw OFFSET _TEXT:C_027A	;called through Gra_FillTiles
+C_0006	dw OFFSET _TEXT:C_02EE	;called through Gra_ShiftDown
+C_0008	dw OFFSET _TEXT:C_033E	;called through Gra_ShiftUp
+C_000A	dw OFFSET _TEXT:C_0392	;called through Gra_DrawTiles
+C_000C	dw OFFSET _TEXT:C_05A8	;called through Gra_Dot
 C_000E	dw 0
 C_0010	dw OFFSET _TEXT:C_0404	;called through Gra_CR
-C_0012	dw OFFSET _TEXT:C_0449	;called through Gra_09
-C_0014	dw OFFSET _TEXT:C_046D	;called through Gra_10
-C_0016	dw OFFSET _TEXT:C_0493	;called through Gra_11
-C_0018	dw OFFSET _TEXT:C_04D7	;called through Gra_12(uncalled)
-C_001A	dw OFFSET _TEXT:C_050E	;called through Gra_13
-C_001C	dw OFFSET _TEXT:C_0534	;called through Gra_dot_OR
-C_001E	dw OFFSET _TEXT:C_056E	;called through Gra_dot_XOR
-C_0020	dw OFFSET _TEXT:_pic_inflate	;called through Gra_16
-C_0022	dw OFFSET _TEXT:C_074D	;called through Gra_17
-C_0024	dw OFFSET _TEXT:C_0815	;called through Gra_18
-C_0026	dw OFFSET _TEXT:C_0910	;called throuch Gra_19
-C_0028	dw OFFSET _TEXT:C_095B	;called through Gra_animSpit
-C_002A	dw OFFSET _TEXT:C_09C6	;called through Gra_init
-C_002C	dw OFFSET _TEXT:C_0A15	;called through Gra_clrscr
-C_002E	dw OFFSET _TEXT:C_0B1A	;called through Gra_animFlow
-C_0030	dw OFFSET _TEXT:C_0B55	;called through Gra_animFlag
-C_0032	dw OFFSET _TEXT:C_0BDF	;called through Gra_putchar
+C_0012	dw OFFSET _TEXT:C_0449	;called through Gra_InvertView
+C_0014	dw OFFSET _TEXT:C_046D	;called through Gra_ClearView
+C_0016	dw OFFSET _TEXT:C_0493	;called through Gra_InvertStatusLine
+C_0018	dw OFFSET _TEXT:C_04D7	;called through Gra_InvertChar(uncalled)
+C_001A	dw OFFSET _TEXT:C_050E	;called through Gra_ClearStatus
+C_001C	dw OFFSET _TEXT:C_0534	;called through Gra_DotOr
+C_001E	dw OFFSET _TEXT:C_056E	;called through Gra_DotXor
+C_0020	dw OFFSET _TEXT:_pic_inflate	;called through Gra_LoadPicture
+C_0022	dw OFFSET _TEXT:C_074D	;called through Gra_RevealCodex
+C_0024	dw OFFSET _TEXT:C_0815	;called through Gra_DrawQuad
+C_0026	dw OFFSET _TEXT:C_0910	;called throuch Gra_VirtueGlyph
+C_0028	dw OFFSET _TEXT:C_095B	;called through Gra_AnimCampfire
+C_002A	dw OFFSET _TEXT:C_09C6	;called through Gra_Init
+C_002C	dw OFFSET _TEXT:C_0A15	;called through Gra_ClearScreen
+C_002E	dw OFFSET _TEXT:C_0B1A	;called through Gra_AnimFlow
+C_0030	dw OFFSET _TEXT:C_0B55	;called through Gra_AnimFlags
+C_0032	dw OFFSET _TEXT:C_0BDF	;called through Gra_PutChar
 ;----------------------------------------
 GR_SEGMENT	dw 0B800h	;C_0034
 C_0036	db 12h,34h,56h,78h	;random seed
@@ -67,7 +67,7 @@ Lines	dw  0*50h, 0*50h+2000h, 1*50h, 1*50h+2000h, 2*50h, 2*50h+2000h, 3*50h, 3*5
 	dw 96*50h,96*50h+2000h,97*50h,97*50h+2000h,98*50h,98*50h+2000h,99*50h,99*50h+2000h
 C_01E2	db 00h,40h,80h,0C0h
 ;----------------------------------------
-;Gra_01(cdecl)
+;Gra_ZoomTileRow(cdecl)
 ;----------------------------------------
 C_01E6	PROC FAR
 	PUSH	BP
@@ -147,7 +147,7 @@ C_0260:
 	RET
 C_01E6	ENDP
 ;----------------------------------------
-;Gra_02(cdecl)
+;Gra_FillTiles(cdecl)
 ;----------------------------------------
 C_027A	PROC FAR
 	PUSH	BP
@@ -214,7 +214,7 @@ C_02CB:
 	RET
 C_027A	ENDP
 ;----------------------------------------
-;Gra_03(pascal)
+;Gra_ShiftDown(pascal)
 ;----------------------------------------
 C_02EE	PROC FAR
 	PUSH	BP
@@ -269,7 +269,7 @@ C_032F:	;--
 	RET	2
 C_02EE	ENDP
 ;----------------------------------------
-;Gra_04(pascal)
+;Gra_ShiftUp(pascal)
 ;----------------------------------------
 C_033E	PROC FAR
 	PUSH	BP
@@ -324,7 +324,7 @@ C_037F:	;-- --
 	RET	2
 C_033E	ENDP
 ;----------------------------------------
-;Gra_05(cdecl)
+;Gra_DrawTiles(cdecl)
 ;----------------------------------------
 C_0392	PROC FAR
 	PUSH	BP
@@ -429,7 +429,7 @@ C_0432:
 	RET
 C_0404	ENDP
 ;----------------------------------------
-;Gra_09
+;Gra_InvertView
 ;----------------------------------------
 ;invert main window
 C_0449	PROC FAR
@@ -453,7 +453,7 @@ C_0458:
 	RET
 C_0449	ENDP
 ;----------------------------------------
-;Gra_10
+;Gra_ClearView
 ;----------------------------------------
 ;clear main window
 C_046D	PROC FAR
@@ -477,7 +477,7 @@ C_047C:
 	RET
 C_046D	ENDP
 ;----------------------------------------
-;Gra_11(pascal)
+;Gra_InvertStatusLine(pascal)
 ;----------------------------------------
 ;invert one text line(status box)
 C_0493	PROC FAR
@@ -518,7 +518,7 @@ C_04BF:
 	RET	2
 C_0493	ENDP
 ;----------------------------------------
-;Gra_12(cdecl)(uncalled)
+;Gra_InvertChar(cdecl)(uncalled)
 ;----------------------------------------
 ;invert one char(status box)
 C_04D7	PROC FAR
@@ -555,7 +555,7 @@ C_04FB:
 	RET
 C_04D7	ENDP
 ;----------------------------------------
-;Gra_13
+;Gra_ClearStatus
 ;----------------------------------------
 ;clear status box
 C_050E	PROC FAR
@@ -579,7 +579,7 @@ C_051D:	;--
 	RET
 C_050E	ENDP
 ;----------------------------------------
-;Gra_dot_OR(cdecl)
+;Gra_DotOr(cdecl)
 ;----------------------------------------
 C_0534	PROC FAR
 	PUSH	BP
@@ -617,7 +617,7 @@ C_0534	PROC FAR
 	RET
 C_0534	ENDP
 ;----------------------------------------
-;Gra_dot_XOR(cdecl)
+;Gra_DotXor(cdecl)
 ;----------------------------------------
 C_056E	PROC FAR
 	PUSH	BP
@@ -655,7 +655,7 @@ C_056E	PROC FAR
 	RET
 C_056E	ENDP
 ;----------------------------------------
-;Gra_dot(cdecl)
+;Gra_Dot(cdecl)
 ;----------------------------------------
 C_05A8	PROC FAR
 	PUSH	BP
@@ -693,7 +693,7 @@ C_05A8	PROC FAR
 	RET
 C_05A8	ENDP
 ;----------------------------------------
-;Gra_16(cdecl)
+;Gra_LoadPicture(cdecl)
 ;----------------------------------------
 ;(PCPaint format)
 _pic_inflate	PROC FAR
@@ -877,7 +877,7 @@ C_0730:	;-- finished --
 	RET
 _pic_inflate	ENDP
 ;----------------------------------------
-;Gra_17(pascal)
+;Gra_RevealCodex(pascal)
 ;----------------------------------------
 C_074D	PROC FAR
 	PUSH	BP
@@ -993,7 +993,7 @@ C_07E3:
 	RET	2
 C_074D	ENDP
 ;----------------------------------------
-;Gra_18(cdecl)
+;Gra_DrawQuad(cdecl)
 ;----------------------------------------
 C_0815	PROC FAR
 	PUSH	BP
@@ -1118,7 +1118,7 @@ C_0909:	;--
 	RET
 C_0815	ENDP
 ;----------------------------------------
-;Gra_19(pascal)
+;Gra_VirtueGlyph(pascal)
 ;----------------------------------------
 C_0910	PROC FAR
 	PUSH	BP
@@ -1161,7 +1161,7 @@ C_0952:
 	RET	2
 C_0910	ENDP
 ;----------------------------------------
-;Gra_animSpit
+;Gra_AnimCampfire
 ;----------------------------------------
 ;fire FX?
 ;________________ ;0
@@ -1225,7 +1225,7 @@ C_095B	PROC FAR
 	RET
 C_095B	ENDP
 ;----------------------------------------
-;Gra_init(cdecl)
+;Gra_Init(cdecl)
 ;----------------------------------------
 C_09C6	PROC FAR
 	PUSH	BP
@@ -1266,7 +1266,7 @@ C_09C6	PROC FAR
 	RET
 C_09C6	ENDP
 ;----------------------------------------
-;Gra_clrscr
+;Gra_ClearScreen
 ;----------------------------------------
 C_0A15	PROC FAR
 	PUSH	DI
@@ -1442,7 +1442,7 @@ C_0B16:
 	RET	
 ;########################################
 ;----------------------------------------
-;Gra_animFlow(pascal)
+;Gra_AnimFlow(pascal)
 ;----------------------------------------
 C_0B1A	PROC FAR
 	PUSH	BP
@@ -1474,7 +1474,7 @@ C_0B40:
 	RET	2
 C_0B1A	ENDP
 ;----------------------------------------
-;Gra_animFlag
+;Gra_AnimFlags
 ;----------------------------------------
 C_0B55	PROC FAR
 	PUSH	ES
@@ -1528,7 +1528,7 @@ C_0BDD:	;--
 	RET
 C_0B55	ENDP
 ;----------------------------------------
-;Gra_putchar(pascal)
+;Gra_PutChar(pascal)
 ;----------------------------------------
 C_0BDF	PROC FAR
 	PUSH	BP
@@ -1591,7 +1591,7 @@ C_0BDF	PROC FAR
 	RET	6
 C_0BDF	ENDP
 ;----------------------------------------
-;Gra_00
+;Gra_ActiveBox
 ;----------------------------------------
 C_0C5B	PROC FAR
 	PUSH	BP

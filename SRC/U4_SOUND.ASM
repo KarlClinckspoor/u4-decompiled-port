@@ -9,19 +9,19 @@ _DATA	SEGMENT PUBLIC WORD 'DATA'
 	ASSUME DS:DGROUP
 ;----------------------------------------
 _SoundFlag	db 1	;D_06A6
-D_06A7	dw OFFSET _TEXT:C_1D69
-	dw OFFSET _TEXT:sound_1
-	dw OFFSET _TEXT:C_1DA8
-	dw OFFSET _TEXT:C_1EB3
-	dw OFFSET _TEXT:C_1EFD
-	dw OFFSET _TEXT:C_1F4A
-	dw OFFSET _TEXT:C_1E7F
-	dw OFFSET _TEXT:C_1E53
-	dw OFFSET _TEXT:C_1F22
-	dw OFFSET _TEXT:C_1DCD
-	dw OFFSET _TEXT:C_1F73
-	dw OFFSET _TEXT:C_1FA3
-	dw OFFSET _TEXT:C_1FCC
+SoundTable	dw OFFSET _TEXT:Snd_Step	;D_06A7
+	dw OFFSET _TEXT:Snd_Blocked
+	dw OFFSET _TEXT:Snd_Error
+	dw OFFSET _TEXT:Snd_Shoot
+	dw OFFSET _TEXT:Snd_Swing
+	dw OFFSET _TEXT:Snd_FoeAttack
+	dw OFFSET _TEXT:Snd_Hit
+	dw OFFSET _TEXT:Snd_Hurt
+	dw OFFSET _TEXT:Snd_Failed
+	dw OFFSET _TEXT:Snd_Magic
+	dw OFFSET _TEXT:Snd_Cast
+	dw OFFSET _TEXT:Snd_Whirlpool
+	dw OFFSET _TEXT:Snd_Twister
 	db 0 ;padding ?
 ;----------------------------------------
 _DATA	ENDS
@@ -43,13 +43,13 @@ _sound	PROC NEAR
 	JNB	C_1D67
 	MOV	BH,0
 	SHL	BX,1
-	CALL	D_06A7[BX]
+	CALL	SoundTable[BX]
 C_1D67:	;--
 	POP	BP
 	RET
 _sound	ENDP
 ;----------------------------------------
-C_1D69	PROC NEAR
+Snd_Step	PROC NEAR	;C_1D69
 	;-- backup port 61h
 	IN	AL,61h
 	MOV	AH,AL
@@ -68,10 +68,10 @@ C_1D76:
 	OUT	61h,AL
 	;--
 	RET
-C_1D69	ENDP
+Snd_Step	ENDP	;C_1D69
 ;----------------------------------------C_1D82
 ;same as beep for title.exe
-sound_1	PROC NEAR
+Snd_Blocked	PROC NEAR
 	MOV	AX,0CAh
 	MUL	speed_info
 	MOV	DX,AX
@@ -98,9 +98,9 @@ C_1D9A:
 	OUT	61h,AL
 	;--
 	RET
-sound_1	ENDP
+Snd_Blocked	ENDP
 ;----------------------------------------
-C_1DA8	PROC NEAR
+Snd_Error	PROC NEAR	;C_1DA8
 	MOV	AX,0E0h
 	MUL	speed_info
 	MOV	DX,AX
@@ -122,12 +122,12 @@ C_1DC0:
 	MOV	AL,AH
 	OUT	61h,AL
 	;--
-	CALL	sound_1
+	CALL	Snd_Blocked
 	;--
 	RET
-C_1DA8	ENDP
+Snd_Error	ENDP	;C_1DA8
 ;----------------------------------------
-C_1DCD	PROC NEAR
+Snd_Magic	PROC NEAR	;C_1DCD
 	PUSH	BP
 	MOV	BP,SP
 	SUB	SP,4
@@ -197,9 +197,9 @@ C_1E2E:
 	MOV	SP,BP
 	POP	BP
 	RET
-C_1DCD	ENDP
+Snd_Magic	ENDP	;C_1DCD
 ;----------------------------------------
-C_1E53	PROC NEAR
+Snd_Hurt	PROC NEAR	;C_1E53
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -230,9 +230,9 @@ C_1E6E:
 	OUT	61h,AL
 	;--
 	RET
-C_1E53	ENDP
+Snd_Hurt	ENDP	;C_1E53
 ;----------------------------------------
-C_1E7F	PROC NEAR
+Snd_Hit	PROC NEAR	;C_1E7F
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -266,9 +266,9 @@ C_1EA5:
 	OUT	61h,AL
 	;--
 	RET
-C_1E7F	ENDP
+Snd_Hit	ENDP	;C_1E7F
 ;----------------------------------------
-C_1EB3	PROC NEAR
+Snd_Shoot	PROC NEAR	;C_1EB3
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -297,10 +297,10 @@ C_1ECB:
 	OUT	61h,AL
 	;--
 	RET
-C_1EB3	ENDP
+Snd_Shoot	ENDP	;C_1EB3
 ;----------------------------------------
 ; uncalled ?
-C_1ED8	PROC NEAR
+Snd_Unused	PROC NEAR	;C_1ED8
 	MOV	AX,0A0h
 	MUL	speed_info
 	MOV	BX,AX
@@ -324,9 +324,9 @@ C_1EEB:
 	OUT	61h,AL
 	;--
 	RET
-C_1ED8	ENDP
+Snd_Unused	ENDP	;C_1ED8
 ;----------------------------------------
-C_1EFD	PROC NEAR
+Snd_Swing	PROC NEAR	;C_1EFD
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -355,9 +355,9 @@ C_1F15:
 	OUT	61h,AL
 	;--
 	RET
-C_1EFD	ENDP
+Snd_Swing	ENDP	;C_1EFD
 ;----------------------------------------
-C_1F22	PROC NEAR
+Snd_Failed	PROC NEAR	;C_1F22
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -387,9 +387,9 @@ C_1F3D:
 	OUT	61h,AL
 	;--
 	RET
-C_1F22	ENDP
+Snd_Failed	ENDP	;C_1F22
 ;----------------------------------------
-C_1F4A	PROC NEAR
+Snd_FoeAttack	PROC NEAR	;C_1F4A
 	;-- backup port 61h
 	IN	AL,61h
 	MOV	AH,AL
@@ -420,9 +420,9 @@ C_1F63:
 	OUT	61h,AL
 	;--
 	RET
-C_1F4A	ENDP
+Snd_FoeAttack	ENDP	;C_1F4A
 ;----------------------------------------
-C_1F73	PROC NEAR
+Snd_Cast	PROC NEAR	;C_1F73
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -456,9 +456,9 @@ C_1F90:
 	OUT	61h,AL
 	;--
 	RET
-C_1F73	ENDP
+Snd_Cast	ENDP	;C_1F73
 ;----------------------------------------
-C_1FA3	PROC NEAR
+Snd_Whirlpool	PROC NEAR	;C_1FA3
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -488,9 +488,9 @@ C_1FB5:
 	OUT	61h,AL
 	;--
 	RET
-C_1FA3	ENDP
+Snd_Whirlpool	ENDP	;C_1FA3
 ;----------------------------------------
-C_1FCC	PROC NEAR
+Snd_Twister	PROC NEAR	;C_1FCC
 	;-- backup port 61h
 	IN	AL,61h
 	PUSH	AX
@@ -520,7 +520,7 @@ C_1FDE:
 	OUT	61h,AL
 	;--
 	RET
-C_1FCC	ENDP
+Snd_Twister	ENDP	;C_1FCC
 ;----------------------------------------
 _TEXT	ENDS
 ;########################################

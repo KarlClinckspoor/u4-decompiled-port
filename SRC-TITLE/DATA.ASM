@@ -5,8 +5,8 @@ CONST	SEGMENT PUBLIC WORD 'CONST'
 	ASSUME DS:DGROUP
 
 ;====---- monster animation sequence ----====
-PUBLIC D_3380
-D_3380	db 01h,01h,01h,00h,00h,01h,01h,01h,00h,00h,01h,01h,02h,02h,03h,03h
+PUBLIC Monster1Seq
+Monster1Seq	db 01h,01h,01h,00h,00h,01h,01h,01h,00h,00h,01h,01h,02h,02h,03h,03h	;D_3380
 	db 04h,04h,01h,02h,03h,04h,01h,02h,05h,06h,07h,08h,05h,06h,07h,08h
 	db 05h,06h,07h,08h,05h,06h,07h,08h,05h,06h,07h,08h,05h,06h,07h,08h
 	db 09h,0Ah,09h,0Ah,09h,0Ah,0Bh,0Bh,0Bh,0Bh,0Ch,0Ch,0Dh,0Dh,0Ch,0Dh
@@ -16,34 +16,34 @@ D_3380	db 01h,01h,01h,00h,00h,01h,01h,01h,00h,00h,01h,01h,02h,02h,03h,03h
 	db 0Fh,0Eh,0Eh,00h,00h,0Bh,0Bh,0Bh
 
 ;====---- monster animation sequence ----====
-PUBLIC D_33F8
-D_33F8	db 01h,00h,01h,02h,03h,04h,03h,02h,01h,00h,01h,02h,03h,04h,05h,06h
+PUBLIC Monster2Seq
+Monster2Seq	db 01h,00h,01h,02h,03h,04h,03h,02h,01h,00h,01h,02h,03h,04h,05h,06h	;D_33F8
 	db 05h,06h,05h,06h,04h,07h,08h,09h,0Ah,09h,08h,07h,08h,09h,0Ah,0Bh
 	db 0Ch,0Bh,0Ch,0Dh,0Bh,0Ch,0Dh,01h,0Dh,01h,0Eh,01h,0Fh,01h,0Eh,01h
 	db 0Fh,0Ah,09h,08h,10h,11h,10h,11h,10h,11h,09h,08h,07h,04h,03h,02h
 
 ;====---- monsters anim src_y ----====
-PUBLIC D_3438
-D_3438	db 00h,20h,40h,60h,80h,0A0h
+PUBLIC MonsterFrameY
+MonsterFrameY	db 00h,20h,40h,60h,80h,0A0h	;D_3438
 	db 00h,20h,40h,60h,80h,0A0h
 	db 00h,20h,40h,60h,80h,0A0h
 
 ;====---- monster #1 anim src_x ----====
-PUBLIC D_344A
-D_344A	db 00h,00h,00h,00h,00h,00h
+PUBLIC Monster1FrameX
+Monster1FrameX	db 00h,00h,00h,00h,00h,00h	;D_344A
 	db 07h,07h,07h,07h,07h,07h
 	db 0Eh,0Eh,0Eh,0Eh,0Eh,0Eh
 
 ;====---- monster #2 anim src_x ----====
-PUBLIC D_345C
-D_345C	db 22h,22h,22h,22h,22h,22h
+PUBLIC Monster2FrameX
+Monster2FrameX	db 22h,22h,22h,22h,22h,22h	;D_345C
 	db 1Ch,1Ch,1Ch,1Ch,1Ch,1Ch
 	db 16h,16h,16h,16h,16h,16h
 
 
 ;====---- handwriting data? ----====
-PUBLIC D_346E
-D_346E	db 054h,0BDh,055h,0BCh,057h,0BCh,059h,0BCh,05Bh,0BCh,05Ch,0BDh,05Ch,0BEh,05Bh,0BFh
+PUBLIC SignatureDots
+SignatureDots	db 054h,0BDh,055h,0BCh,057h,0BCh,059h,0BCh,05Bh,0BCh,05Ch,0BDh,05Ch,0BEh,05Bh,0BFh	;D_346E
 	db 059h,0BFh,058h,0BEh,058h,0BDh,057h,0BBh,056h,0BAh,056h,0B9h,055h,0B8h,055h,0B7h
 	db 054h,0B6h,054h,0B5h,053h,0B4h,053h,0B3h,052h,0B2h,052h,0B1h,051h,0B0h,04Fh,0B0h
 	db 04Eh,0B0h,04Dh,0B1h,04Dh,0B2h,04Eh,0B3h,050h,0B3h,051h,0B2h,054h,0B2h,055h,0B1h
@@ -80,15 +80,15 @@ D_346E	db 054h,0BDh,055h,0BCh,057h,0BCh,059h,0BCh,05Bh,0BCh,05Ch,0BDh,05Ch,0BEh,
 	db 0
 
 ;====---- tile map data? ----====
-PUBLIC D_3683
-D_3683	db 06h,06h,06h,04h,04h,04h,01h,01h,00h,00h,00h,00h,01h,04h,04h,0Dh,0Eh,0Fh,04h
+PUBLIC ViewBackground
+ViewBackground	db 06h,06h,06h,04h,04h,04h,01h,01h,00h,00h,00h,00h,01h,04h,04h,0Dh,0Eh,0Fh,04h	;D_3683
 	db 06h,06h,04h,04h,04h,01h,01h,01h,01h,00h,00h,01h,01h,04h,04h,04h,04h,04h,04h
 	db 06h,04h,04h,01h,01h,01h,02h,02h,01h,01h,01h,01h,01h,01h,0Ah,04h,04h,04h,06h
 	db 06h,04h,04h,01h,01h,02h,02h,01h,01h,09h,08h,01h,01h,01h,01h,04h,06h,06h,06h
 	db 04h,04h,04h,04h,01h,01h,01h,01h,04h,04h,08h,08h,01h,01h,01h,01h,01h,06h,06h
 
-PUBLIC D_36E2
-D_36E2	db 88h,20h,11h,80h,20h,31h,80h,20h,51h,80h,20h,71h,88h,27h
+PUBLIC ViewScript
+ViewScript	db 88h,20h,11h,80h,20h,31h,80h,20h,51h,80h,20h,71h,88h,27h	;D_36E2
 	db 11h,84h,27h,10h,84h,17h,10h,84h,07h,10h,84h,77h,88h,20h,51h,80h
 	db 20h,31h,80h,20h,11h,80h,70h,88h,01h,66h,84h,11h,66h,84h,07h,10h
 	db 84h,17h,10h,82h,11h,46h,82h,17h,0Fh,82h,11h,47h,82h,17h,0Eh,82h

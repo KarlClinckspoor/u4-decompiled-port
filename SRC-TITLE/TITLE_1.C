@@ -25,11 +25,11 @@
 /*D_695C*/static unsigned char static_I;
 /*D_695E*/static unsigned char static_J[8];
 
-#define D_6938 static_A
+#define PlayerDrive static_A
 #define lastVirtue static_B
 #define M_or_F static_C
 #define tmp_str static_D
-#define D_6940 static_E
+#define pPicture static_E
 #define tmp_dex static_F
 #define curQuestionIndex static_G
 #define player_name static_H
@@ -42,9 +42,9 @@
 #include "joe.h"
 #endif
 
-#define STR(i) (D_2EE6[(i) - 1])
+#define STR(i) (Texts[(i) - 1])
 
-char *D_2EE6[0x43] = {
+char * /*D_2EE6*/Texts[0x43] = {
 /*0x01*//*D_0424*/
 "Entrusted to deliver an uncounted purse\n\
 of gold, thou dost meet a poor beggar.\n\
@@ -485,7 +485,7 @@ char *bp04;
 }
 
 /*text input?*/
-C_2656(si/*bp06*/, bp04)
+/*C_2656*/u4_gets(si/*bp06*/, bp04)
 register char *si;
 unsigned bp04;
 {
@@ -534,10 +534,10 @@ unsigned bp04;
 	while(si[--di] == ' ');
 }
 
-C_271D(bp04)
+/*C_271D*/ShowTextPage(bp04)
 char *bp04;
 {
-	Gra_5();
+	Gra_ClearText();
 	txt_X = 0;
 	txt_Y = 19;
 	u4_puts(bp04);
@@ -545,80 +545,80 @@ char *bp04;
 }
 
 /*moongate animation #1*/
-C_273E()
+/*C_273E*/MoongateRises()
 {
 	int bp_02, bp_04;
 
 	for(bp_02 = 1; bp_02 <= 23; bp_02++) {
-		Gra_3(3,      bp_02, 0, 152, D_6940, 92 - bp_02, -1, 9);
-		Gra_3(3, 24 - bp_02, 9,  68, D_6940, 68,         -1, 9);
+		Gra_Blit(3,      bp_02, 0, 152, pPicture, 92 - bp_02, -1, 9);
+		Gra_Blit(3, 24 - bp_02, 9,  68, pPicture, 68,         -1, 9);
 		for(bp_04 = 1; bp_04 <= 10000; bp_04 ++);
 	}
-	Gra_3(3, 24, 0, 152, D_6940, 68, -1, 9);
+	Gra_Blit(3, 24, 0, 152, pPicture, 68, -1, 9);
 }
 
 /*moongate animation #2*/
-C_27E0()
+/*C_27E0*/MoongateSinks()
 {
 	int bp_02, bp_04;
 
 	for(bp_02 = 1; bp_02 <= 23; bp_02 ++) {
-		Gra_3(3,      bp_02, 3, 152, D_6940,         68, -1, 9);
-		Gra_3(3, 24 - bp_02, 0, 152, D_6940, bp_02 + 68, -1, 9);
+		Gra_Blit(3,      bp_02, 3, 152, pPicture,         68, -1, 9);
+		Gra_Blit(3, 24 - bp_02, 0, 152, pPicture, bp_02 + 68, -1, 9);
 		for(bp_04 = 1; bp_04 <= 10000; bp_04 ++);
 	}
-	Gra_3(3, 24, 3, 152, D_6940, 68, -1, 9);
+	Gra_Blit(3, 24, 3, 152, pPicture, 68, -1, 9);
 }
 
-C_2883()
+/*C_2883*/Introduction()
 {
 	unsigned bp_02;
 
-	if((D_6940 = _fmalloc((D_7078 == 1)?0x4000:0x8000)) == 0)
+	if((pPicture = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
 		exit(0x5e);
 	bp_02 = 0x1d;
-	Gra_inflate((D_7078 == 1)?/*D_2F6C*/"tree.pic":/*D_2F75*/"tree.ega", D_6940);
-	Gra_clrscr();
-	Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
+	Gra_LoadPicture((GraphicsType == 1)?/*D_2F6C*/"tree.pic":/*D_2F75*/"tree.ega", pPicture);
+	Gra_ClearScreen();
+	Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
 	while(bp_02 != 0x35) {
-		Gra_5();
+		Gra_ClearText();
 		txt_X = 0;
 		txt_Y = 19;
 		u4_puts(STR(bp_02++));
 		switch(bp_02 - 1) {
 			case 0x20:
-				C_273E();/*moongate animation #1*/
+				MoongateRises();/*moongate animation #1*/
 			break;
 			case 0x22:
-				C_27E0();/*moongate animation #2*/
-				Gra_inflate((D_7078 == 1)?/*D_2F7E*/"portal.pic":/*D_2F89*/"portal.ega", D_6940);
+				MoongateSinks();/*moongate animation #2*/
+				Gra_LoadPicture((GraphicsType == 1)?/*D_2F7E*/"portal.pic":/*D_2F89*/"portal.ega", pPicture);
 			break;
 			case 0x23:
-				Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
-				Gra_inflate((D_7078 == 1)?/*D_2F94*/"tree.pic":/*D_2F9D*/"tree.ega", D_6940);
+				Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
+				Gra_LoadPicture((GraphicsType == 1)?/*D_2F94*/"tree.pic":/*D_2F9D*/"tree.ega", pPicture);
 			break;
 			case 0x28:
-				Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
-				Gra_inflate((D_7078 == 1)?/*D_2FA6*/"outside.pic":/*D_2FB2*/"outside.ega", D_6940);
+				Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
+				Gra_LoadPicture((GraphicsType == 1)?/*D_2FA6*/"outside.pic":/*D_2FB2*/"outside.ega", pPicture);
 			break;
 			case 0x2c:
-				Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
-				Gra_inflate((D_7078 == 1)?/*D_2FBE*/"inside.pic":/*D_2FC9*/"inside.ega", D_6940);
+				Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
+				Gra_LoadPicture((GraphicsType == 1)?/*D_2FBE*/"inside.pic":/*D_2FC9*/"inside.ega", pPicture);
 			break;
 			case 0x2e:
-				Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
-				Gra_inflate((D_7078 == 1)?/*D_2FDE*/"wagon.pic":/*D_2FD4*/"wagon.ega", D_6940);
+				Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
+				Gra_LoadPicture((GraphicsType == 1)?/*D_2FDE*/"wagon.pic":/*D_2FD4*/"wagon.ega", pPicture);
 			break;
 			case 0x31:
-				Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
-				Gra_inflate((D_7078 == 1)?/*D_2FE8*/"gypsy.pic":/*D_2FF2*/"gypsy.ega", D_6940);
+				Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
+				Gra_LoadPicture((GraphicsType == 1)?/*D_2FE8*/"gypsy.pic":/*D_2FF2*/"gypsy.ega", pPicture);
 			break;
 			case 0x32:
-				Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
-				Gra_inflate((D_7078 == 1)?/*D_2FFC*/"abacus.pic":/*D_3007*/"abacus.ega", D_6940);
+				Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
+				Gra_LoadPicture((GraphicsType == 1)?/*D_2FFC*/"abacus.pic":/*D_3007*/"abacus.ega", pPicture);
 			break;
 			case 0x34:
-				Gra_3(40, 152, 0, 0, D_6940, 0, -1, 0);
+				Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
 			break;
 		}
 		u_kbflush();
@@ -626,18 +626,18 @@ C_2883()
 	}
 }
 
-int D_3012[] = {0x18,0x28,0x36,0x44,0x52,0x62,0x70};
+int /*D_3012*/AbacusRowY[] = {0x18,0x28,0x36,0x44,0x52,0x62,0x70};
 
 /*draw abacus beas*/
-C_2B2A(bp08, bp06, bp04)
+/*C_2B2A*/DrawBead(bp08, bp06, bp04)
 unsigned bp08;/*0:chosen, 1:discarded ?*/
 unsigned bp06;/*virtue index*/
 unsigned bp04;/*line*/
 {
-	Gra_3(1, 12, (bp08 == 0)?1:3, 187, D_6940, D_3012[bp04], -1, bp06 + 16);
+	Gra_Blit(1, 12, (bp08 == 0)?1:3, 187, pPicture, AbacusRowY[bp04], -1, bp06 + 16);
 }
 
-char *D_307E[] = {
+char * /*D_307E*/CardPictures[] = {
 	/*D_3020*/"HONCOM.EGA",
 	/*D_302B*/"VALJUS.EGA",
 	/*D_3036*/"SACHONOR.EGA",
@@ -650,27 +650,27 @@ char *D_307E[] = {
 };
 
 /*draw virtue card*/
-C_2B6D(bp06, bp04)
+/*C_2B6D*/DrawCard(bp06, bp04)
 unsigned bp06;/*virtue index*/
 unsigned bp04;/*left or right*/
 {
 	void far *bp_04;
 
-	bp06 += ((D_7078 == 1)?1:0) * 8;
-	if((bp_04 = _fmalloc((D_7078 == 1)?0x4000:0x8000)) == 0)
+	bp06 += ((GraphicsType == 1)?1:0) * 8;
+	if((bp_04 = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
 		exit(0x5d);
-	Gra_inflate(D_307E[bp06/2], bp_04);
-	Gra_3(12, 124, ((bp06&1) == 0)?1:27, 12, bp_04, 12, -1, (bp04 == 0)?1:27);
+	Gra_LoadPicture(CardPictures[bp06/2], bp_04);
+	Gra_Blit(12, 124, ((bp06&1) == 0)?1:27, 12, bp_04, 12, -1, (bp04 == 0)?1:27);
 	_ffree(bp_04);
 }
 
 /*characterisics increments by virtue*/
-unsigned char D_30B2[] = {0, 0, 3, 0, 1, 1, 1, 0};/*str*/
-unsigned char D_30BA[] = {0, 3, 0, 1, 1, 0, 1, 0};/*dex*/
-unsigned char D_30C2[] = {3, 0, 0, 1, 0, 1, 1, 0};/*int*/
+unsigned char /*D_30B2*/VirtueStr[] = {0, 0, 3, 0, 1, 1, 1, 0};/*str*/
+unsigned char /*D_30BA*/VirtueDex[] = {0, 3, 0, 1, 1, 0, 1, 0};/*dex*/
+unsigned char /*D_30C2*/VirtueInt[] = {3, 0, 0, 1, 0, 1, 1, 0};/*int*/
 
 /*dilemmas text indexes*/
-unsigned char D_30CA[] = {
+unsigned char /*D_30CA*/DilemmaBase[] = {
 	/*0x00*/0x01 - 1,/*Honesty vs {Compassion|...|Humility}*/
 	/*0x06*/0x08 - 2,/*Compassion vs {Valor|...|Humility}*/
 	/*0x0B*/0x0e - 3,/*Valor vs {Justice|...|Humility}*/
@@ -680,7 +680,7 @@ unsigned char D_30CA[] = {
 	/*0x15*/0x1c - 7 /*Spirituality vs Humility*/
 };
 
-C_2C12()
+/*C_2C12*/GypsyReading()
 {
 	int loc_A;
 	unsigned char loc_B, loc_C;
@@ -698,7 +698,7 @@ C_2C12()
 				if(loc_D[loc_A] < 0x80)
 					loc_D[loc_A] = 0;
 		}
-		Gra_5();
+		Gra_ClearText();
 		txt_X = 0;
 		txt_Y = 19;
 		do
@@ -718,18 +718,18 @@ C_2C12()
 		else
 			u4_puts(/*D_2F50*/STR(0x36));
 		u4_puts(/*D_2F54*/STR(0x38));
-		C_2B6D(loc_B, 0);
+		DrawCard(loc_B, 0);
 		u4_puts(STR(0x39 + loc_B));
 		u4_puts(/*D_308E*/" and ");
-		C_2B6D(loc_C, 1);
+		DrawCard(loc_C, 1);
 		u4_puts(STR(0x39 + loc_C));
 		u4_puts(/*D_3094*/".  She says\n\"Consider this:\"");
 		u_kbflush();
 		u_kbread();
-		Gra_5();
+		Gra_ClearText();
 		txt_X = 0;
 		txt_Y = 19;
-		u4_puts(STR(D_30CA[loc_B] + loc_C));
+		u4_puts(STR(DilemmaBase[loc_B] + loc_C));
 		do {
 			loc_A = u_kbread();
 			if(u4_isupper((unsigned char)loc_A))
@@ -743,20 +743,20 @@ C_2C12()
 		lastVirtue = loc_B;
 		loc_D[lastVirtue] = 1;
 		tmp_karma[lastVirtue] += 5;
-		tmp_str += D_30B2[lastVirtue];
-		tmp_dex += D_30BA[lastVirtue];
-		tmp_int += D_30C2[lastVirtue];
-		C_2B2A(0, lastVirtue, curQuestionIndex);
+		tmp_str += VirtueStr[lastVirtue];
+		tmp_dex += VirtueDex[lastVirtue];
+		tmp_int += VirtueInt[lastVirtue];
+		DrawBead(0, lastVirtue, curQuestionIndex);
 		/*discarded virtue*/
 		loc_D[loc_C] = 0xff;
-		C_2B2A(1, loc_C, curQuestionIndex);
+		DrawBead(1, loc_C, curQuestionIndex);
 	} while(++curQuestionIndex != 7);
-	C_271D(/*D_2F68*/STR(0x42));
-	C_271D(/*D_2F6A*/STR(0x43));
+	ShowTextPage(/*D_2F68*/STR(0x42));
+	ShowTextPage(/*D_2F6A*/STR(0x43));
 }
 
-unsigned char D_30DC[] = {0xE7,0x53,0x23,0x3B,0x9E,0x69,0x17,0xBA};
-unsigned char D_30E4[] = {0x88,0x69,0xDD,0x2C,0x15,0xB7,0x81,0xAB};
+unsigned char /*D_30DC*/StartX[] = {0xE7,0x53,0x23,0x3B,0x9E,0x69,0x17,0xBA};
+unsigned char /*D_30E4*/StartY[] = {0x88,0x69,0xDD,0x2C,0x15,0xB7,0x81,0xAB};
 
 unsigned /*D_30EC*/*pKarmas[] = {
 	&(Party._hones),
@@ -769,16 +769,16 @@ unsigned /*D_30EC*/*pKarmas[] = {
 	&(Party._humil)
 };
 
-C_2E04()
+/*C_2E04*/CreateParty()
 {
 	int loc_A;
 	struct tChara loc_B;
 
 	if(Load(/*D_30D1*/"PARTY.NEW", sizeof(struct tParty), &Party) == -1)
 		exit(3);
-	Party._x = D_30DC[lastVirtue];
-	Party._y = D_30E4[lastVirtue];
-	Party.f_1d8 = 1;
+	Party._x = StartX[lastVirtue];
+	Party._y = StartY[lastVirtue];
+	Party._members = 1;
 	for(loc_A = 7; loc_A >= 0; loc_A --)
 		*(pKarmas[loc_A]) = tmp_karma[loc_A];
 	/*-- swap(&(Party.chara[lastVirtue]), &(Party.chara[0])) --*/
@@ -790,27 +790,27 @@ C_2E04()
 	Party.chara[0]._str = tmp_str;
 	Party.chara[0]._int = tmp_int;
 	Party.chara[0]._dex = tmp_dex;
-	Party.chara[0].p_24 = (M_or_F == 'M')?0x0b:0x0c;
+	Party.chara[0]._sex = (M_or_F == 'M')?0x0b:0x0c;
 	for(loc_A = 31; loc_A >= 0; loc_A --) {
-		D_6976._npc._000[loc_A] =
-		D_6976._npc._020[loc_A] =
-		D_6976._npc._040[loc_A] =
-		D_6976._npc._060[loc_A] =
-		D_6976._npc._080[loc_A] =
-		D_6976._npc._0A0[loc_A] =
-		D_6976._npc._0C0[loc_A] =
-		D_6976._npc._0E0[loc_A] = 0;
+		Area._npc._gtile[loc_A] =
+		Area._npc._x[loc_A] =
+		Area._npc._y[loc_A] =
+		Area._npc._tile[loc_A] =
+		Area._npc._old_x[loc_A] =
+		Area._npc._old_y[loc_A] =
+		Area._npc._var[loc_A] =
+		Area._npc._tlkidx[loc_A] = 0;
 	}
 }
 
 /*confirmFileInDrive?*/
-C_2F07(bp06, bp04)/*%%% hacked %%%*/
+/*C_2F07*/AskForDisk(bp06, bp04)/*%%% hacked %%%*/
 char *bp06;
 char *bp04;
 {
 	int bp_02;
 
-	Gra_clrscr();
+	Gra_ClearScreen();
 	txt_Y = 10;
 	txt_X = (40 - (unsigned)strlen(bp06)) / 2;
 	u4_puts(bp06);
@@ -824,13 +824,13 @@ char *bp04;
 	do {
 		bp_02 = u_kbread() & 0xff;
 		u4_toupper(bp_02);
-		if(bp_02 != 'B' || D_7082 != 0) {
+		if(bp_02 != 'B' || TwoDrives != 0) {
 			if(bp_02 >= 'A' && bp_02 <= 'P') {
 				bp_02 &= 0xf;
-				C_3299(bp_02);
+				u_setdrive(bp_02);
 			}
 		}
-		if((C_3290() & 0xff) == bp_02 && C_32AB(bp04))
+		if((u_getdrive() & 0xff) == bp_02 && u_fexist(bp04))
 			return;
 		sound_1();
 		while(!u_kbhit());
@@ -838,40 +838,40 @@ char *bp04;
 }
 
 /*prepare player disk?*/
-C_2FB8()
+/*C_2FB8*/WritePlayerDisk()
 {
 	unsigned bp_02;
 
-	bp_02 = C_3290() & 0xff;
-	C_2F07(/*D_311D*/"Insert PLAYER disk", /*D_3113*/"WORLD.MAP");
-	D_6938 = C_3290() & 0xff;
+	bp_02 = u_getdrive() & 0xff;
+	AskForDisk(/*D_311D*/"Insert PLAYER disk", /*D_3113*/"WORLD.MAP");
+	PlayerDrive = u_getdrive() & 0xff;
 	if(Save(/*D_3130*/"PARTY.SAV", sizeof(struct tParty), &Party) == -1)
 		exit(3);
-	if(Save(/*D_313A*/"MONSTERS.SAV", sizeof(struct tNPC), &(D_6976._npc)) == -1)
+	if(Save(/*D_313A*/"MONSTERS.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
-	if(D_6938 == bp_02)
-		C_2F07(/*D_3152*/"Re-Insert PROGRAM disk", /*D_3147*/"AVATAR.EXE");
+	if(PlayerDrive == bp_02)
+		AskForDisk(/*D_3152*/"Re-Insert PROGRAM disk", /*D_3147*/"AVATAR.EXE");
 	else
-		C_3299(bp_02);
+		u_setdrive(bp_02);
 }
 
-extern C_0B1E(int, int, char *);
+extern /*C_0B1E*/PutsAt(int, int, char *);
 
-C_3030()
+/*C_3030*/NewGame()
 {
-	Gra_2();
-	C_0B1E(16, 4, /*D_3169*/"By what name shalt thou be known");
-	C_0B1E(17, 4, /*D_318A*/"in this world and time?");
+	Gra_ClearMenu();
+	PutsAt(16, 4, /*D_3169*/"By what name shalt thou be known");
+	PutsAt(17, 4, /*D_318A*/"in this world and time?");
 	txt_X = 12;
 	txt_Y = 19;
-	C_2656(player_name, 12);
+	u4_gets(player_name, 12);
 	if(player_name[0] == 0) {
 		_ffree(pAnim);
 		_ffree(pShapes);
 		return;
 	}
-	Gra_2();
-	C_0B1E(17, 4, /*D_31A2*/"Art thou Male or Female? ");
+	Gra_ClearMenu();
+	PutsAt(17, 4, /*D_31A2*/"Art thou Male or Female? ");
 	M_or_F = u_kbread() & 0xff;
 	u4_toupper(M_or_F);
 	while(M_or_F != 'M' && M_or_F != 'F') {
@@ -887,15 +887,15 @@ C_3030()
 	u4_putc(M_or_F);
 	_ffree(pAnim);
 	_ffree(pShapes);
-	D_6E80 = 0;
+	MonstersShown = 0;
 
-	C_2883();/*introduction*/
-	C_2C12();/*gipsy*/
-	C_2E04();/*prepare party structure*/
-	C_2FB8();/*prepare player disk?*/
-	_ffree(D_6940);
+	Introduction();/*introduction*/
+	GypsyReading();/*gipsy*/
+	CreateParty();/*prepare party structure*/
+	WritePlayerDisk();/*prepare player disk?*/
+	_ffree(pPicture);
 	/*-- clean & return to dos --*/
 	_ffree(pCharset);
 	low_clean();
-	exit('A' + D_6938 - 1);
+	exit('A' + PlayerDrive - 1);
 }

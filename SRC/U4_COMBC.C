@@ -14,7 +14,7 @@
 ----------------------------------------*/
 
 /*base for enemy HP/XP/attack*/
-unsigned char D_23D2[] = {
+unsigned char /*D_23D2*/MonsterMaxHP[] = {
 	/*80~8f*/
 	0xFF,/*pirate*/
 	0xFF,/*pirate*/
@@ -74,49 +74,49 @@ unsigned char D_23D2[] = {
 };
 
 /*enemy tile "partners"*/
-unsigned char D_2406[] = {
+unsigned char /*D_2406*/MonsterPartner[] = {
 	/*80~8f*/
-	TIL_C8,/*pirate->rogue*/
-	TIL_C8,/*pirate->rogue*/
-	TIL_8A,/*nixie->seahorse*/
-	TIL_88,/*squid->serpent*/
-	TIL_86,/*serpent->squid*/
-	TIL_84,/*seahorse->nixie*/
-	TIL_8C,/*whirlpool->whirlpool*/
-	TIL_8E,/*twister->twister*/
+	TIL_ROGUE,/*pirate->rogue*/
+	TIL_ROGUE,/*pirate->rogue*/
+	TIL_SEAHORSE,/*nixie->seahorse*/
+	TIL_SERPENT,/*squid->serpent*/
+	TIL_SQUID,/*serpent->squid*/
+	TIL_NIXIE,/*seahorse->nixie*/
+	TIL_WHIRLPOOL,/*whirlpool->whirlpool*/
+	TIL_TWISTER,/*twister->twister*/
 	/*90~AF*/
-	TIL_C4,/*rat->skeleton*/
-	TIL_E9,/*bat->lava lizard*/
-	TIL_90,/*spider->rat*/
-	TIL_E4,/*ghost->lyche*/
-	TIL_A0,/*slime->slime*/
-	TIL_D0,/*troll->ettin*/
-	TIL_A8,/*gremlin->gremlin*/
-	TIL_AC,/*mimic->mimic*/
-	TIL_B0,/*reaper->reaper*/
-	TIL_90,/*insects->rat*/
-	TIL_BC,/*gazer->phantom*/
-	TIL_9C,/*phantom->ghost*/
-	TIL_A4,/*orc->troll*/
-	TIL_E0,/*skeleton->mage*/
-	TIL_C8,/*rogue->rogue*/
-	TIL_90,/*python->rat*/
-	TIL_F0,/*ettin->daemon*/
-	TIL_B8,/*headless->gazer*/
-	TIL_EC,/*cyclops->zorn*/
-	TIL_BC,/*wisp->phantom*/
-	TIL_F0,/*mage->daemon*/
-	TIL_F0,/*lyche->daemon*/
-	TIL_F4,/*lava lizard->hydra*/
-	TIL_B8,/*zorn->gazer*/
-	TIL_FC,/*daemon->balron*/
-	TIL_F8,/*hydra->dragon*/
-	TIL_FC,/*dragon->balron*/
-	TIL_FC /*balron->balron*/
+	TIL_SKELETON,/*rat->skeleton*/
+	TIL_LAVA_LIZARD_1,/*bat->lava lizard*/
+	TIL_RAT,/*spider->rat*/
+	TIL_LICHE,/*ghost->lyche*/
+	TIL_SLIME,/*slime->slime*/
+	TIL_ETTIN,/*troll->ettin*/
+	TIL_GREMLIN,/*gremlin->gremlin*/
+	TIL_MIMIC,/*mimic->mimic*/
+	TIL_REAPER,/*reaper->reaper*/
+	TIL_RAT,/*insects->rat*/
+	TIL_PHANTOM,/*gazer->phantom*/
+	TIL_GHOST,/*phantom->ghost*/
+	TIL_TROLL,/*orc->troll*/
+	TIL_EVIL_MAGE,/*skeleton->mage*/
+	TIL_ROGUE,/*rogue->rogue*/
+	TIL_RAT,/*python->rat*/
+	TIL_DAEMON,/*ettin->daemon*/
+	TIL_GAZER,/*headless->gazer*/
+	TIL_ZORN,/*cyclops->zorn*/
+	TIL_PHANTOM,/*wisp->phantom*/
+	TIL_DAEMON,/*mage->daemon*/
+	TIL_DAEMON,/*lyche->daemon*/
+	TIL_HYDRA,/*lava lizard->hydra*/
+	TIL_GAZER,/*zorn->gazer*/
+	TIL_BALRON,/*daemon->balron*/
+	TIL_DRAGON,/*hydra->dragon*/
+	TIL_BALRON,/*dragon->balron*/
+	TIL_BALRON /*balron->balron*/
 };
 
 /*enemy number*/
-unsigned char D_242A[] = {
+unsigned char /*D_242A*/MonsterGroupSize[] = {
 	/*80~8F*/
 	 1,/*pirate*/
 	 1,/*pirate*/
@@ -160,16 +160,16 @@ unsigned char D_242A[] = {
 };
 
 /*weapons damage*/
-unsigned char D_2450[] = {0x08,0x10,0x18,0x20,0x28,0x30,0x40,0x28,0x38,0x40,0x60,0x60,0x80,0x50,0xA0,0xFF};
+unsigned char /*D_2450*/WeaponDamage[] = {0x08,0x10,0x18,0x20,0x28,0x30,0x40,0x28,0x38,0x40,0x60,0x60,0x80,0x50,0xA0,0xFF};
 /*armors protection*/
-unsigned char D_2460[] = {0x60,0x80,0x90,0xA0,0xB0,0xC0,0xD0,0xF8};
+unsigned char /*D_2460*/ArmorDefense[] = {0x60,0x80,0x90,0xA0,0xB0,0xC0,0xD0,0xF8};
 /*range weapons flag*/
-unsigned char D_2468[] = {0x00,0x00,0x00,0xFF,0x00,0x00,0x00,0xFF,0xFF,0xFF,0x00,0xFF,0x00,0xFF,0xFF,0x00};
+unsigned char /*D_2468*/WeaponIsRanged[] = {0x00,0x00,0x00,0xFF,0x00,0x00,0x00,0xFF,0xFF,0xFF,0x00,0xFF,0x00,0xFF,0xFF,0x00};
 
-C_7C25(bp04)
+/*C_7C25*/MonsterIndex(bp04)
 unsigned char bp04;
 {
-	if(bp04 >= TIL_80) {
+	if(bp04 >= TIL_PIRATE_W) {
 		bp04 &= 0x7f;
 		if((bp04 >> 1) < 8)
 			return bp04 >> 1;
@@ -180,11 +180,11 @@ unsigned char bp04;
 	return ((bp04&0x1f) >> 1) + 0x24;
 #else
 	/*this looks like an original bug:
-	the values from D_23D2 are not
+	the values from MonsterMaxHP are not
 	correctly indexed.
 	Without the patch the index will go
 	out-of-bound and access unrelated values
-	from D_2406. Hence, except for the mage
+	from MonsterPartner. Hence, except for the mage
 	ans the fighter, all the non-monster
 	livings will get faulty values.
 	On the original environement:
@@ -215,7 +215,7 @@ unsigned char bp04;
 #endif
 }
 
-char *D_2512[] = {
+char * /*D_2512*/CombatMapFiles[] = {
 	/*D_2478*//* 0*/"GRASS.CON",
 	/*D_2482*//* 1*/"BRIDGE.CON",
 	/*D_248D*//* 2*/"BRICK.CON",
@@ -233,52 +233,52 @@ char *D_2512[] = {
 };
 
 /*load CON file*/
-C_7C65()
+/*C_7C65*/LoadCombatMap()
 {
 	register int si;
 
-	if(Party._tile <= TIL_13 || (tile_cur & ~3) == TIL_10) {
-		if(D_96F8 == TIL_80) {
-			D_9452 = TIL_C8;
+	if(Party._tile <= TIL_SHIP_S || (tile_cur & ~3) == TIL_SHIP_W) {
+		if(CombatFoeTile == TIL_PIRATE_W) {
+			CombatFoe = TIL_ROGUE;
 			si = 11;
-		} else if(D_946C < TIL_03) {
+		} else if(CombatGround < TIL_SWAMP) {
 			si = 8;
 		} else {
 			si = 9;
 		}
 	} else {
-		if(D_96F8 == TIL_80) {
-			D_9452 = TIL_C8;
+		if(CombatFoeTile == TIL_PIRATE_W) {
+			CombatFoe = TIL_ROGUE;
 			si = 12;
-		} else if(D_946C < TIL_03) {
+		} else if(CombatGround < TIL_SWAMP) {
 			si = 10;
 		} else {
 			switch(tile_cur) {
-				case TIL_03: si = 7; break;
-				case TIL_05: si = 6; break;
-				case TIL_06: si = 5; break;
-				case TIL_07: si = 4; break;
-				case TIL_09: si = 3; break;
-				case TIL_3E: si = 2; break;
-				case TIL_17:
-				case TIL_19:
-				case TIL_1A:
-				case TIL_3F: si = 1; break;
+				case TIL_SWAMP: si = 7; break;
+				case TIL_SCRUB: si = 6; break;
+				case TIL_FOREST: si = 5; break;
+				case TIL_HILLS: si = 4; break;
+				case TIL_DUNGEON: si = 3; break;
+				case TIL_BRICK_FLOOR: si = 2; break;
+				case TIL_BRIDGE:
+				case TIL_BRIDGE_N:
+				case TIL_BRIDGE_S:
+				case TIL_WOOD_FLOOR: si = 1; break;
 				default: si = 0;
 			}
 		}
 	}
 #ifdef WIN32
-	if(Load(D_2512[si], sizeof(struct tCombat), &Combat) == -1)
+	if(Load(CombatMapFiles[si], sizeof(struct tCombat), &Combat) == -1)
 #else
-	if(Load(D_2512[si], (char *)&Fighters - (char *)&Combat, &Combat) == -1)
+	if(Load(CombatMapFiles[si], (char *)&Fighters - (char *)&Combat, &Combat) == -1)
 #endif
 		exit(3);
 }
 
-int D_256E[] = {0,1,2,3,4,0,0,0,0,0,0,0,5,0,6,0};
+int /*D_256E*/DngRoomMapIndex[] = {0,1,2,3,4,0,0,0,0,0,0,0,5,0,6,0};
 
-char *D_258E[] = {
+char * /*D_258E*/DngCombatMapFiles[] = {
 	/*D_252E*/"DNG0.CON",
 	/*D_2537*/"DNG1.CON",
 	/*D_2540*/"DNG2.CON",
@@ -289,20 +289,20 @@ char *D_258E[] = {
 };
 
 /*load dungeon CON file*/
-C_7D50()
+/*C_7D50*/DungeonCombat()
 {
 #ifdef WIN32
-	if(Load(D_258E[D_256E[tile_cur>>4]], sizeof(struct tCombat), &Combat) == -1)
+	if(Load(DngCombatMapFiles[DngRoomMapIndex[tile_cur>>4]], sizeof(struct tCombat), &Combat) == -1)
 #else
-	if(Load(D_258E[D_256E[tile_cur>>4]], (char *)&Fighters - (char *)&Combat, &Combat) == -1)
+	if(Load(DngCombatMapFiles[DngRoomMapIndex[tile_cur>>4]], (char *)&Fighters - (char *)&Combat, &Combat) == -1)
 #endif
 		exit(3);
-	C_7FD7();
-	D_9446 = 1;	/*force 3d render*/
+	RunCombat();
+	Redraw3D = 1;	/*force 3d render*/
 }
 
 /*load inn CON file*/
-C_7D92()
+/*C_7D92*/InnCombat()
 {
 #ifdef WIN32
 	if(Load(/*D_259C*/"INN.CON", sizeof(struct tCombat), &Combat) == -1)
@@ -310,16 +310,16 @@ C_7D92()
 	if(Load(/*D_259C*/"INN.CON", (char *)&Fighters - (char *)&Combat, &Combat) == -1)
 #endif
 		exit(3);
-	C_7FD7();
+	RunCombat();
 }
 
 /*start a combat bis ?*/
-C_7DBC()
+/*C_7DBC*/CombatBegin()
 {
 	register int si;
 
 	u4_puts(/*D_25A4*/"\n\n**** Combat ****\n\n");
-	D_9452 = D_96F8;
+	CombatFoe = CombatFoeTile;
 	for(si = 15; si >= 0; si --) {
 		Fighters._tile[si] = 
 		Fighters._x[si] = 
@@ -328,30 +328,30 @@ C_7DBC()
 	}
 	for(si = 7; si >= 0; si --)
 		Fighters._chtile[si] = 0;
-	C_7C65();
-	C_7FD7();
+	LoadCombatMap();
+	RunCombat();
 }
 
 /*start a combat ?*/
-C_7DFE(si/*bp04*/)
+/*C_7DFE*/StartCombat(si/*bp04*/)
 register unsigned si;
 {
-	D_96F8 = D_8742._npc._tile[si];
-	D_9772 = D_8742._npc._x[si];
-	D_9140 = D_8742._npc._y[si];
+	CombatFoeTile = Area._npc._tile[si];
+	CombatFoeX = Area._npc._x[si];
+	CombatFoeY = Area._npc._y[si];
 	if(Party._loc == 0x00) {
-		D_946C = D_8742._map.x32x32[(D_9140 - (D_95A5.y<<4))][(D_9772 - (D_95A5.x<<4))];
+		CombatGround = Area._map.x32x32[(CombatFoeY - (WinBlock.y<<4))][(CombatFoeX - (WinBlock.x<<4))];
 	} else {
-		D_946C = D_8742._map.x32x32[D_9140][D_9772];
+		CombatGround = Area._map.x32x32[CombatFoeY][CombatFoeX];
 	}
-	D_8742._npc._var[si] =
-	D_8742._npc._gtile[si] =
-	D_8742._npc._tile[si] = 0;
-	C_7DBC();
+	Area._npc._var[si] =
+	Area._npc._gtile[si] =
+	Area._npc._tile[si] = 0;
+	CombatBegin();
 }
 
 /*init fighters info?*/
-C_7E7E()
+/*C_7E7E*/PlaceFoes()
 {
 	register int loc_A, loc_D;
 	int loc_B, loc_C;
@@ -359,55 +359,55 @@ C_7E7E()
 
 	for(loc_D = 15; loc_D >= 0; loc_D --)
 		Fighters._tile[loc_D] = 0;
-	if(D_95CC == MOD_BUILDING && CurMode != MOD_COM_CAMP) {
-		if(D_96F8 == TIL_50)
-			loc_A = Party.f_1d8 * 2 - 1;
+	if(SavedMode == MOD_BUILDING && CurMode != MOD_COM_CAMP) {
+		if(CombatFoeTile == TIL_GUARD)
+			loc_A = Party._members * 2 - 1;
 		else
 			loc_A = 0;
-	} else if((loc_A = D_9452, D_9452 < TIL_80) || (loc_A = U4_RND1(7)) == 0) {
-		loc_A = (U4_RND4(D_242A[C_7C25(loc_A)]) + D_242A[C_7C25(loc_A)]) / 2;
+	} else if((loc_A = CombatFoe, CombatFoe < TIL_PIRATE_W) || (loc_A = U4_RND1(7)) == 0) {
+		loc_A = (U4_RND4(MonsterGroupSize[MonsterIndex(loc_A)]) + MonsterGroupSize[MonsterIndex(loc_A)]) / 2;
 	}
-	while(loc_D = loc_A, (loc_A >> 1) >= Party.f_1d8)
-		loc_A = U4_RND4(Party.f_1d8 * 2);
+	while(loc_D = loc_A, (loc_A >> 1) >= Party._members)
+		loc_A = U4_RND4(Party._members * 2);
 	for(loc_B = loc_D; loc_B >= 0; loc_B--) {
 		do {
 			loc_D = U4_RND1(15);
 		} while(Fighters._tile[loc_D]);
-		loc_E = D_9452;
+		loc_E = CombatFoe;
 		/* add some "partners" */
-		if(D_9452 > TIL_80 && loc_B) {
+		if(CombatFoe > TIL_PIRATE_W && loc_B) {
 			if(U4_RND1(31) == 0) {
-				loc_E = D_2406[C_7C25(D_2406[C_7C25(D_9452)])];
+				loc_E = MonsterPartner[MonsterIndex(MonsterPartner[MonsterIndex(CombatFoe)])];
 			} else if(U4_RND1(7) == 0) {
-				loc_E = D_2406[C_7C25(D_9452)];
+				loc_E = MonsterPartner[MonsterIndex(CombatFoe)];
 			}
 		}
 		/* */
 		Fighters._tile[loc_D] = Fighters._gtile[loc_D] = loc_E;
-		loc_C = D_23D2[C_7C25(loc_E)];
+		loc_C = MonsterMaxHP[MonsterIndex(loc_E)];
 		Fighters._HP[loc_D] = (loc_C >> 1) | U4_RND4(loc_C);
 	}
-	for(loc_D = Party.f_1d8 - 1; loc_D >= 0; loc_D --) {
+	for(loc_D = Party._members - 1; loc_D >= 0; loc_D --) {
 		if(!isCharaAlive(loc_D))
 			Fighters._chtile[loc_D] = 0;
 		else
-			D_944A[loc_D] = Fighters._chtile[loc_D] = C_0ACF(loc_D);
+			CharaAnimTile[loc_D] = Fighters._chtile[loc_D] = CharaTile(loc_D);
 	}
 }
 
-C_7FD7()
+/*C_7FD7*/RunCombat()
 {
 	if(CurMode != MOD_COM_CAMP) {
-		D_95CC = CurMode;
+		SavedMode = CurMode;
 		CurMode = MOD_COMBAT;
 	}
-	C_7E7E();
+	PlaceFoes();
 	COM_main();
-	CurMode = D_95CC;
+	CurMode = SavedMode;
 }
 
 /*enter dungeon room?*/
-C_7FFD()
+/*C_7FFD*/EnterDungeonRoom()
 {
 	struct /*dungeon room info*/ {
 		/*secret tiles info*/
@@ -430,21 +430,21 @@ C_7FFD()
 		((tile_cur & 0xf) * 0x100)
 	));
 	dread(File_DNG, &loc_A, 0x100);
-	D_95CC = MOD_DUNGEON;
+	SavedMode = MOD_DUNGEON;
 	CurMode = MOD_COM_ROOM;
-	memcpy(D_95B2, loc_A._000, 16);
-	D_943E = -1;
+	memcpy(RoomTriggerData, loc_A._000, 16);
+	AltarRoom = -1;
 	if((tile_cur & 0xf) == 0xf && Party._loc < 0x18) {
 		u4_puts(/*D_25B9*/"\nThe Altar Room of ");
 		if(Party._x == 3) {
 			u4_puts(/*D_25CD*/"Love\n");
-			D_943E = 1;
+			AltarRoom = 1;
 		} else if(Party._x <= 2) {
 			u4_puts(/*D_25D3*/"Truth\n");
-			D_943E = 0;
+			AltarRoom = 0;
 		} else {
 			u4_puts(/*D_25DA*/"Courage\n");
-			D_943E = 2;
+			AltarRoom = 2;
 		}
 	}
 	switch(((Party._dir - 1) ^ 2) & 3) {
@@ -473,9 +473,9 @@ C_7FFD()
 			}
 		break;
 	}
-	for(loc_B = Party.f_1d8; --loc_B >= 0; ) {
+	for(loc_B = Party._members; --loc_B >= 0; ) {
 		if(isCharaAlive(loc_B)) {
-			D_944A[loc_B] = Fighters._chtile[loc_B] = C_0ACF(loc_B);
+			CharaAnimTile[loc_B] = Fighters._chtile[loc_B] = CharaTile(loc_B);
 		} else {
 			Fighters._chtile[loc_B] = 0;
 		}
@@ -487,77 +487,77 @@ C_7FFD()
 			Combat._npcX[loc_B] = loc_A._020[loc_B];
 			Combat._npcY[loc_B] = loc_A._030[loc_B];
 			Fighters._tile[loc_B] = Fighters._gtile[loc_B] = loc_A._010[loc_B];
-			loc_C = D_23D2[C_7C25(loc_A._010[loc_B])];
+			loc_C = MonsterMaxHP[MonsterIndex(loc_A._010[loc_B])];
 			Fighters._HP[loc_B] = (loc_C >> 1) | U4_RND4(loc_C);
-			if(Fighters._tile[loc_B] == (char)TIL_AC)
-				Fighters._gtile[loc_B] = TIL_3C;
+			if(Fighters._tile[loc_B] == (char)TIL_MIMIC)
+				Fighters._gtile[loc_B] = TIL_CHEST;
 		}
 	}
 	for(loc_B = 10; loc_B >= 0; loc_B--)
 		for(loc_C = 10; loc_C >= 0; loc_C --)
 			Combat._map[loc_B*11+loc_C] = loc_A._080[loc_B*11+loc_C];
 	COM_main();
-	CurMode = D_95CC;
+	CurMode = SavedMode;
 }
 
-C_8214()
+/*C_8214*/CombatCleanup()
 {
-	if(D_95CC == MOD_DUNGEON)
-		C_AE41();
+	if(SavedMode == MOD_DUNGEON)
+		DNG_LookAround();
 	u_kbflush();
 }
 
-C_8228()
+/*C_8228*/FreeNpcSlot()
 {
 	register int si;
 
-	for(si = 31; /*bug?*/si >= (D_95CC == MOD_OUTDOORS)?8:0; si--) {
-		if(!D_8742._npc._tile[si])
+	for(si = 31; /*bug?*/si >= (SavedMode == MOD_OUTDOORS)?8:0; si--) {
+		if(!Area._npc._tile[si])
 			break;
 	}
-	if(si == -1 || (si == 7 && D_95CC == MOD_OUTDOORS))
+	if(si == -1 || (si == 7 && SavedMode == MOD_OUTDOORS))
 		si = U4_RND3(24) + 8;
 
 	return si;
 }
 
-C_8283()
+/*C_8283*/CombatSpoils()
 {
 	register int si;
 
-	si = D_96F8;
-	if(si == TIL_80) {
+	si = CombatFoeTile;
+	if(si == TIL_PIRATE_W) {
 		/*pirate ship becomes player ship*/
-		si = C_8228();
-		D_8742._npc._x[si] = D_9772;
-		D_8742._npc._y[si] = D_9140;
-		D_8742._npc._tile[si] = D_8742._npc._gtile[si] = TIL_10;
+		si = FreeNpcSlot();
+		Area._npc._x[si] = CombatFoeX;
+		Area._npc._y[si] = CombatFoeY;
+		Area._npc._tile[si] = Area._npc._gtile[si] = TIL_SHIP_W;
 	} else
-	if(D_95CC == MOD_DUNGEON) {
+	if(SavedMode == MOD_DUNGEON) {
 		/*monster leaves chest?*/
-		if(si != TIL_94 && si != TIL_B4 && si != TIL_A0) {
-			if(D_8742._map.x8x8x8[Party._z][Party._y][Party._x] == 0)
-				D_8742._map.x8x8x8[Party._z][Party._y][Party._x] = 0x40;
+		if(si != TIL_BAT && si != TIL_INSECTS && si != TIL_SLIME) {
+			if(Area._map.x8x8x8[Party._z][Party._y][Party._x] == 0)
+				Area._map.x8x8x8[Party._z][Party._y][Party._x] = 0x40;
 		}
 	} else
-	if(D_95CC != MOD_COM_CAMP || tile_cur < TIL_10 || tile_cur > TIL_13) {
+	if(SavedMode != MOD_COM_CAMP || tile_cur < TIL_SHIP_W || tile_cur > TIL_SHIP_S) {
 		/*monster leaves chest?*/
 		if(
-			si >= TIL_90 ||
-			(si >= TIL_20 && si <= TIL_2E) ||
-			(si >= TIL_50 && si <= TIL_5E)
+			si >= TIL_RAT ||
+			(si >= TIL_MAGE && si <= TIL_SHEPHERD) ||
+			(si >= TIL_GUARD && si <= TIL_LORD_BRITISH)
 		) {
-			if(si != TIL_94 && si != TIL_A0 && si != TIL_B8 && si != TIL_B4 && si != TIL_DC) {
-				if(C_2999(D_946C)) {
-					si = C_8228();
-					D_8742._npc._x[si] = D_9772;
-					D_8742._npc._y[si] = D_9140;
-					D_8742._npc._tile[si] = D_8742._npc._gtile[si] = TIL_3C;
+			if(si != TIL_BAT && si != TIL_SLIME && si != TIL_GAZER && si != TIL_INSECTS && si != TIL_WISP) {
+				if(IsWalkable(CombatGround)) {
+					si = FreeNpcSlot();
+					Area._npc._x[si] = CombatFoeX;
+					Area._npc._y[si] = CombatFoeY;
+					Area._npc._tile[si] = Area._npc._gtile[si] = TIL_CHEST;
 				}
 			}
 		}
 	}
-	C_8214();
+	CombatCleanup();
 }
 
 /*altar rooms/dungeons connection
@@ -568,13 +568,13 @@ C_8283()
 	0x15 - covetous - love courage
 	0x16 - shame    - truth courage
 	0x17 - hythloth - truth love courage*/
-unsigned char D_261A[][4] = {
+unsigned char /*D_261A*/AltarRoomExits[][4] = {
 	{0x11,0x16,0x17,0x14},/*truth*/
 	{0x12,0x14,0x17,0x15},/*love*/
 	{0x13,0x15,0x17,0x16} /*courage*/
 };
 
-C_837A()
+/*C_837A*/CombatEnd()
 {
 	register int si;
 
@@ -584,7 +584,7 @@ C_837A()
 
 	if(si == -1 || CurMode == MOD_COM_ROOM) {
 		if(CurMode != MOD_COM_ROOM) {
-			if(C_0AFE(D_96F8)) {
+			if(IsNonEvil(CombatFoeTile)) {
 				karma_inc(&(Party._compa), 2);
 				karma_inc(&(Party._justi), 2);
 			} else {
@@ -592,31 +592,31 @@ C_837A()
 				u4_puts(/*D_25E3*/"Battle is lost!\n");
 				karma_dec(&(Party._valor), 2);
 			}
-			C_8214();
+			CombatCleanup();
 			return;
 		}
 /*C_83E6:*/
 		u4_puts(/*D_25F4*/"Leave Room!\n");
-		if(D_96EE == 0) {
-			if(D_96F4 < 0)
+		if(RoomExitX == 0) {
+			if(RoomExitY < 0)
 				Party._dir = DIR_N;
 			else
 				Party._dir = DIR_S;
 		} else {
-			if(D_96EE < 0)
+			if(RoomExitX < 0)
 				Party._dir = DIR_W;
 			else
 				Party._dir = DIR_E;
 		}
-		if(D_943E != -1) {
-			Party._loc = D_261A[D_943E][(Party._dir - 1) & 3];
-			Party.out_x = D_0844[Party._loc - 1];
-			Party.out_y = D_0864[Party._loc - 1];
+		if(AltarRoom != -1) {
+			Party._loc = AltarRoomExits[AltarRoom][(Party._dir - 1) & 3];
+			Party.out_x = LocationX[Party._loc - 1];
+			Party.out_y = LocationY[Party._loc - 1];
 			u4_puts(/*D_2601*/"into Dungeon\n");
-			u4_puts(D_1E98[127 + Party._loc - 1]);
+			u4_puts(Names[127 + Party._loc - 1]);
 			dclose(File_DNG);
 			File_DNG = 0;
-			C_3E94();
+			LoadDungeon();
 		}
 		Gra_CR();
 		u_kbflush();
@@ -626,8 +626,8 @@ C_837A()
 	}
 /*C_849E:*/
 	u4_puts(/*D_260F*/"\nVictory!\n");
-	if(!C_0AFE(D_96F8))
+	if(!IsNonEvil(CombatFoeTile))
 		karma_inc(&(Party._valor), U4_RND1(1));
-	if(D_95CC != MOD_COM_CAMP)
-		C_8283();
+	if(SavedMode != MOD_COM_CAMP)
+		CombatSpoils();
 }

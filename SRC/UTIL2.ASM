@@ -1,7 +1,7 @@
 EXTRN u4_puts:NEAR
 EXTRN u4_putc:NEAR
-EXTRN Gra_putchar:NEAR
-EXTRN t_callback:NEAR
+EXTRN Gra_PutChar:NEAR
+EXTRN RefreshView:NEAR
 
 EXTRN MSG_DSKERR:BYTE
 EXTRN MSG_SYSERR:BYTE
@@ -22,8 +22,8 @@ _DATA	SEGMENT PUBLIC WORD 'DATA'
 	ASSUME DS:DGROUP
 ;----------------------------------------
 cursor_rate	dw 0	;D_0672
-D_0674	dw 0
-D_0676	dw 0FFFFh	;display cursor flag
+cursor_rate_old	dw 0	;D_0674
+cursor_enabled	dw 0FFFFh	;D_0676 display cursor flag
 ;----------------------------------------
 _DATA	ENDS
 ;########################################
@@ -32,12 +32,12 @@ _BSS	SEGMENT PUBLIC WORD 'BSS'
 ;random seeds
 PUBLIC seed_128
 seed_128	db 10h dup(?)	;D_8732
-;-- struct t_500 --
-PUBLIC D_8742
-D_8742	db 500h dup(?)
+;-- struct tArea --
+PUBLIC Area
+Area	db 500h dup(?)	;D_8742
 ;--
-D_8C42	db ?	;cursor state {0, 1, 2, 3}
-D_8C43	dw ?	;cursor update counter
+cursor_state	db ?	;D_8C42 cursor state {0, 1, 2, 3}
+cursor_count	dw ?	;D_8C43 cursor update counter
 	db ?	;padding?
 ;----------------------------------------
 _BSS	ENDS
@@ -53,10 +53,10 @@ _u_delay	PROC NEAR
 	MOV	BP,SP
 	PUSH	SI
 	;--
-	MOV	D_8C43,1
+	MOV	cursor_count,1
 	;--
 	MOV	AX,cursor_rate
-	MOV	D_0674,AX
+	MOV	cursor_rate_old,AX
 	;--
 	MOV	AH,2Ch	;get time
 	INT	21h
@@ -81,34 +81,34 @@ C_1701:	;--
 	TEST	AX,0FFFFh
 	JNZ	C_175D	;key has been pressed
 C_1710:	;--
-	CALL	t_callback
+	CALL	RefreshView
 	;============
 	;== cursor ==
 	;============
 	MOV	AX,[BP+06]
-	AND	AX,D_0676
+	AND	AX,cursor_enabled
 	JZ	C_1751
 	;-- update shape
-	MOV	AX,D_0674
+	MOV	AX,cursor_rate_old
 	CMP	AX,cursor_rate
 	JNZ	C_173D
-	DEC	D_8C43
+	DEC	cursor_count
 	JNZ	C_1751
-	DEC	D_8C42
-	AND	D_8C42,3
+	DEC	cursor_state
+	AND	cursor_state,3
 	;-- display
-	MOV	AL,D_8C42
+	MOV	AL,cursor_state
 	ADD	AL,1Ch
 	PUSH	AX
-	CALL	Gra_putchar
+	CALL	Gra_PutChar
 C_173D:	;-- reload cursor counter
 	MOV	AX,1
 	ADD	AX,cursor_rate
 	MUL	speed_info
-	MOV	D_8C43,AX
+	MOV	cursor_count,AX
 	;--
 	MOV	AX,cursor_rate
-	MOV	D_0674,AX
+	MOV	cursor_rate_old,AX
 	;=======
 C_1751:	;==   ==
 	;=======
@@ -120,12 +120,12 @@ C_1751:	;==   ==
 	JNZ	C_1701
 C_175D:	;--
 	MOV	AX,[BP+06]
-	AND	AX,D_0676
+	AND	AX,cursor_enabled
 	JZ	C_176C
 	;-- delete cursor --
 	MOV	AL,' '
 	PUSH	AX
-	CALL	Gra_putchar
+	CALL	Gra_PutChar
 C_176C:	;--
 	POP	SI
 	MOV	SP,BP
@@ -187,14 +187,14 @@ u_rand_b	PROC NEAR
 	RET
 u_rand_b	ENDP
 ;----------------------------------------C_17C5
-;increment Party.f_000
+;increment Party._tick
 ;returns:
 ; 1 if key is pressed
 ; 0 if not
 PUBLIC _u_kbhit
 _u_kbhit	PROC NEAR
 	CALL	u_rand_a
-	;-- increment (unsigned long)Party.f_000
+	;-- increment (unsigned long)Party._tick
 	INC	WORD PTR Party
 	JNZ	C_17D2
 	INC	WORD PTR Party+2
@@ -213,7 +213,7 @@ C_17E7:	;-- remove <CTRL C>
 	MOV	AH,0	;wait for keypress and read character
 	INT	16h
 C_17EB:	;--
-	CALL	t_callback
+	CALL	RefreshView
 	;-- returns 0
 	MOV	AX,0
 C_17F1:	;-- --
@@ -259,19 +259,19 @@ C_1813:	;--
 _u_kbflush	ENDP
 ;----------------------------------------
 ;get current default drive
-PUBLIC C_1814
-C_1814	PROC NEAR
+PUBLIC u_getdrive
+u_getdrive	PROC NEAR	;C_1814
 	MOV	AH,19h	;get current default drive
 	INT	21h
 	INC	AL
 	MOV	AH,0
 	;--
 	RET
-C_1814	ENDP
+u_getdrive	ENDP	;C_1814
 ;----------------------------------------
 ;select disk
-PUBLIC C_181D
-C_181D	PROC NEAR
+PUBLIC u_setdrive
+u_setdrive	PROC NEAR	;C_181D
 	PUSH	BP
 	MOV	BP,SP
 	;--
@@ -283,11 +283,11 @@ C_181D	PROC NEAR
 	;--
 	POP	BP
 	RET	2
-C_181D	ENDP
+u_setdrive	ENDP	;C_181D
 ;----------------------------------------
 ;test file
-PUBLIC C_182F
-C_182F	PROC NEAR
+PUBLIC u_fexist
+u_fexist	PROC NEAR	;C_182F
 	PUSH	BP
 	MOV	BP,SP
 	;--
@@ -308,13 +308,13 @@ C_1842:	;--
 C_184B:	;--
 	POP	BP
 	RET	2
-C_182F	ENDP
+u_fexist	ENDP	;C_182F
 ;----------------------------------------
 ;piracy check function ?
 ;succes => 0
 ;failure => -1
-PUBLIC C_184F
-C_184F	PROC NEAR
+PUBLIC u_diskcheck
+u_diskcheck	PROC NEAR	;C_184F
 	PUSHF
 	PUSH	BX
 	PUSH	AX
@@ -374,14 +374,14 @@ C_1893:	;--
 	POP	BX
 	POPF
 	RET
-C_184F	ENDP
+u_diskcheck	ENDP	;C_184F
 ;----------------------------------------
 ;set critical error handler
-PUBLIC C_18A2
-C_18A2	PROC NEAR
+PUBLIC u_setint24
+u_setint24	PROC NEAR	;C_18A2
 	PUSH	DS
 	;--
-	LEA	DX,INT_18B3
+	LEA	DX,Int24Handler
 	MOV	AX,CS
 	MOV	DS,AX
 	MOV	AH,25h	;set new interrupt vector
@@ -390,9 +390,9 @@ C_18A2	PROC NEAR
 	;--
 	POP	DS
 	RET
-C_18A2	ENDP
+u_setint24	ENDP	;C_18A2
 ;----
-INT_18B3:
+Int24Handler:
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	BX

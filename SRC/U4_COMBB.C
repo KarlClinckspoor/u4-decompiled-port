@@ -11,7 +11,7 @@ Whirlpool and Twister management?
 ----------------------------------------*/
 
 /*remove monster?*/
-C_7821(si/*bp06*/, bp04)
+/*C_7821*/SwallowNpcsAt(si/*bp06*/, bp04)
 register int si;
 int bp04;
 {
@@ -20,54 +20,54 @@ int bp04;
 	for(di = 31; di >= 0; di --) {
 		if(
 			di != si &&
-			D_8742._npc._tile[di] &&
-			D_8742._npc._x[di] == D_8742._npc._x[si] &&
-			D_8742._npc._y[di] == D_8742._npc._y[si]
+			Area._npc._tile[di] &&
+			Area._npc._x[di] == Area._npc._x[si] &&
+			Area._npc._y[di] == Area._npc._y[si]
 		) {
-			D_8742._npc._tile[di] = D_8742._npc._gtile[di] = 0;
-			t_callback();
+			Area._npc._tile[di] = Area._npc._gtile[di] = 0;
+			RefreshView();
 			sound(bp04);
 		}
 	}
 }
 
 /*whirlpool contact?*/
-C_786F(si/*bp04*/)
+/*C_786F*/WhirlpoolContact(si/*bp04*/)
 register int si;
 {
-	if(Party._x == D_8742._npc._x[si] && Party._y == D_8742._npc._y[si]) {
-		t_callback();
+	if(Party._x == Area._npc._x[si] && Party._y == Area._npc._y[si]) {
+		RefreshView();
 		hit_y = hit_x = 5;
-		hit_tile = TIL_8C;
-		C_36C7();
+		hit_tile = TIL_WHIRLPOOL;
+		DrawView();
 		Party._x = 0x7f;
 		Party._y = 0x4e;
 		sound(11);
-		C_1584();
-		Party._tile = TIL_10;
+		DamageAllParty();
+		Party._tile = TIL_SHIP_W;
 		hit_tile = 0;
-		C_26B6();
+		LoadWorldWindow();
 	}
-	C_7821(si, 11);
+	SwallowNpcsAt(si, 11);
 }
 
 /*twister contact?*/
-C_78D1(si/*bp04*/)
+/*C_78D1*/TwisterContact(si/*bp04*/)
 register int si;
 {
-	if(Party._x == D_8742._npc._x[si] && Party._y == D_8742._npc._y[si]) {
-		t_callback();
+	if(Party._x == Area._npc._x[si] && Party._y == Area._npc._y[si]) {
+		RefreshView();
 		sound(12);
-		C_1584();
-		C_1584();
-		C_1584();
-		C_1584();
+		DamageAllParty();
+		DamageAllParty();
+		DamageAllParty();
+		DamageAllParty();
 		hit_tile = 0;
 	}
-	C_7821(si, 12);
+	SwallowNpcsAt(si, 12);
 }
 
-C_7918()
+/*C_7918*/MoveVortices()
 {
 	register int si;
 
@@ -75,10 +75,10 @@ C_7918()
 		return;
 
 	for(si = 3; si >= 0; si--) {
-		if(D_8742._npc._tile[si] == TIL_8C)
-			C_786F(si);
-		else if(D_8742._npc._tile[si] == TIL_8E)
-			C_78D1(si);
+		if(Area._npc._tile[si] == TIL_WHIRLPOOL)
+			WhirlpoolContact(si);
+		else if(Area._npc._tile[si] == TIL_TWISTER)
+			TwisterContact(si);
 	}
 }
 
@@ -93,53 +93,53 @@ C_7918()
 }
 
 /*exit combat zone*/
-C_7962()
+/*C_7962*/COM_CharaExits()
 {
 	Combat._charaX[activeChara] = Combat._charaY[activeChara] = 0x80;
 	Fighters._chtile[activeChara] = 0;
 	sound(8);
-	if(CurMode == MOD_COMBAT && !C_0AFE(D_96F8) && Party.chara[activeChara]._HP[0] == Party.chara[activeChara]._HP[1]) {
+	if(CurMode == MOD_COMBAT && !IsNonEvil(CombatFoeTile) && Party.chara[activeChara]._HP[0] == Party.chara[activeChara]._HP[1]) {
 		karma_dec(&(Party._valor), 2);
 		karma_dec(&(Party._sacri), 2);
 	}
 }
 
 /*exiting fight*/
-C_79C9(bp06, bp04)
+/*C_79C9*/COM_TryExit(bp06, bp04)
 unsigned char bp06;
 unsigned char bp04;
 {
 	if(CurMode == MOD_COM_ROOM) {
 		/*-- dungeon room --*/
 		/*someone already exited W/E*/
-		if(D_96EE != 0) {
-			if(bp06 != (unsigned char)D_96EE) {
+		if(RoomExitX != 0) {
+			if(bp06 != (unsigned char)RoomExitX) {
 				w_SameExit();
 				return;
 			}
-			C_7962();
+			COM_CharaExits();
 			return;
 		}
 		/*someone already exited N/S*/
-		if(D_96F4 != 0) {
-			if(bp04 != (unsigned char)D_96F4) {
+		if(RoomExitY != 0) {
+			if(bp04 != (unsigned char)RoomExitY) {
 				w_SameExit();
 				return;
 			}
-			C_7962();
+			COM_CharaExits();
 			return;
 		}
 		/*-- --*/
 		if(bp06 > 10)
-			D_96EE = bp06;
+			RoomExitX = bp06;
 		else
-			D_96F4 = bp04;
+			RoomExitY = bp04;
 	}
-	C_7962();
+	COM_CharaExits();
 }
 
 /*room special tiles*/
-C_7A15(bp06, bp04)
+/*C_7A15*/RoomTriggers(bp06, bp04)
 unsigned char bp06;
 unsigned char bp04;
 {
@@ -147,28 +147,28 @@ unsigned char bp04;
 	int loc_B, loc_C/*bp_04, bp_06*/;
 
 	for(loc_A = 3; loc_A >= 0; loc_A --) {
-		if(D_95B2[(loc_A << 2)]) {
+		if(RoomTriggerData[(loc_A << 2)]) {
 			if(
-				(bp06 << 12) == (*(U16 *)(D_95B2+(loc_A << 2)) & 0xf000) &&
-				(bp04 <<  8) == (*(U16 *)(D_95B2+(loc_A << 2)) & 0x0f00)
+				(bp06 << 12) == (*(U16 *)(RoomTriggerData+(loc_A << 2)) & 0xf000) &&
+				(bp04 <<  8) == (*(U16 *)(RoomTriggerData+(loc_A << 2)) & 0x0f00)
 			) {
-				loc_B = *(U16 *)(D_95B2+(loc_A << 2)+2) & 0xf;
+				loc_B = *(U16 *)(RoomTriggerData+(loc_A << 2)+2) & 0xf;
 				if(
 					loc_B |
-					(loc_C = (*(U16 *)(D_95B2+(loc_A << 2)+2) >> 4) & 0xf)
-				) Combat_MAP(loc_B, loc_C) = D_95B2[(loc_A << 2)];
-				loc_B = (*(U16 *)(D_95B2+(loc_A << 2)+2) >> 8) & 0xf;
+					(loc_C = (*(U16 *)(RoomTriggerData+(loc_A << 2)+2) >> 4) & 0xf)
+				) Combat_MAP(loc_B, loc_C) = RoomTriggerData[(loc_A << 2)];
+				loc_B = (*(U16 *)(RoomTriggerData+(loc_A << 2)+2) >> 8) & 0xf;
 				if(
 					loc_B |
-					(loc_C = (*(U16 *)(D_95B2+(loc_A << 2)+2) >> 12) & 0xf)
-				) Combat_MAP(loc_B, loc_C) = D_95B2[(loc_A << 2)] & 0xff;
+					(loc_C = (*(U16 *)(RoomTriggerData+(loc_A << 2)+2) >> 12) & 0xf)
+				) Combat_MAP(loc_B, loc_C) = RoomTriggerData[(loc_A << 2)] & 0xff;
 			}
 		}
 	}
 }
 
 /*move [fight]*/
-C_7AE3(si/*bp08*/, bp06, bp04)
+/*C_7AE3*/COM_MoveChara(si/*bp08*/, bp06, bp04)
 register int si;
 unsigned char bp06;
 unsigned char bp04;
@@ -178,15 +178,15 @@ unsigned char bp04;
 	sound(0);
 	/*-- out of bounds=>exiting*/
 	if((unsigned)bp06 > 10 || (unsigned)bp04 > 10) {
-		C_79C9(bp06, bp04);
+		COM_TryExit(bp06, bp04);
 		return;
 	}
-	di = &(D_96F9[bp04*11 + bp06]);
-	if(!C_2999(*di)) {
+	di = &(ViewTiles[bp04*11 + bp06]);
+	if(!IsWalkable(*di)) {
 		w_Blocked();
 		return;
 	}
-	if(C_29EF(*di)) {
+	if(IsSlowTerrain(*di)) {
 		w_SlowProgress();
 		return;
 	}
@@ -194,33 +194,33 @@ unsigned char bp04;
 	Combat._charaY[si] = bp04;
 	sound(0);
 	if(CurMode == MOD_COM_ROOM)
-		C_7A15(bp06, bp04);
+		RoomTriggers(bp06, bp04);
 }
 
 /*North [combat]*/
-C_7B89()
+/*C_7B89*/COM_North()
 {
 	u4_puts(/*D_23B7*/"North\n");
-	C_7AE3(activeChara, Combat._charaX[activeChara], Combat._charaY[activeChara] - 1);
+	COM_MoveChara(activeChara, Combat._charaX[activeChara], Combat._charaY[activeChara] - 1);
 }
 
 /*South [combat]*/
-C_7BAF()
+/*C_7BAF*/COM_South()
 {
 	u4_puts(/*D_23BE*/"South\n");
-	C_7AE3(activeChara, Combat._charaX[activeChara], Combat._charaY[activeChara] + 1);
+	COM_MoveChara(activeChara, Combat._charaX[activeChara], Combat._charaY[activeChara] + 1);
 }
 
 /*East [combat]*/
-C_7BD5()
+/*C_7BD5*/COM_East()
 {
 	u4_puts(/*D_23C5*/"East\n");
-	C_7AE3(activeChara, Combat._charaX[activeChara] + 1, Combat._charaY[activeChara]);
+	COM_MoveChara(activeChara, Combat._charaX[activeChara] + 1, Combat._charaY[activeChara]);
 }
 
 /*West [combat]*/
-C_7BFD()
+/*C_7BFD*/COM_West()
 {
 	u4_puts(/*D_23CB*/"West\n");
-	C_7AE3(activeChara, Combat._charaX[activeChara] - 1, Combat._charaY[activeChara]);
+	COM_MoveChara(activeChara, Combat._charaX[activeChara] - 1, Combat._charaY[activeChara]);
 }

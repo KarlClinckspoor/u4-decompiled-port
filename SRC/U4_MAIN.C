@@ -16,13 +16,13 @@ void cdecl /*C_191E*/main()
 	int bp_04;
 
 	low_init();
-	C_C51C();
+	GameInit();
 	if(Party._loc >= 0x11 && Party._loc <= 0x18) {
 		CurMode = MOD_DUNGEON;
-		if(Load("DNGMAP.SAV", sizeof(tMap8x8x8), &(D_8742._map)) == -1)
+		if(Load("DNGMAP.SAV", sizeof(tMap8x8x8), &(Area._map)) == -1)
 			exit(3);
-		File_DNG = dopen(D_0894[Party._loc - 0x11], 0);
-		if(setjmp(D_9458) == 0)
+		File_DNG = dopen(DungeonFiles[Party._loc - 0x11], 0);
+		if(setjmp(GameLoopJmp) == 0)
 			DNG_main();
 	} else {
 		Party._loc = 0;
@@ -30,10 +30,10 @@ void cdecl /*C_191E*/main()
 	u_kbflush();
 	bp_04 = 0;
 	for(;;) {
-		setjmp(D_9458);
-		t_callback();
-		C_9209();
-		if(C_10FD()) {
+		setjmp(GameLoopJmp);
+		RefreshView();
+		TileEffects();
+		if(CheckPartyAlive()) {
 			u4_putc(0x10);
 			u_delay(25, 1);
 			si = u_kbhit()?u_kbread():KBD_SPACE;
@@ -77,30 +77,30 @@ void cdecl /*C_191E*/main()
 				case KBD_Z: CMD_Ztats(); break;
 				case KBD_CTRL_S:
 					if(bp_04 == KBD_ALT_Z) {
-						C_1C21();
+						CheatShowKarma();
 						break;
 					}
 				default:
 					u4_puts("Bad command!\n");
 					sound(2);
-					D_07F8 = 0;
+					TurnDone = 0;
 				break;
 			}
 		} else {
 			u4_puts("Zzzzz\n");
 		}
-		if(D_07F8 != 0) {
-			C_1C53();
+		if(TurnDone != 0) {
+			EndOfTurn();
 		} else {
-			t_callback();
-			D_07F8 = 1;
+			RefreshView();
+			TurnDone = 1;
 		}
 		bp_04 = si;
 	}
 }
 
 /*cheat code --> reveal the different levels of karmas*/
-C_1C21()
+/*C_1C21*/CheatShowKarma()
 {
 	register int si;
 
@@ -110,53 +110,53 @@ C_1C21()
 	Gra_CR();
 }
 
-C_1C53()
+/*C_1C53*/EndOfTurn()
 {
 	register int si;
 	register struct tChara *di;
 
-	C_10FD();
+	CheckPartyAlive();
 	/*restore some hull*/
 	if(Party._ship < 50 && U4_RND1(3) == 0)
 		Party._ship ++;
 	/*S=>G(randomly), P=>takes 2 hit*/
-	for(di = Party.chara, si = 0; si < Party.f_1d8; di++, si++) {
+	for(di = Party.chara, si = 0; si < Party._members; di++, si++) {
 		if(di->_stat == 'S' && U4_RND1(7) == 0) {
 			di->_stat = 'G';
 		} else if(di->_stat == 'P') {
 			hitChara(si, 2);
-			Gra_11(si); sound(6); Gra_11(si);
+			Gra_InvertStatusLine(si); sound(6); Gra_InvertStatusLine(si);
 		}
 	}
 	/*FOOD management*/
-	if(food_dec(Party.f_1d8)) {
+	if(food_dec(Party._members)) {
 		u4_puts("\nStarving!!!\n");
-		for(si = 0; si < Party.f_1d8; si ++) {
+		for(si = 0; si < Party._members; si ++) {
 			if(isCharaAlive(si))
 				hitChara(si, 2);
 		}
-		si = Party.f_1d8;
+		si = Party._members;
 		while(--si >= 0)
-			Gra_11(si);
+			Gra_InvertStatusLine(si);
 		sound(6);
-		si = Party.f_1d8;
+		si = Party._members;
 		while(--si >= 0)
-			Gra_11(si);
+			Gra_InvertStatusLine(si);
 	}
 	/* */
 	MP_recover();
-	if(Party.f_1dc == 0) {
-		C_7918();
-		C_5834();
-		C_5851();
-		C_7918();
+	if(Party._fly_light == 0) {
+		MoveVortices();
+		MoveNpcs();
+		SpawnMonsters();
+		MoveVortices();
 	}
 	Party._moves ++;
-	if(spell_cnt) {
-		if(--spell_cnt == 0)
-			spell_sta = 7;
+	if(spell_turns) {
+		if(--spell_turns == 0)
+			spell_effect = 7;
 	}
 	dspl_Stats();
 	/*automatic door closing*/
-	C_431D();
+	AutoCloseDoor();
 }

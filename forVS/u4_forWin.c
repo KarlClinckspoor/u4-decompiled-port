@@ -13,7 +13,7 @@
 unsigned speed_info;
 unsigned equip_flags;
 void far *patch_tandy;
-struct t_500 D_8742;
+struct tArea /*D_8742*/Area;
 char cdecl SoundFlag;
 
 struct tPSP far *far_psp;
@@ -21,13 +21,13 @@ struct tPSP far *far_psp;
 unsigned cursor_rate;
 
 /*load gr driver*/
-C_20C1(char *fname) {
+/*C_20C1*/LoadGraphicsDriver(char *fname) {
 	CONSOLE("C_20C1\"load gr driver\"(\"%s\")\n", fname);
 
 	FAKE_RET;
 }
 /*draw game screen frame*/
-C_213B() {
+/*C_213B*/DrawGameFrame() {
 	int fd;
 
 	CONSOLE("C_213B \"draw game screen frame\"\n");
@@ -42,7 +42,7 @@ C_213B() {
 			/*+0b*/unsigned char emark;//0xff
 			/*+0c*/char evideo;//'A'
 			/*+0d*/unsigned char edesc;//[1 == edata is pallet]
-			/*+0e*/unsigned char __0e;
+			/*+0e*/unsigned char _unused0e;
 			/*+0f*/unsigned short esize;
 		};
 
@@ -60,7 +60,7 @@ C_213B() {
 		unsigned char byt;
 		int i,j;
 
-		//should calls Gra_16?
+		//should calls Gra_LoadPicture?
 		//-- load/unpack --
 		pdest = dest;
 		_read(fd, &header, sizeof(struct tHeader));
@@ -119,7 +119,7 @@ C_213B() {
 	FAKE_RET;
 }
 /*highlight cursor*/
-__cdecl Gra_00(int char_Y, int char_X) {
+__cdecl Gra_ActiveBox(int char_Y, int char_X) {
 	int i,j;
 	int top,left;
 
@@ -144,7 +144,7 @@ __cdecl Gra_00(int char_Y, int char_X) {
 	FAKE_RET;
 }
 /*render sprite(2)*/
-__cdecl Gra_01(int tile, int trow, int srow, int scol, int exp) {
+__cdecl Gra_ZoomTileRow(int tile, int trow, int srow, int scol, int exp) {
 	unsigned char *p;
 	int i;
 	int y;
@@ -181,7 +181,7 @@ __cdecl Gra_01(int tile, int trow, int srow, int scol, int exp) {
 	FAKE_RET;
 }
 /*render sprite(2)*/
-__cdecl Gra_02(int width, int height, int tile, int srow, int scol) {
+__cdecl Gra_FillTiles(int width, int height, int tile, int srow, int scol) {
 	int i,j;
 
 	CMN_beginScene();
@@ -195,16 +195,16 @@ __cdecl Gra_02(int width, int height, int tile, int srow, int scol) {
 	FAKE_RET;
 }
 /*shake related(1)*/
-__cdecl Gra_03() {
+__cdecl Gra_ShiftDown() {
 	//TODO
 	FAKE_RET;
 }
 /*shake related(2)*/
-__cdecl Gra_04() {
+__cdecl Gra_ShiftUp() {
 	//TODO
 	FAKE_RET;
 }
-__cdecl Gra_05(int height, int width, unsigned char *pC, int d) {
+__cdecl Gra_DrawTiles(int height, int width, unsigned char *pC, int d) {
 	int i, j;
 
 //	CONSOLE("Gra_05(%d, %d, %08x, %d)//TODO\n", height, width, pC, d);
@@ -219,7 +219,7 @@ __cdecl Gra_05(int height, int width, unsigned char *pC, int d) {
 	FAKE_RET;
 }
 //XOR SCREEN
-Gra_09() {
+Gra_InvertView() {
 	int i,j;
 
 	//TODO:too fast
@@ -239,14 +239,14 @@ Gra_09() {
 	FAKE_RET;
 }
 /*clear map zone*/
-Gra_10() {
+Gra_ClearView() {
 	CONSOLE("Gra_10\"clear map zone\"\n");
 	CMN_clear(1, 1, 11 * 2, 11 * 2, 0);
 
 	FAKE_RET;
 }
 /*highlight char's status*/
-Gra_11(int a) {
+Gra_InvertStatusLine(int a) {
 	int i,j,k;
 
 	CONSOLE("Gra_11\"highlight char's status\"(%d)\n", a);
@@ -263,22 +263,22 @@ Gra_11(int a) {
 	FAKE_RET;
 }
 /*clear status zone*/
-Gra_13() {
+Gra_ClearStatus() {
 	CONSOLE("Gra_13\"clear status zone\"\n");
 	CMN_clear(24, 1, 15, 8, 0);
 
 	FAKE_RET;
 }
-__cdecl Gra_16() {
+__cdecl Gra_LoadPicture() {
 	//TODO
 	FAKE_RET;
 }
-__cdecl Gra_17() {
+__cdecl Gra_RevealCodex() {
 	//TODO
 	FAKE_RET;
 }
 /*draw a "3D" wall*/
-__cdecl Gra_18(int x0, int x1, int y0, int y1, int y0p, int y1p, int col0, int col1) {
+__cdecl Gra_DrawQuad(int x0, int x1, int y0, int y1, int y0p, int y1p, int col0, int col1) {
 	POINT points[4];
 
 	points[0].x = x0 * RATIO; points[0].y = y0 * RATIO;
@@ -297,40 +297,40 @@ __cdecl Gra_18(int x0, int x1, int y0, int y1, int y0p, int y1p, int col0, int c
 	FAKE_RET;
 }
 /*clear food/gold zone*/
-__cdecl Gra_19() {
+__cdecl Gra_VirtueGlyph() {
 	CONSOLE("Gra_19\"clear food/gold zone\"\n");
 	CMN_clear(24, 10, 15, 1, 0);
 
 	FAKE_RET;
 }
 
-__cdecl Gra_init(void **ppShp, void **ppChar, void (*pExit)(int)) {
+__cdecl Gra_Init(void **ppShp, void **ppChar, void (*pExit)(int)) {
 	CONSOLE("Gra_init(%08x,%08x,%08x)//TODO\n", ppShp, ppChar, pExit);
 	CMN_createWindow(320 * RATIO, 200 * RATIO, *ppShp, *ppChar);
 
 	FAKE_RET;
 }
 
-__cdecl Gra_clrscr() {
+__cdecl Gra_ClearScreen() {
 	CONSOLE("Gra_clrscr\n");
 	CMN_clear(0, 0, 40, 25, 0);
 
 	FAKE_RET;
 }
 
-__cdecl Gra_dot(int y, int x, int col) {
+__cdecl Gra_Dot(int y, int x, int col) {
 	CMN_beginScene();
 	CMN_putpixel(x, y, col);
 	CMN_endScene();
 
 	FAKE_RET;
 }
-__cdecl Gra_dot_OR() {
+__cdecl Gra_DotOr() {
 	//TODO
 
 	FAKE_RET;
 }
-__cdecl Gra_dot_XOR(int y, int x, int c) {
+__cdecl Gra_DotXor(int y, int x, int c) {
 	//COLORREF src;
 	
 	CMN_beginScene();
@@ -339,7 +339,7 @@ __cdecl Gra_dot_XOR(int y, int x, int c) {
 
 	FAKE_RET;
 }
-__cdecl Gra_line(int x0, int y0, int x1, int y1, int color) {
+__cdecl Gra_Line(int x0, int y0, int x1, int y1, int color) {
 	if(CMN_beginScene()) {
 		extern HDC currentHDC;
 
@@ -378,14 +378,14 @@ Gra_CR() {
 
 	FAKE_RET;
 }
-__cdecl Gra_animSpit() {
+__cdecl Gra_AnimCampfire() {
 	//TODO
 	CONSOLE("Gra_animSpit\n");
 
 	FAKE_RET;
 }
 
-Gra_animFlow(unsigned tile) {
+Gra_AnimFlow(unsigned tile) {
 	int i;
 	unsigned char *p;
 	unsigned short AX,DX;
@@ -406,7 +406,7 @@ Gra_animFlow(unsigned tile) {
 	FAKE_RET;
 }
 static char random() { return (char)(rand() & 0xff); }
-Gra_animFlag() {
+Gra_AnimFlags() {
 	unsigned char *p;
 	unsigned short temp;
 	CONSOLE("Gra_animFlag\n");
@@ -432,7 +432,7 @@ Gra_animFlag() {
 
 	FAKE_RET;
 }
-Gra_putchar(char c) {
+Gra_PutChar(char c) {
 #if 0
 	CONSOLE("Gra_putchar(%d,%d,", txt_X, txt_Y);
 	switch(c) {
@@ -451,11 +451,11 @@ Gra_putchar(char c) {
 	FAKE_RET;
 }
 
-sizzleShapes() {
+InterleaveShapes() {
 	//TODO
 	FAKE_RET;
 }
-sizzleCharset() {
+InterleaveCharset() {
 	//TODO
 	FAKE_RET;
 }
@@ -465,7 +465,7 @@ sizzleCharset() {
 int __cdecl u_kbhit() {
 	CONSOLE("u_kbhit\n");
 	CMN_pumpmessages();
-	Party.f_000 ++;
+	Party._tick ++;
 
 	return CMN_kbhit != 0;
 }
@@ -492,13 +492,13 @@ void __cdecl u_delay(int a, int b) {
 	a *= 50;
 	while(a) {
 		a --;
-		t_callback();
+		RefreshView();
 		CMN_pumpmessages();
 		Sleep(2);
 		if(b && u_kbhit())
 			break;
 		//cursor
-		Gra_putchar(0x1c + (~a & 3));
+		Gra_PutChar(0x1c + (~a & 3));
 	}
 }
 
@@ -632,31 +632,31 @@ low_gra() {
 //----------------------------------------
 
 //current floppy?
-unsigned char C_1814() {
+unsigned char /*C_1814*/u_getdrive() {
 	//TODO
 	CONSOLE("C_1814\"current floppy?\"//TODO\n");
 
 	return 0;
 }
-C_181D(unsigned a) {
+/*C_181D*/u_setdrive(unsigned a) {
 	//TODO
 	FAKE_RET;
 }
 /*verify some file?*/
-C_182F(char *fname) {
+/*C_182F*/u_fexist(char *fname) {
 	//TODO
 	CONSOLE("C_182F(\"%s\")//TODO\n", fname);
 
 	return 1;
 }
 /*anti-piracy function*/
-C_184F() {
+/*C_184F*/u_diskcheck() {
 	//TODO
 	CONSOLE("C_184F\"anti-piracy function\"//TODO\n");
 
 	return 0;
 }
-C_18A2() {
+/*C_18A2*/u_setint24() {
 	//TODO
 	CONSOLE("C_18A2//TODO\n");
 

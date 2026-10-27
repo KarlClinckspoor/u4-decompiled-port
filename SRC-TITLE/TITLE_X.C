@@ -6,5 +6,5 @@
 
 #include "title.h"
 
-unsigned D_0036 = 0;
-unsigned D_0038 = 0;
+unsigned /*D_0036*/Monster1Pos = 0;
+unsigned /*D_0038*/Monster2Pos = 0;

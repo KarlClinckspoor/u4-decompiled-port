@@ -20,12 +20,12 @@ TLK_special2();
 TLK_join();
 TLK_give();
 
-char D_2A7A[] = "Funny, no response!\n";
+char /*D_2A7A*/MsgNoResponse[] = "Funny, no response!\n";
 
 struct {
 	char *_00;
 	pHandler_tlk _02;
-} D_2A90[] = {
+} /*D_2A90*/TalkKeywords[] = {
 	{/*D_2A3E*/"bye",    0},
 	{/*D_2A42*/"name",   TLK_name},
 	{/*D_2A47*/"look",   TLK_look},
@@ -38,7 +38,7 @@ struct {
 	{/*D_2A61*/"",       0}
 };
 
-/*D_8CCE:
+/*TalkStrings:
 	0.name
 	1.pronoun
 	2.look
@@ -51,16 +51,17 @@ struct {
 	9.special answer N
 	10.personnal question1
 	11.personnal question2*/
-static char *D_8CCE[12];
+static char * D_8CCE[12];
+#define TalkStrings D_8CCE/*see the note on statics below*/
 
 /*special question*/
-C_A163()
+/*C_A163*/TLK_Question()
 {
 	char bp_04[4];
 
 	Gra_CR();
 	u_kbread();
-	u4_puts(D_8CCE[7]);
+	u4_puts(TalkStrings[7]);
 	u4_puts(/*D_2A62*/"\n\nYou say: ");
 	do {
 		u4_gets(bp_04, 4);
@@ -74,24 +75,24 @@ C_A163()
 	if(bp_04[0] == 0)
 		return;
 	if(bp_04[0] == 'Y') {
-		if(D_95CE[1])
+		if(TalkData[1])
 			karma_dec(&(Party._humil), 5);
-		u4_puts(D_8CCE[8]);
+		u4_puts(TalkStrings[8]);
 	} else {
-		if(D_95CE[1] && (Party._moves >> 4) != Party.f_1ec)
+		if(TalkData[1] && (Party._moves >> 4) != Party._lastTalk)
 			karma_inc(&(Party._humil), 10);
-		u4_puts(D_8CCE[9]);
+		u4_puts(TalkStrings[9]);
 	}
-	Party.f_1ec = (Party._moves >> 4);
+	Party._lastTalk = (Party._moves >> 4);
 	Gra_CR();
 }
 
 #ifdef WIN32
-C_A22D(bp06, bp04)
+/*C_A22D*/TLK_Say(bp06, bp04)
 int bp06;
 char *bp04;
 #else
-C_A22D(bp04)
+/*C_A22D*/TLK_Say(bp04)
 char *bp04;
 #endif
 {
@@ -104,46 +105,46 @@ char *bp04;
 /*C_A245*/TLK_special1()
 {
 #ifdef WIN32
-	C_A22D(6, D_8CCE[5]);
+	TLK_Say(6, TalkStrings[5]);
 #else
-	C_A22D(D_8CCE[5]);
+	TLK_Say(TalkStrings[5]);
 #endif
 }
 
 /*C_A253*/TLK_special2()
 {
 #ifdef WIN32
-	C_A22D(7, D_8CCE[6]);
+	TLK_Say(7, TalkStrings[6]);
 #else
-	C_A22D(D_8CCE[6]);
+	TLK_Say(TalkStrings[6]);
 #endif
 }
 
 /*C_A261*/TLK_name()
 {
-	u4_puts(D_8CCE[1]);
+	u4_puts(TalkStrings[1]);
 	u4_puts(/*D_2AB8*/" says: I am ");
-	u4_puts(D_8CCE[0]);
+	u4_puts(TalkStrings[0]);
 	Gra_CR();
 }
 
 /*C_A280*/TLK_look()
 {
 	u4_puts(/*D_2AC5*/"You see ");
-	C_A22D(3, D_8CCE[2]);
+	TLK_Say(3, TalkStrings[2]);
 }
 
 /*C_A299*/TLK_job()
 {
-	C_A22D(4, D_8CCE[3]);
+	TLK_Say(4, TalkStrings[3]);
 }
 
 /*C_A2AB*/TLK_health()
 {
-	C_A22D(5, D_8CCE[4]);
+	TLK_Say(5, TalkStrings[4]);
 }
 
-char *D_2BB2[] = {
+char * /*D_2BB2*/VirtueAdjectives[] = {
 	/*D_2ACE*/"honest",
 	/*D_2AD5*/"compassionate",
 	/*D_2AE3*/"valiant",
@@ -155,44 +156,48 @@ char *D_2BB2[] = {
 };
 
 static unsigned D_8CE6;/*type?*/
+/*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
+ uninitialised statics in the order of its symbol table, which depends on the names.
+ Renaming them would move them; the readable names are macros.*/
+#define TalkNpc D_8CE6
 
 /*C_A2BD*/TLK_join()
 {
 	int bp_02;
 
 	if(
-		(unsigned)D_8742._npc._tlkidx[D_8CE6] != 1 ||
+		(unsigned)Area._npc._tlkidx[TalkNpc] != 1 ||
 		(Party._loc - 0x05) >= 8 ||
 		(Party._loc - 0x05) == Party.chara[0]._class
 	) {
-		u4_puts(D_8CCE[1]);
+		u4_puts(TalkStrings[1]);
 		u4_puts(/*D_2B17*/" says: I cannot join thee.\n");
 		return;
 	}
 	if(*pKarmas[Party._loc - 0x05] < 40 && *pKarmas[Party._loc - 0x05] != 0) {
 		u4_puts(/*D_2B33*/"Thou art not ");
-		u4_puts(D_2BB2[Party._loc - 0x05]);
+		u4_puts(VirtueAdjectives[Party._loc - 0x05]);
 		u4_puts(/*D_2B41*/" enough for me to join thee.\n");
 		return;
 	}
-	if(100 * Party.f_1d8 + 100 > Party.chara[0]._HP[1]) {
+	if(100 * Party._members + 100 > Party.chara[0]._HP[1]) {
 		u4_puts(/*D_2B5F*/"Thou art not experienced enough for me to join thee.\n");
 		return;
 	}
 	u4_puts(/*D_2B95*/"I am honored to join thee!\n");
-	D_8742._npc._tile[31] =
-	D_8742._npc._gtile[31] =
-	D_8742._npc._var[31] =
-	D_8742._npc._tlkidx[31] = 0;
-	t_callback();
+	Area._npc._tile[31] =
+	Area._npc._gtile[31] =
+	Area._npc._var[31] =
+	Area._npc._tlkidx[31] = 0;
+	RefreshView();
 	for(bp_02 = 7; bp_02 >= 0; bp_02 --) {
 		if(Party.chara[bp_02]._class == (Party._loc - 0x05))
 			break;
 	}
 	if(bp_02 != -1)
-		C_6FF9(&(Party.chara[Party.f_1d8]), &(Party.chara[bp_02]));
-	Party.f_1d8 ++;
-	Gra_13();
+		SwapCharas(&(Party.chara[Party._members]), &(Party.chara[bp_02]));
+	Party._members ++;
+	Gra_ClearStatus();
 	dspl_Stats();
 }
 
@@ -200,8 +205,8 @@ static unsigned D_8CE6;/*type?*/
 {
 	int bp_02;
 
-	if(D_8742._npc._tile[D_8CE6] != TIL_58) {
-		u4_puts(D_8CCE[1]);
+	if(Area._npc._tile[TalkNpc] != TIL_BEGGAR) {
+		u4_puts(TalkStrings[1]);
 		u4_puts(/*D_2BC2*/" says: I do not need thy gold.  Keep it!\n");
 		return;
 	}
@@ -212,30 +217,30 @@ static unsigned D_8CE6;/*type?*/
 		} else {
 			Party._gold -= bp_02;
 			dspl_Stats();
-			u4_puts(D_8CCE[1]);
+			u4_puts(TalkStrings[1]);
 			u4_puts(/*D_2C1A*/" says: Oh, Thank thee! I shall never forget thy kindness!\n");
-			if((Party._moves >> 4) != Party.f_1ec)
+			if((Party._moves >> 4) != Party._lastTalk)
 				karma_inc(&(Party._compa), 2);
-			Party.f_1ec = Party._moves >> 4;
+			Party._lastTalk = Party._moves >> 4;
 		}
 	}
-	C_A22D(6, 0);
+	TLK_Say(6, 0);
 }
 
 /*parse talk info*/
-C_A443(si/*bp04*/)
+/*C_A443*/TLK_Parse(si/*bp04*/)
 register char *si;
 {
 	register char **di;
 
-	for(di = &(D_8CCE[0]); di != &(D_8CCE[12]); ) {
+	for(di = &(TalkStrings[0]); di != &(TalkStrings[12]); ) {
 		*(di++) = si;
 		while(*(si++));
 	}
-	u4_tolower(D_8CCE[2][0]);
+	u4_tolower(TalkStrings[2][0]);
 }
 
-C_A47F(bp04)
+/*C_A47F*/TrimRight(bp04)
 char *bp04;
 {
 	char *bp_02;
@@ -245,30 +250,30 @@ char *bp04;
 }
 
 /*talk to citizen*/
-C_A4B4(bp04)
+/*C_A4B4*/TalkToCitizen(bp04)
 int bp04;
 {
 	int bp_02, bp_04;
 
-	dlseek(File_TLK, (D_8742._npc._tlkidx[bp04] - 1) * 0x120);
-	dread(File_TLK, D_95CE, 0x120);
-	bp_04 = Party.f_1d8;
-	D_9452 = D_8742._npc._tile[bp04];
-	C_A443(D_95CE+3);
+	dlseek(File_TLK, (Area._npc._tlkidx[bp04] - 1) * 0x120);
+	dread(File_TLK, TalkData, 0x120);
+	bp_04 = Party._members;
+	CombatFoe = Area._npc._tile[bp04];
+	TLK_Parse(TalkData+3);
 	/*personnal question 1 & 2*/
-	D_2A90[5]._00 = D_8CCE[10];
-	D_2A90[6]._00 = D_8CCE[11];
-	C_A47F(D_2A90[5]._00);
-	C_A47F(D_2A90[6]._00);
+	TalkKeywords[5]._00 = TalkStrings[10];
+	TalkKeywords[6]._00 = TalkStrings[11];
+	TrimRight(TalkKeywords[5]._00);
+	TrimRight(TalkKeywords[6]._00);
 	/* */
 	u4_puts(/*D_2C55*/"\nYou meet ");
-	C_A22D(3, D_8CCE[2]);
+	TLK_Say(3, TalkStrings[2]);
 	/*randomly says his name*/
 	if(U4_RND1(1)) {
 		Gra_CR();
-		u4_puts(D_8CCE[1]);
+		u4_puts(TalkStrings[1]);
 		u4_puts(/*D_2C60*/" says: I am ");
-		u4_puts(D_8CCE[0]);
+		u4_puts(TalkStrings[0]);
 		Gra_CR();
 	}
 	bp_02 = 0;
@@ -281,47 +286,47 @@ int bp04;
 		Gra_CR();
 		if(bp_12[0] == 0)
 			break;
-		if((si = u_rand_a()) < D_95CE[2]) {
-			if(D_95CE[2] - si >= 0x40) {
+		if((si = u_rand_a()) < TalkData[2]) {
+			if(TalkData[2] - si >= 0x40) {
 				/*he/she gets upset*/
-				if(strnicmp(D_8CCE[0], /*D_2C7E*/"a ", 2) && strnicmp(D_8CCE[0], /*D_2C81*/"the ", 4))
-					u4_puts(D_8CCE[0]);
+				if(strnicmp(TalkStrings[0], /*D_2C7E*/"a ", 2) && strnicmp(TalkStrings[0], /*D_2C81*/"the ", 4))
+					u4_puts(TalkStrings[0]);
 				else
-					u4_puts(D_8CCE[1]);
+					u4_puts(TalkStrings[1]);
 				u4_puts(/*D_2C86*/" says: On guard! Fool!\n");
-				D_8742._npc._var[bp04] = 0xff;
+				Area._npc._var[bp04] = 0xff;
 			} else {
-				u4_puts(D_8CCE[1]);
+				u4_puts(TalkStrings[1]);
 				u4_puts(/*D_2C9E*/" turns away!\n\n");
 			}
 			return;
 		}
-		for(si = 0; D_2A90[si]._00[0]; si++) {
-			if(strnicmp(D_2A90[si]._00, bp_12, 4) == 0) {
-				if(D_2A90[si]._02) {
+		for(si = 0; TalkKeywords[si]._00[0]; si++) {
+			if(strnicmp(TalkKeywords[si]._00, bp_12, 4) == 0) {
+				if(TalkKeywords[si]._02) {
 					Gra_CR();
-					D_8CE6 = bp04;
-					(*(D_2A90[si]._02))();
-					if(Party.f_1d8 != bp_04)
+					TalkNpc = bp04;
+					(*(TalkKeywords[si]._02))();
+					if(Party._members != bp_04)
 						return;/*looks like he/she has joined*/
 				} else {
 					bp_02 = 1;
 				}
 				if(!bp_02) {
-					if(D_95CE[0] == si)
-						C_A163();
+					if(TalkData[0] == si)
+						TLK_Question();
 				}
 				break;
 			}
 		}
-		if(D_2A90[si]._00[0] == 0)
+		if(TalkKeywords[si]._00[0] == 0)
 			u4_puts(/*D_2CAD*/"That I cannot help thee with.\n");
 	} while(bp_02 == 0);
 	u4_puts(/*D_2CCC*/"\nBye.\n");
 }
 
 /*shops'y positions by town*/
-unsigned char D_2CD4[][8] = {
+unsigned char /*D_2CD4*/ShopRows[][8] = {
 	{0x00,0x00,0x00,0x00,0x00,0x1A,0x00,0x00},/*LB*/
 
 	{0x00,0x00,0x00,0x00,0x00,0x0C,0x00,0x00},/*lycaeum*/
@@ -355,7 +360,7 @@ extern SHP_horse();
 extern SHP_hawkwind();
 
 /*shops functions callbacks*/
-pHandler_tlk D_2D54[] = {
+pHandler_tlk /*D_2D54*/ShopHandlers[] = {
 	SHP_weapon,
 	SHP_armor,
 	SHP_food,
@@ -370,13 +375,13 @@ pHandler_tlk D_2D54[] = {
 };
 
 /*shop at Y*/
-C_A686(bp04)
+/*C_A686*/EnterShop(bp04)
 unsigned char bp04;
 {
 	register int si;
 
 	for(si = 7; si >= 0;si--) {
-		if(D_2CD4[Party._loc - 1][si] == bp04)
+		if(ShopRows[Party._loc - 1][si] == bp04)
 			break;
 	}
 	if(si == -1 && bp04 == 0x18 && Party._loc == 0x0d)
@@ -384,10 +389,10 @@ unsigned char bp04;
 	if(si == -1 && bp04 == 0x19 && Party._loc == 0x01)
 		si = 9;/*patch! LB's hawkwind*/
 	if(si == -1) {
-		u4_puts(D_2A7A);
+		u4_puts(MsgNoResponse);
 		return;
 	}
-	(*(D_2D54[si]))();
+	(*(ShopHandlers[si]))();
 }
 
 /*C_A6F3*/CMD_Talk() {
@@ -395,7 +400,7 @@ unsigned char bp04;
 	int loc_B, loc_C, loc_D;
 
 	u4_puts(/*D_2D68*/"Talk\n");
-	if(Party.f_1dc != 0) {
+	if(Party._fly_light != 0) {
 		w_DriftOnly();
 		return;
 	}
@@ -404,35 +409,35 @@ unsigned char bp04;
 		return;
 	loc_E = Party._x + loc_B;
 	loc_A = Party._y + loc_D;
-	loc_C = C_0A8B(loc_E, loc_A);
+	loc_C = FindTownNpcAt(loc_E, loc_A);
 	if(loc_E > 31 || loc_A > 31 || Party._loc == 0) {
-		u4_puts(D_2A7A);
+		u4_puts(MsgNoResponse);
 		return;
 	}
 	if(
-		D_8742._map.x32x32[loc_A][loc_E] >= TIL_60 &&
-		D_8742._map.x32x32[loc_A][loc_E] <= TIL_7E
+		Area._map.x32x32[loc_A][loc_E] >= TIL_LETTER_A &&
+		Area._map.x32x32[loc_A][loc_E] <= TIL_BLACK
 	) {/*alphabet*/
 		loc_E += loc_B;
 		loc_A += loc_D;
 		if(loc_E > 31 || loc_A > 31) {
-			u4_puts(D_2A7A);
+			u4_puts(MsgNoResponse);
 			return;
 		}
-		if((loc_C = C_0A8B(loc_E, loc_A)) == -1 || D_8742._npc._tile[loc_C] != TIL_52) {
-			u4_puts(D_2A7A);
+		if((loc_C = FindTownNpcAt(loc_E, loc_A)) == -1 || Area._npc._tile[loc_C] != TIL_MERCHANT) {
+			u4_puts(MsgNoResponse);
 			return;
 		}
-		C_A686(loc_A - loc_D);
+		EnterShop(loc_A - loc_D);
 		return;
 	}
-	if(loc_C == -1 || D_8742._npc._tlkidx[loc_C] == 0) {
-		u4_puts(D_2A7A);
+	if(loc_C == -1 || Area._npc._tlkidx[loc_C] == 0) {
+		u4_puts(MsgNoResponse);
 		return;
 	}
-	if(D_8742._npc._tile[loc_C] == TIL_5E) {
-		C_E59B();
+	if(Area._npc._tile[loc_C] == TIL_LORD_BRITISH) {
+		TalkToLB();
 		return;
 	}
-	C_A4B4(loc_C);
+	TalkToCitizen(loc_C);
 }

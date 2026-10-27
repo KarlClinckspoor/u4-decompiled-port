@@ -11,16 +11,16 @@ _DATA	SEGMENT PUBLIC WORD 'DATA'
 	ASSUME DS:DGROUP
 ;----------------------------------------
 far_psp	dw 0,0	;D_0078
-D_007C  db "andy"
+StrAndy  db "andy"	;D_007C
 ;----------------------------------------
 _DATA	ENDS
 ;########################################
 _BSS	SEGMENT PUBLIC WORD 'BSS'
 ;----------------------------------------
-D_8720	dw ?,?	;original vector int 0x1c
-D_8724	dw ?,?	;original vector int 0x24
+OldInt1C	dw ?,?	;D_8720 original vector int 0x1c
+OldInt24	dw ?,?	;D_8724 original vector int 0x24
 speed_info	dw ?	;D_8728
-D_872A	db ?	;original graphic mode
+OldVideoMode	db ?	;D_872A original graphic mode
 equip_flags	dw ?	;D_872B
 patch_tandy	dw ?,?	;D_872D
 	db ?	;padding?
@@ -30,7 +30,7 @@ _BSS	ENDS
 _TEXT	SEGMENT PUBLIC BYTE 'CODE'
 	ASSUME CS:_TEXT
 ;----------------------------------------
-C_0010	dw 0
+TimerTicks	dw 0	;C_0010
 PUBLIC low_init	;C_0012
 low_init	PROC NEAR
 	PUSH	BP
@@ -51,7 +51,7 @@ low_init	PROC NEAR
 	PUSH	BP
 	INT	10h
 	POP	BP
-	MOV	D_872A,AL
+	MOV	OldVideoMode,AL
 	;--------------------------
 	;-- Create PSP variable  --
 	;--------------------------
@@ -88,8 +88,8 @@ low_init	PROC NEAR
 	MOV	AH,35h
 	MOV	AL,24h
 	INT	21h
-	MOV	D_8724,BX
-	MOV	D_8724+2,ES
+	MOV	OldInt24,BX
+	MOV	OldInt24+2,ES
 	;----------------------------
 	;-- Reset random generator --
 	;----------------------------
@@ -109,30 +109,30 @@ low_init	PROC NEAR
 	;--------------------------
 	;-- Check computer speed --
 	;--------------------------
-	MOV	CS:C_0010,0
+	MOV	CS:TimerTicks,0
 	;--
 	MOV	speed_info,0
 	;-- save int 1ch
 	MOV	AH,35h
 	MOV	AL,1Ch
 	INT	21h
-	MOV	D_8720,BX
-	MOV	D_8720+2,ES
+	MOV	OldInt1C,BX
+	MOV	OldInt1C+2,ES
 	;-- set new int 1ch
 	PUSH	DS
-	LEA	DX,INT_0141
+	LEA	DX,Int1CHandler
 	MOV	AX,CS
 	MOV	DS,AX
 	MOV	AH,25h
 	MOV	AL,1Ch
 	INT	21h
 	POP	DS
-	;-- wait for C_0010 to reset
+	;-- wait for TimerTicks to reset
 	MOV	AX,0
-C_00C4:	CMP	CS:C_0010,AX
+C_00C4:	CMP	CS:TimerTicks,AX
 	JZ	C_00C4
 	;--
-	MOV	AX,CS:C_0010
+	MOV	AX,CS:TimerTicks
 C_00CF:	INC	speed_info
 	JS	C_00EE
 	MOV	DX,[BX+1F40h]
@@ -141,13 +141,13 @@ C_00CF:	INC	speed_info
 	MOV	DX,0
 	MOV	CL,14h
 	RCR	DX,CL
-	CMP	CS:C_0010,AX
+	CMP	CS:TimerTicks,AX
 	JZ	C_00CF
 C_00EE:	;-- restore int 1ch
 	PUSH	DS
 	MOV	AH,25h
 	MOV	AL,1Ch
-	LDS	DX,DWORD PTR D_8720
+	LDS	DX,DWORD PTR OldInt1C
 	INT	21h
 	POP	DS
 	;--
@@ -176,7 +176,7 @@ low_clean	PROC NEAR
 	;-- Restore graphic mode --
 	;--------------------------
 	MOV	AH,0
-	MOV	AL,D_872A
+	MOV	AL,OldVideoMode
 	INT	10h
 	;-----
 	;-- --
@@ -194,7 +194,7 @@ C_0132:	;---------------------
 	PUSH	DS
 	MOV	AH,25h
 	MOV	AL,24h
-	LDS	DX,DWORD PTR D_8724
+	LDS	DX,DWORD PTR OldInt24
 	INT	21h
 	POP	DS
 C_013E:	;--
@@ -203,8 +203,8 @@ C_013E:	;--
 	RET
 low_clean	ENDP
 ;----
-INT_0141:
-	INC	CS:C_0010
+Int1CHandler:
+	INC	CS:TimerTicks
 	IRET
 ;----------------------------------------
 ;determine graphic adapter type
@@ -231,7 +231,7 @@ C_0167:	MOV	AL,'T'
 	PUSH	DI
 	PUSH	CX
 	MOV	CX,4
-	LEA	SI,D_007C	;"andy"
+	LEA	SI,StrAndy	;"andy"
 	REPZ	CMPSB
 	POP	CX
 	POP	DI

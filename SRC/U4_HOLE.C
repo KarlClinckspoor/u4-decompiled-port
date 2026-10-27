@@ -8,22 +8,22 @@
 
 #include <stdlib.h>
 
-unsigned char D_26B8[] = {TIL_C0,TIL_C4,TIL_C8,TIL_CC,TIL_B4,TIL_A0,TIL_A4,TIL_DC};
+unsigned char /*D_26B8*/AmbushMonsters[] = {TIL_ORC,TIL_SKELETON,TIL_ROGUE,TIL_PYTHON,TIL_INSECTS,TIL_SLIME,TIL_TROLL,TIL_WISP};
 
-C_8A5A()
+/*C_8A5A*/Ambush()
 {
 	register int si;
 
 	u4_puts(/*D_26AC*/"Ambushed!\n");
-	D_9772 = Party._x;
-	D_9140 = Party._y;
-	D_96F8 = D_9452 = D_26B8[U4_RND1(7)];
-	for(si = Party.f_1d8; --si >= 0; ) {
+	CombatFoeX = Party._x;
+	CombatFoeY = Party._y;
+	CombatFoeTile = CombatFoe = AmbushMonsters[U4_RND1(7)];
+	for(si = Party._members; --si >= 0; ) {
 		if(Party.chara[si]._stat == 'G')
 			Party.chara[si]._stat = 'S';
 	}
 	dspl_Stats();
-	C_7FD7();
+	RunCombat();
 }
 
 /*C_8AB0*/CMD_HoleUp() {
@@ -34,7 +34,7 @@ C_8A5A()
 		w_NotHere();
 		return;
 	}
-	if(Party._tile != TIL_1F) {
+	if(Party._tile != TIL_AVATAR) {
 		w_OnlyOnFoot();
 		return;
 	}
@@ -46,21 +46,21 @@ C_8A5A()
 		exit(3);
 	for(si = 31; si >= 0; si--)
 		Fighters._tile[si] = 0;
-	for(si = Party.f_1d8; --si >= 0; ) {
-		D_944A[si] = Fighters._chtile[si] = isCharaAlive(si)?TIL_38:0;
+	for(si = Party._members; --si >= 0; ) {
+		CharaAnimTile[si] = Fighters._chtile[si] = isCharaAlive(si)?TIL_SLEEPING:0;
 	}
 	dspl_Stats();
 	u4_puts(/*D_26E2*/"Resting...\n");
-	D_95CC = CurMode;
+	SavedMode = CurMode;
 	CurMode = MOD_COM_CAMP;
 	u_delay(10, 0);
 	if(U4_RND1(7) == 0) {
-		C_8A5A();
-	} else if(Party._moves / 100 == Party.f_1e6) {
+		Ambush();
+	} else if(Party._moves / 100 == Party._lastCamp) {
 		u4_puts(/*D_26EE*/"No effect.\n");
 	} else {
-		Party.f_1e6 = Party._moves / 100;
-		for(si = Party.f_1d8; --si >= 0; ) {
+		Party._lastCamp = Party._moves / 100;
+		for(si = Party._members; --si >= 0; ) {
 			if(isCharaAlive(si)) {
 				if(Party.chara[si]._stat == 'S')
 					Party.chara[si]._stat = 'G';
@@ -73,7 +73,7 @@ C_8A5A()
 		u4_puts(/*D_26FA*/"Players Healed!\n");
 	}
 	dspl_Stats();
-	CurMode = D_95CC;
+	CurMode = SavedMode;
 	if(CurMode == MOD_DUNGEON)
-		D_9446 = 1;
+		Redraw3D = 1;
 }

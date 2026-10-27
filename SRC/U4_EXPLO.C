@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 
-char *D_1738[] ={
+char * /*D_1738*/TalkFiles[] ={
 	/*Castles*/
 	/*D_1682*/"LCB.TLK",
 	/*D_168A*/"LYCAEUM.TLK",
@@ -31,32 +31,32 @@ char *D_1738[] ={
 };
 
 /*load casle/towne/village files*/
-C_3E30(bp04)
+/*C_3E30*/LoadTown(bp04)
 unsigned bp04;
 {
-	if(Save(/*D_172B*/"OUTMONST.SAV", sizeof(struct tNPC), &(D_8742._npc)) == -1)
+	if(Save(/*D_172B*/"OUTMONST.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
-	if(Load(D_0824[bp04 - 0x01], sizeof(struct t_500), &D_8742) == -1)
+	if(Load(TownFiles[bp04 - 0x01], sizeof(struct tArea), &Area) == -1)
 		exit(3);
-	File_TLK = dopen(D_1738[Party._loc - 1], 0);
+	File_TLK = dopen(TalkFiles[Party._loc - 1], 0);
 	CurMode = MOD_BUILDING;
 }
 
 /*load dungeon files*/
-C_3E94()
+/*C_3E94*/LoadDungeon()
 {
 	register int si;
 
-	if(Load(D_0894[Party._loc - 0x11], sizeof(tMap8x8x8), &(D_8742._map)) == -1)
+	if(Load(DungeonFiles[Party._loc - 0x11], sizeof(tMap8x8x8), &(Area._map)) == -1)
 		exit(3);
-	File_DNG = dopen(D_0894[Party._loc - 0x11], 0);
+	File_DNG = dopen(DungeonFiles[Party._loc - 0x11], 0);
 	for(si = 0x1f; si >= 0; si --)
-		D_8742._npc._tile[si] = 0;
+		Area._npc._tile[si] = 0;
 }
 
-C_3EE4()
+/*C_3EE4*/StartDungeon()
 {
-	C_3E94();
+	LoadDungeon();
 	CurMode = MOD_DUNGEON;
 	Party._dir = DIR_E;
 	Party._z = 0;
@@ -64,44 +64,44 @@ C_3EE4()
 }
 
 /*enter dungeon*/
-C_3F03()
+/*C_3F03*/EnterDungeon()
 {
 	Gra_CR();
 	Gra_CR();
-	if(Party._tile != TIL_1F) {
+	if(Party._tile != TIL_AVATAR) {
 		Party._loc = 0;
 		w_OnlyOnFoot();
 		return;
 	}
 	Party._x = Party._y = 1;
-	if(Save(/*D_1758*/"OUTMONST.SAV", sizeof(struct tNPC), &(D_8742._npc)) == -1)
+	if(Save(/*D_1758*/"OUTMONST.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
-	C_3EE4();
+	StartDungeon();
 }
 
 /*enter towne*/
-C_3F4A()
+/*C_3F4A*/EnterTown()
 {
 	register int si;
 
-	u4_puts(D_1E98[127 + Party._loc - 1]);
+	u4_puts(Names[127 + Party._loc - 1]);
 	Gra_CR();
 	Gra_CR();
-	Party._y = D_959C.y = 15;
-	Party._x = D_959C.x = 1;
-	C_3E30(Party._loc);
+	Party._y = WinPos.y = 15;
+	Party._x = WinPos.x = 1;
+	LoadTown(Party._loc);
 
 	if((Party._loc - 0x05) < 8) {
-		for(si = Party.f_1d8; --si >= 1; ) {
+		for(si = Party._members; --si >= 1; ) {
 			if(Party.chara[si]._class == (Party._loc - 0x05)) {
-				D_8742._npc._tile[31] = D_8742._npc._gtile[31] = D_8742._npc._var[31] = 0;
+				Area._npc._tile[31] = Area._npc._gtile[31] = Area._npc._var[31] = 0;
 			}
 		}
 	}
 }
 
 /*enter the abyss?*/
-C_3FB9()
+/*C_3FB9*/EnterAbyss()
 {
 	if((
 		(Party.mItems >> ST_BOOK) &
@@ -111,8 +111,8 @@ C_3FB9()
 		(Party.mItems >> ST_USE_BELL) &
 		(Party.mItems >> ST_USE_CANDLE)
 	) & 1) {
-		u4_puts(D_1E98[127 + Party._loc - 1]);
-		C_3F03();
+		u4_puts(Names[127 + Party._loc - 1]);
+		EnterDungeon();
 	} else {
 		Party._loc = 0;
 		w_Cant_t();
@@ -124,16 +124,16 @@ C_3FB9()
 	register int si;
 
 	u4_puts(/*D_1765*/"Enter ");
-	if(Party._loc != 0 || Party._tile == TIL_18) {
+	if(Party._loc != 0 || Party._tile == TIL_BALLOON) {
 		w_What();
 		return;
 	}
 	si = 31;
 	while(si >= 0) {
 #ifdef WIN32
-		if(Party._x == (unsigned char)D_0844[si] && Party._y == (unsigned char)D_0864[si])
+		if(Party._x == (unsigned char)LocationX[si] && Party._y == (unsigned char)LocationY[si])
 #else
-		if(Party._x == D_0844[si] && Party._y == D_0864[si])
+		if(Party._x == LocationX[si] && Party._y == LocationY[si])
 #endif
 			break;
 		si--;
@@ -145,47 +145,47 @@ C_3FB9()
 	Party._loc = si + 1;
 	Party.out_x = Party._x;
 	Party.out_y = Party._y;
-	switch(D_8742._map.x32x32[D_959C.y][D_959C.x]) {
-		case TIL_09:
+	switch(Area._map.x32x32[WinPos.y][WinPos.x]) {
+		case TIL_DUNGEON:
 			u4_puts(/*D_176C*/"dungeon!\n\n");
-			u4_puts(D_1E98[127 + Party._loc - 1]);
-			C_3F03();
+			u4_puts(Names[127 + Party._loc - 1]);
+			EnterDungeon();
 		break;
-		case TIL_0A:
+		case TIL_TOWN:
 			u4_puts(/*D_1777*/"towne!\n\n");
-			C_3F4A();
+			EnterTown();
 		break;
-		case TIL_0B: case TIL_0E:
+		case TIL_CASTLE: case TIL_LCB_ENTRANCE:
 			u4_puts(/*D_1780*/"castle!\n\n");
-			u4_puts(D_1E98[127 + Party._loc - 1]);
+			u4_puts(Names[127 + Party._loc - 1]);
 			Gra_CR();
 			Gra_CR();
-			Party._y = D_959C.y = 0x1e;
-			Party._x = D_959C.x = 0x0f;
+			Party._y = WinPos.y = 0x1e;
+			Party._x = WinPos.x = 0x0f;
 			Party._z = 0;
-			C_3E30(Party._loc);
+			LoadTown(Party._loc);
 		break;
-		case TIL_0C:
+		case TIL_VILLAGE:
 			u4_puts(/*D_178A*/"village!\n\n");
-			C_3F4A();
+			EnterTown();
 		break;
-		case TIL_1D:
+		case TIL_RUINS:
 			u4_puts(/*D_1795*/"ruin!\n\n");
-			C_3F4A();
+			EnterTown();
 		break;
-		case TIL_4C:
+		case TIL_LAVA:
 			if(Party._x != 0xe9 || Party._y != 0xe9) {
 				w_What();
 				return;
 			}
-		case TIL_46:
-			C_3FB9();
+		case TIL_FIRE_FIELD:
+			EnterAbyss();
 		break;
-		case TIL_1E:
+		case TIL_SHRINE:
 			u4_puts(/*D_179D*/"the Shrine of\n");
-			u4_puts(D_1E98[151 + Party._loc - 0x19]);
+			u4_puts(Names[151 + Party._loc - 0x19]);
 			Gra_CR();
-			C_E72C();
+			EnterShrine();
 		break;
 		default:
 			w_What();
@@ -193,82 +193,82 @@ C_3FB9()
 	}
 }
 
-C_4164()
+/*C_4164*/LeaveVehicle()
 {
 	register int si;
 
 	for(si = 31; si >= 8 ;si --) {
-		if(D_8742._npc._tile[si] == 0)
+		if(Area._npc._tile[si] == 0)
 			break;
 	}
 	if(si == 7)
 		si = U4_RND1(15) | 0x10;
-	D_8742._npc._gtile[si] = D_8742._npc._tile[si] = Party._tile;
-	D_8742._npc._x[si] = Party._x;
-	D_8742._npc._y[si] = Party._y;
-	D_8742._npc._var[si] = D_8742._npc._tlkidx[si] = 0;
-	Party._tile = TIL_1F;
+	Area._npc._gtile[si] = Area._npc._tile[si] = Party._tile;
+	Area._npc._x[si] = Party._x;
+	Area._npc._y[si] = Party._y;
+	Area._npc._var[si] = Area._npc._tlkidx[si] = 0;
+	Party._tile = TIL_AVATAR;
 	Gra_CR();
 }
 
 /*C_41C0*/CMD_X_it()
 {
 	u4_puts(/*D_17AC*/"X-it ");
-	if(Party._tile < TIL_14) {
+	if(Party._tile < TIL_HORSE_W) {
 		ship_x = Party._x;
 		ship_y = Party._y;
-		C_4164();
-	} else if(Party._tile < TIL_16) {
-		D_95C6 = 0;
-		C_4164();
-	} else if(Party._tile == TIL_18 && Party.f_1dc == 0) {
-		C_4164();
+		LeaveVehicle();
+	} else if(Party._tile < TIL_TILED_FLOOR) {
+		Gallop = 0;
+		LeaveVehicle();
+	} else if(Party._tile == TIL_BALLOON && Party._fly_light == 0) {
+		LeaveVehicle();
 	} else {
 		w_What();
 	}
 }
 
-C_4206(bp04)
+/*C_4206*/BoardVehicle(bp04)
 unsigned bp04;
 {
 	register int si;
 
 	for(si = 31; si >= 8; si --) {
 		if(
-			Party._x == D_8742._npc._x[si] &&
-			Party._y == D_8742._npc._y[si] &&
-			bp04 == (D_8742._npc._tile[si] & ~3)
+			Party._x == Area._npc._x[si] &&
+			Party._y == Area._npc._y[si] &&
+			bp04 == (Area._npc._tile[si] & ~3)
 		) break;
 	}
 	if(si != 7)
-		D_8742._npc._gtile[si] = D_8742._npc._tile[si] = 0;
+		Area._npc._gtile[si] = Area._npc._tile[si] = 0;
 		Party._tile = tile_cur;
 }
 
 /*C_4253*/CMD_Board()
 {
-	if(Party._tile != TIL_1F) {
+	if(Party._tile != TIL_AVATAR) {
 		u4_puts(/*D_17B2*/"Board: ");
 		w_Cant_t();
 		return;
 	}
-	if(tile_cur == TIL_14 || tile_cur == TIL_15) {
-		C_4206(TIL_14);
+	if(tile_cur == TIL_HORSE_W || tile_cur == TIL_HORSE_E) {
+		BoardVehicle(TIL_HORSE_W);
 		u4_puts(/*D_17BA*/"Mount Horse!\n");
 		return;
 	}
 	u4_puts(/*D_17C8*/"Board ");
-	if(tile_cur == TIL_18) {
-		C_4206(TIL_18);
+	if(tile_cur == TIL_BALLOON) {
+		BoardVehicle(TIL_BALLOON);
 		u4_puts(/*D_17CF*/"Balloon!\n");
-		Party.f_1dc = 0;
+		Party._fly_light = 0;
 		return;
 	}
-	if(tile_cur < TIL_10 || tile_cur > TIL_13) {
+	if(tile_cur < TIL_SHIP_W || tile_cur > TIL_SHIP_S) {
 		w_What();
 		return;
 	}
-	C_4206(TIL_10);
+	BoardVehicle(TIL_SHIP_W);
 	u4_puts(/*D_17D9*/"Frigate!\n");
 	if(ship_x != Party._x || ship_y != Party._y)
 		Party._ship = 50;
@@ -277,8 +277,8 @@ unsigned bp04;
 /*C_42E8*/CMD_Yell()
 {
 	u4_puts(/*D_17E3*/"Yell ");
-	if(Party._tile == TIL_14 || Party._tile == TIL_15) {
-		if(D_95C6 ^= 1)
+	if(Party._tile == TIL_HORSE_W || Party._tile == TIL_HORSE_E) {
+		if(Gallop ^= 1)
 			u4_puts(/*D_17E9*/"Giddyup!\n");
 		else
 			u4_puts(/*D_17F3*/"Whoa!\n");
@@ -287,18 +287,18 @@ unsigned bp04;
 	}
 }
 
-unsigned D_17FA = 0;/*current opened door's x*/
-unsigned D_17FC = 0;/*current opened door's y*/
-unsigned D_17FE = 0;/*current opened door's delay*/
+unsigned /*D_17FA*/DoorX = 0;/*current opened door's x*/
+unsigned /*D_17FC*/DoorY = 0;/*current opened door's y*/
+unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 
 /*automatic door close*/
-C_431D()
+/*C_431D*/AutoCloseDoor()
 {
-	if(CurMode == MOD_BUILDING && D_17FE) {
-		if(--D_17FE == 0)
-			D_8742._map.x32x32[D_17FC][D_17FA] = TIL_3B;
+	if(CurMode == MOD_BUILDING && DoorTimer) {
+		if(--DoorTimer == 0)
+			Area._map.x32x32[DoorY][DoorX] = TIL_DOOR;
 	} else {
-		D_17FE = 0;
+		DoorTimer = 0;
 	}
 }
 
@@ -306,8 +306,8 @@ C_431D()
 {
 	unsigned bp_02, bp_04;
 
-	while(D_17FE)
-		C_431D();
+	while(DoorTimer)
+		AutoCloseDoor();
 	if(CurMode != MOD_BUILDING) {
 		u4_puts(/*D_1800*/"Open; ");
 		w_NotHere();
@@ -321,14 +321,14 @@ C_431D()
 	} else {
 		register unsigned char *si;
 
-		si = &(D_8742._map.x32x32[Party._y][bp_02 + Party._x]);
-		if(*si == TIL_3A) {
+		si = &(Area._map.x32x32[Party._y][bp_02 + Party._x]);
+		if(*si == TIL_LOCKED_DOOR) {
 			w_Cant_t();
-		} else if(*si == TIL_3B) {
-			D_17FA = (bp_02 + Party._x);
-			D_17FC = Party._y;
-			D_17FE = 5;
-			*si = TIL_3E;
+		} else if(*si == TIL_DOOR) {
+			DoorX = (bp_02 + Party._x);
+			DoorY = Party._y;
+			DoorTimer = 5;
+			*si = TIL_BRICK_FLOOR;
 			u4_puts(/*D_180E*/"\nOpened!\n");
 		} else {
 			w_NotHere();
@@ -349,8 +349,8 @@ C_431D()
 	} else {
 		register unsigned char *si;
 
-		si = &(D_8742._map.x32x32[Party._y][bp_02 + Party._x]);
-		if(*si != TIL_3A) {
+		si = &(Area._map.x32x32[Party._y][bp_02 + Party._x]);
+		if(*si != TIL_LOCKED_DOOR) {
 			w_NotHere();
 			return;
 		}
@@ -359,7 +359,7 @@ C_431D()
 			return;
 		}
 		Party._keys --;
-		*si = TIL_3B;
+		*si = TIL_DOOR;
 	}
 }
 
@@ -367,23 +367,23 @@ C_431D()
 {
 	u4_puts(/*D_183A*/"Klimb ");
 	if(Party._loc == 0) {
-		if(Party._tile != TIL_18) {
+		if(Party._tile != TIL_BALLOON) {
 			w_What();
 			return;
 		}
 		u4_puts(/*D_1841*/"altitude\n");
-		Party.f_1dc = 1;
-		D_9440 = 0;
+		Party._fly_light = 1;
+		LineOfSight = 0;
 		return;
 	}
-	if(Party._loc == 1 && tile_cur == TIL_1B) {
-		if(Party._tile != TIL_1F) {
+	if(Party._loc == 1 && tile_cur == TIL_LADDER_UP) {
+		if(Party._tile != TIL_AVATAR) {
 			Gra_CR();
 			w_OnlyOnFoot();
 			return;
 		}
 		u4_puts(/*D_184B*/"to second floor!\n");
-		if(Load(/*D_185D*/"LCB_2.ULT", sizeof(struct t_500), &D_8742) == -1)
+		if(Load(/*D_185D*/"LCB_2.ULT", sizeof(struct tArea), &Area) == -1)
 			exit(3);
 	} else {
 		w_What();
@@ -392,19 +392,19 @@ C_431D()
 
 /*C_44EE*/CMD_Descend()
 {
-	if(Party._tile == TIL_18) {
+	if(Party._tile == TIL_BALLOON) {
 		u4_puts(/*D_1867*/"Land Balloon\n");
-		if(tile_cur != TIL_04) {
+		if(tile_cur != TIL_GRASS) {
 			sound(1);
 			w_NotHere();
 			return;
 		}
-		if(Party.f_1dc == 0) {
+		if(Party._fly_light == 0) {
 			u4_puts(/*D_1875*/"Already Landed!\n");
 			return;
 		}
-		Party.f_1dc = 0;
-		D_9440 = 1;
+		Party._fly_light = 0;
+		LineOfSight = 1;
 		return;
 	}
 	if(Party._loc != 0x01) {
@@ -413,12 +413,12 @@ C_431D()
 		return;
 	}
 	/*in LB's castle*/
-	if(Party._tile != TIL_1F) {
+	if(Party._tile != TIL_AVATAR) {
 		w_OnlyOnFoot();
 		return;
 	}
 	u4_puts(/*D_188F*/"Descend ");
-	if(tile_cur != TIL_1C) {
+	if(tile_cur != TIL_LADDER_DOWN) {
 		w_What();
 		return;
 	}
@@ -428,10 +428,10 @@ C_431D()
 		Party.out_y = 0xf0;
 		Party._y = Party._x = 5;
 		Party._loc = 0x17;
-		C_3EE4();
+		StartDungeon();
 		return;
 	}
 	u4_puts(/*D_18AA*/"to first floor!\n");
-	if(Load(/*D_18BB*/"LCB_1.ULT", sizeof(struct t_500), &D_8742) == -1)
+	if(Load(/*D_18BB*/"LCB_1.ULT", sizeof(struct tArea), &Area) == -1)
 		exit(3);
 }
