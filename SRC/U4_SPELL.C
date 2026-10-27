@@ -36,11 +36,11 @@ char /*D_208C*/SpellMPCost[] = {
 	 5 /*Z-down*/
 };
 
-static int /*D_8CCC*/CurSpell;/*current spell*/
+static int16 /*D_8CCC*/CurSpell;/*current spell*/
 
 /*Is tile an undead monster (ghost, phantom, skeleton, liche)?*/
 /*C_636D*/IsUndead(tile)
-int tile;
+int16 tile;
 {
 	if(tile == TIL_GHOST || tile == TIL_PHANTOM || tile == TIL_SKELETON || tile == TIL_LICHE)
 		return 1;
@@ -111,10 +111,10 @@ int tile;
  * missile 16-63, iceball 32-255, fireball 24-127, kill (whirlpool tile) 232.
  */
 /*C_6466*/SpellMissile(tile)
-int tile;
+int16 tile;
 {
-	register int foe, points;
-	int dx, dy;
+	register int16 foe, points;
+	int16 dx, dy;
 
 	if(!SpellCombatOnly())
 		return;
@@ -151,7 +151,7 @@ int tile;
 /*Awaken: wake up a sleeping party member.*/
 /*C_6558*/SPL_Awaken()
 {
-	register int member;
+	register int16 member;
 
 	member = AskChara(/*D_20E2*/"Who:\x12\x12\b");
 	if(member < 0)
@@ -175,7 +175,7 @@ int tile;
  */
 /*C_65AA*/SPL_Blink()
 {
-	int dx, dy;
+	int16 dx, dy;
 	unsigned char dest_x, dest_y;
 
 	if(Party._tile >= TIL_HORSE_W && Party._tile != TIL_BALLOON) {
@@ -211,7 +211,7 @@ int tile;
 /*Cure: cure a poisoned party member.*/
 /*C_669B*/SPL_Cure()
 {
-	register int member;
+	register int16 member;
 
 	if((member = AskChara(/*D_20F0*/"Who:\x12\x12\b")) < 0)
 		return;
@@ -230,7 +230,7 @@ int tile;
  */
 /*C_66DA*/SPL_Dispel()
 {
-	int dx, dy;
+	int16 dx, dy;
 	unsigned char *p_field;
 
 	if(CurMode == MOD_DUNGEON) {
@@ -291,15 +291,15 @@ int tile;
 /*C_6882*/SPL_Energy()
 {
 	unsigned char *p_square;
-	int typed;
-	int dx, dy, field;
+	int16 typed;
+	int16 dx, dy, field;
 
 	u4_puts(/*D_20FE*/"Energy type? ");
 	typed = (unsigned char)u_kbread();
 /*bad hack:I must force the redefinition of u4_islower
 in order to get the compiler to provide
 the original bytecode*/
-#define u4_islower(c) ((c) >= (int)'a' && (c) <= (int)'z')
+#define u4_islower(c) ((c) >= (int16)'a' && (c) <= (int16)'z')
 	u4_toupper(typed);
 	switch(typed) {
 		case 'P'/*oison*/:    field = TIL_POISON_FIELD; break;
@@ -347,7 +347,7 @@ the original bytecode*/
 /*Gate: outdoors, not on a ship or the balloon, go to the moongate of a phase (1-8).*/
 /*C_69E5*/SPL_Gate()
 {
-	register int phase;
+	register int16 phase;
 
 	if(Party._tile < TIL_HORSE_W || Party._tile == TIL_BALLOON) {
 		w_Failed();
@@ -356,7 +356,7 @@ the original bytecode*/
 	if(!SpellOutdoorsOnly())
 		return;
 	phase = AskLetter(/*D_2112*/"To Phase:\x12\x12\b", '0', '8');
-	if(phase < 0 || phase == (int)'0')
+	if(phase < 0 || phase == (int16)'0')
 		return;
 	if(!SpellStart())
 		return;
@@ -369,7 +369,7 @@ the original bytecode*/
 /*Heal: give 75-99 hit points to a living party member.*/
 /*C_6A40*/SPL_Heal()
 {
-	register int member;
+	register int16 member;
 
 	if((member = AskChara(/*D_211F*/"Who?\x12\x12\b")) < 0)
 		return;
@@ -470,7 +470,7 @@ the original bytecode*/
 /*Resurrect: bring a dead party member back to life (not in combat).*/
 /*C_6B68*/SPL_Resurrect()
 {
-	register int member;
+	register int16 member;
 
 	if(CurMode >= MOD_COMBAT) {
 		w_Failed();
@@ -491,7 +491,7 @@ the original bytecode*/
 /*Sleep: in combat, put to sleep the foes (but undead and balrons) with less hit points than a random number.*/
 /*C_6BAE*/SPL_Sleep()
 {
-	register int foe;
+	register int16 foe;
 
 	if(!SpellCombatOnly())
 		return;
@@ -509,7 +509,7 @@ the original bytecode*/
  */
 /*C_6BF8*/SPL_Tremor()
 {
-	register int foe;
+	register int16 foe;
 
 	if(!SpellCombatOnly())
 		return;
@@ -537,7 +537,7 @@ the original bytecode*/
 /*Undead: in combat, 1 time out of 2 bring each undead foe down to 23 hit points.*/
 /*C_6C71*/SPL_Undead()
 {
-	register int foe;
+	register int16 foe;
 
 	if(!SpellCombatOnly())
 		return;
@@ -560,7 +560,7 @@ the original bytecode*/
 /*Winds: outdoors, make the wind blow from the given direction.*/
 /*C_6CC3*/SPL_Winds()
 {
-	int dx, dy;
+	int16 dx, dy;
 
 	if(!SpellOutdoorsOnly())
 		return;
@@ -598,7 +598,7 @@ the original bytecode*/
  */
 /*C_6D3D*/SPL_Y_up()
 {
-	int tries;
+	int16 tries;
 	unsigned char dest_x, dest_y;
 
 	if(!SpellDungeonOnly())
@@ -632,7 +632,7 @@ the original bytecode*/
  */
 /*C_6DC1*/SPL_Z_down()
 {
-	int tries;
+	int16 tries;
 	unsigned char dest_x, dest_y;
 
 	if(!SpellDungeonOnly())

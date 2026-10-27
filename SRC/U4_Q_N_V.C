@@ -57,7 +57,7 @@ struct tChara *b;
 {
 	register struct tChara *pa, *pb;
 	struct tChara dummy;/*not used*/
-	int ia, ib;
+	int16 ia, ib;
 
 	u4_puts(/*D_2206*/"New Order!\n");
 	if((ia = AskChara(/*D_2212*/"Exchange #\x12\x12\b")) < 0)

@@ -245,7 +245,7 @@ char * /*D_2512*/CombatMapFiles[] = {
  */
 /*C_7C65*/LoadCombatMap()
 {
-	register int map;
+	register int16 map;
 
 	if(Party._tile <= TIL_SHIP_S || (tile_cur & ~3) == TIL_SHIP_W) {
 		if(CombatFoeTile == TIL_PIRATE_W) {
@@ -288,7 +288,7 @@ char * /*D_2512*/CombatMapFiles[] = {
 
 /*combat map for each kind of dungeon tile (tile_cur >> 4): corridor, ladders,
  chest, door (5) and secret door (6)*/
-int /*D_256E*/DngRoomMapIndex[] = {0,1,2,3,4,0,0,0,0,0,0,0,5,0,6,0};
+int16 /*D_256E*/DngRoomMapIndex[] = {0,1,2,3,4,0,0,0,0,0,0,0,5,0,6,0};
 
 char * /*D_258E*/DngCombatMapFiles[] = {
 	/*D_252E*/"DNG0.CON",
@@ -336,7 +336,7 @@ char * /*D_258E*/DngCombatMapFiles[] = {
  */
 /*C_7DBC*/CombatBegin()
 {
-	register int slot;
+	register int16 slot;
 
 	u4_puts(/*D_25A4*/"\n\n**** Combat ****\n\n");
 	CombatFoe = CombatFoeTile;
@@ -358,7 +358,7 @@ char * /*D_258E*/DngCombatMapFiles[] = {
  * from the map, fight.
  */
 /*C_7DFE*/StartCombat(npc)
-register unsigned npc;
+register uint16 npc;
 {
 	CombatFoeTile = Area._npc._tile[npc];
 	CombatFoeX = Area._npc._x[npc];
@@ -389,9 +389,9 @@ register unsigned npc;
  */
 /*C_7E7E*/PlaceFoes()
 {
-	register int count, fighter;
-	int i, hp;
-	unsigned type;
+	register int16 count, fighter;
+	int16 i, hp;
+	uint16 type;
 
 	for(fighter = 15; fighter >= 0; fighter --)
 		Fighters._tile[fighter] = 0;
@@ -469,7 +469,7 @@ register unsigned npc;
 		/*room map (11x11)*/
 		unsigned char _080[0x80];
 	} room;
-	register int i, j;
+	register int16 i, j;
 
 	dlseek(File_DNG, sizeof(tMap8x8x8) + (Party._loc == LOC_ABYSS?
 		((Party._z >> 1) * 0x1000) + ((tile_cur & 0xf) * 0x100):
@@ -566,7 +566,7 @@ register unsigned npc;
  */
 /*C_8228*/FreeNpcSlot()
 {
-	register int slot;
+	register int16 slot;
 
 	for(slot = 31; slot >= (SavedMode == MOD_OUTDOORS)?8:0; slot--) {
 		if(!Area._npc._tile[slot])
@@ -588,7 +588,7 @@ register unsigned npc;
  */
 /*C_8283*/CombatSpoils()
 {
-	register int tile;/*then the NPC slot*/
+	register int16 tile;/*then the NPC slot*/
 
 	tile = CombatFoeTile;
 	if(tile == TIL_PIRATE_W) {
@@ -653,7 +653,7 @@ unsigned char /*D_261A*/AltarRoomExits[][4] = {
  */
 /*C_837A*/CombatEnd()
 {
-	register int chara;
+	register int16 chara;
 
 	for(chara = 7; ; chara --)
 		if(chara < 0 || Fighters._chtile[chara] != 0)

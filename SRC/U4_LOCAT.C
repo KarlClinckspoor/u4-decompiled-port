@@ -52,12 +52,12 @@ unsigned char /*D_2334*/ClassMasks[] = {
  * article: print the "a" (for weapons).
  */
 /*C_75DC*/w_MayNotUse(chara, item, article)
-int chara;
-int item;
-int article;
+int16 chara;
+int16 item;
+int16 article;
 {
 	u4_puts(/*D_2322*/"\nA ");
-	u4_puts(Names[NAME_CLASSES + (int)Party.chara[chara]._class]);
+	u4_puts(Names[NAME_CLASSES + (int16)Party.chara[chara]._class]);
 	u4_puts(/*D_2326*/" may NOT use ");
 	if(article)
 		u4_putc('a');
@@ -74,8 +74,8 @@ int article;
  */
 /*C_7631*/CMD_Ready()
 {
-	register int wielder, weapon;
-	int oldWeapon;
+	register int16 wielder, weapon;
+	int16 oldWeapon;
 
 	if(CurMode >= MOD_COMBAT) {
 		u4_puts(/*D_234C*/"Ready Weapon!\n");
@@ -123,8 +123,8 @@ int article;
  */
 /*C_7732*/CMD_Wear()
 {
-	register int chara, armor;
-	int oldArmor;
+	register int16 chara, armor;
+	int16 oldArmor;
 
 	u4_puts(/*D_237E*/"Wear Armour\n");
 	if((chara = AskChara(/*D_238B*/"for:\x12\x12\b")) < 0)

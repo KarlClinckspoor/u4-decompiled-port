@@ -19,7 +19,7 @@
 /*C_0812*/Console(msg)
 char *msg;
 {
-	int written;
+	int16 written;
 
 	if((written = dwrite(1, msg, strlen(msg))) == -1 || strlen(msg) != written) {
 		exit(3);
@@ -33,10 +33,10 @@ char *msg;
  */
 /*C_0855*/Load(fname, size, buf)
 char *fname;
-unsigned size;
+uint16 size;
 void far *buf;
 {
-	int fd, actual;
+	int16 fd, actual;
 
 	if((fd = dopen(fname, 0)) == -1) {
 		Console("\r\nOpening ");
@@ -68,10 +68,10 @@ void far *buf;
  */
 /*C_08D1*/Save(fname, size, buf)
 char *fname;
-unsigned size;
+uint16 size;
 void far *buf;
 {
-	int fd, actual;
+	int16 fd, actual;
 
 	if((fd = dopen(fname, 1)) == -1) {
 		Console("\r\nOpening ");

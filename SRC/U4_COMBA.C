@@ -11,7 +11,7 @@
 unsigned char x;
 unsigned char y;
 {
-	register int fighter;
+	register int16 fighter;
 
 	for(fighter = 15; fighter >= 0; fighter --)
 		if(Fighters._tile[fighter] && Combat._npcX[fighter] == x && Combat._npcY[fighter] == y)
@@ -22,7 +22,7 @@ unsigned char y;
 /*Is every party member dead?*/
 /*C_5A04*/IsPartyWipedOut()
 {
-	register int member;
+	register int16 member;
 
 	for(member = Party._members - 1; member >= 0; member --)
 		if(isCharaAlive(member))
@@ -36,7 +36,7 @@ unsigned char y;
  */
 /*C_5A28*/IsCombatEnded()
 {
-	register int who;
+	register int16 who;
 
 	for(who = 7; who >= 0; who --) {
 		if(Fighters._chtile[who] != 0)
@@ -68,8 +68,8 @@ COM_Attack();*/
  */
 /*C_5A6B*/COM_main()
 {
-	register unsigned cmd;
-	unsigned last_key;
+	register uint16 cmd;
+	uint16 last_key;
 
 	u_kbflush();
 	last_key = 0;
@@ -193,8 +193,8 @@ COM_Attack();*/
  * otherwise print its state ("Fleeing!" being under 24 HP whatever its max).
  */
 /*C_5DAB*/COM_DoDamage(fighter, chara, damage)
-register int fighter;
-int chara;
+register int16 fighter;
+int16 chara;
 unsigned char damage;
 {
 	u4_puts(CreatureName(Fighters._tile[fighter]));
@@ -202,7 +202,7 @@ unsigned char damage;
 	if(Fighters._tile[fighter] != TIL_LORD_BRITISH && (Fighters._HP[fighter] -= damage) < 0) {
 		u4_puts(/*D_1FFA*/"Killed!\n");
 		if(chara != -1) {
-			register int xp;
+			register int16 xp;
 
 			xp = MonsterMaxHP[MonsterIndex(Fighters._tile[fighter])] / 16 + 1;
 			XP_inc(chara, xp);
@@ -212,7 +212,7 @@ unsigned char damage;
 		}
 		Fighters._tile[fighter] = 0;
 	} else {
-		int hp, mark75, mark25, mark50;
+		int16 hp, mark75, mark25, mark50;
 
 		mark25 = mark50 = MonsterMaxHP[MonsterIndex(Fighters._tile[fighter])] / 2;/*50% HP*/
 		mark25 >>= 1;/*25% HP*/
@@ -247,7 +247,7 @@ unsigned char dx;
 unsigned char dy;
 {
 	unsigned char x, y;
-	register int tile;
+	register int16 tile;
 
 	x = dx + hit_x;
 	y = dy + hit_y;
@@ -271,9 +271,9 @@ unsigned char dy;
  * character.
  */
 /*C_5F26*/DrawAxeReturn(range)
-int range;
+int16 range;
 {
-	int dy, dx;
+	int16 dy, dx;
 
 	if(Party.chara[activeChara]._weapon != WPN_MAGIC_AXE || range < 2)
 		return;
@@ -293,7 +293,7 @@ int range;
  * still sets a fire field where it lands (but not on water).
  */
 /*C_5F9D*/w_missed(range)
-int range;
+int16 range;
 {
 	if(range == 0)
 		sound(SND_ATTACK);
@@ -311,12 +311,12 @@ int range;
  * is random, modulo strength + weapon damage (at most 255).
  */
 /*C_6012*/TryDamage(fighter, range)
-int fighter;
-int range;
+int16 fighter;
+int16 range;
 {
 	register char *p_ground;
 	register struct tChara *chara;
-	int damage;
+	int16 damage;
 	
 	chara = &(Party.chara[activeChara]);
 	if(Party._loc == LOC_ABYSS && chara->_weapon < WPN_MAGIC_AXE) {
@@ -350,11 +350,11 @@ int range;
  * squares, or the range asked for flaming oil. Daggers and oil are used up.
  */
 /*C_60F1*/COM_Shoot(dx, dy)
-int dx;
-int dy;
+int16 dx;
+int16 dy;
 {
 	register struct tChara *chara;
-	int range, foe, dist;
+	int16 range, foe, dist;
 
 	range = 11;
 	dist = 0;
@@ -409,7 +409,7 @@ int dy;
 /*C_61D1*/COM_Attack()
 {
 	register struct tChara *chara;
-	int dx, dy, foe;
+	int16 dx, dy, foe;
 
 	chara = &(Party.chara[activeChara]);
 	AskDir(/*D_2060*/"Dir: ", &dx, &dy);
@@ -453,8 +453,8 @@ int dy;
  */
 /*C_628F*/CMD_Attack()
 {
-	register int npc;
-	int dx, dy;
+	register int16 npc;
+	int16 dx, dy;
 
 	if(CurMode <= MOD_BUILDING && Party._fly_light != 0) {
 		u4_puts(/*D_2066*/"Attack\n");
@@ -475,7 +475,7 @@ int dy;
 		return;
 	}
 	if(CurMode == MOD_BUILDING) {
-		register int guard;
+		register int16 guard;
 		for(guard = 31; guard >= 0; guard --)
 			if(Area._npc._tile[guard] == TIL_GUARD || Area._npc._tile[guard] == TIL_LORD_BRITISH) {
 				Area._npc._var[guard] = 0xff;

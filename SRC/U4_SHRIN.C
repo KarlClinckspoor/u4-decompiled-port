@@ -74,7 +74,7 @@ char * /*D_8362*/VisionRunes[] = {
  * ".pic" (CGA) or ".ega" version.
  */
 /*C_E6DF*/ShowVision(virtue)
-int virtue;
+int16 virtue;
 {
 	char fname[20];
 
@@ -95,9 +95,9 @@ int virtue;
  */
 /*C_E72C*/EnterShrine()
 {
-	int virtue, round, step;
+	int16 virtue, round, step;
 	char answer[16];
-	int cycleTotal;
+	int16 cycleTotal;
 
 	virtue = Party._loc - LOC_SHRINES;/*the shrine's virtue*/
 	if(!TST_MSK(Party.mRunes, virtue)) {

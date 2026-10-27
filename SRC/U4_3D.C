@@ -52,17 +52,17 @@ unsigned char /*D_2DE4*/LadderDown_y2[] = {0x8F,0x77,0x69,0x61};/*down ladder ru
 unsigned char /*D_2DE8*/LadderDown_y3[] = {0x6F,0x67,0x63,0x60};/*down ladder rung 3 y*/
 
 /*countdowns (reloaded from speed_info) for the trap flicker and the monster frames*/
-int /*D_2DEC*/PitAnimTick = 0;
-int /*D_2DEE*/MonsterAnimTick = 0;
+int16 /*D_2DEC*/PitAnimTick = 0;
+int16 /*D_2DEE*/MonsterAnimTick = 0;
 
 /*D_8CE8*/static unsigned char STA_A/*tile 2 squares ahead*/;
 /*D_8CE9*/static unsigned char STA_B/*tile 3 squares ahead*/;
 /*the state of the last full redraw (Render3DNow), see DNG_Render*/
-/*D_8CEA*/static int STA_C;/*(Party._fly_light == 0): no light*/
-/*D_8CEC*/static int STA_D;/*Party._z*/
-/*D_8CEE*/static int STA_E;/*current rendering depth*/
+/*D_8CEA*/static int16 STA_C;/*(Party._fly_light == 0): no light*/
+/*D_8CEC*/static int16 STA_D;/*Party._z*/
+/*D_8CEE*/static int16 STA_E;/*current rendering depth*/
 /*D_8CF0*/static unsigned char STA_F;/*Party._x*/
-/*D_8CF2*/static unsigned STA_G;/*Party._dir*/
+/*D_8CF2*/static uint16 STA_G;/*Party._dir*/
 /*D_8CF4*/static unsigned char STA_H;/*Party._y*/
 /*D_8CF5*/static unsigned char STA_I;/*tile_cur*/
 /*D_8CF6*/static unsigned char STA_J;/*tile_forward*/
@@ -108,12 +108,12 @@ unsigned char tile;
  * vertical.
  */
 /*C_A842*/DrawLine(x0, y0, x1, y1)
-int x0;
-int y0;
-int x1;
-int y1;
+int16 x0;
+int16 y0;
+int16 x1;
+int16 y1;
 {
-	int y, stepX, stepY, acc, x;
+	int16 y, stepX, stepY, acc, x;
 
 	x = x0;
 	y = y0;
@@ -151,7 +151,7 @@ int y1;
  */
 /*C_A94A*/DrawCeilingHole()
 {
-	register int d;
+	register int16 d;
 
 	d = Depth;
 	Gra_Line(HoleL_x0[d],   Hole_y0[d], HoleL_x1[d],   Hole_y1[d], 3);
@@ -167,7 +167,7 @@ int y1;
  */
 /*C_AA29*/DrawFloorHole()
 {
-	register int d;
+	register int16 d;
 
 	d = Depth;
 	Gra_Line(HoleL_x0[d],   FloorHole_y0[d], HoleL_x1[d],   FloorHole_y1[d], 3);
@@ -224,7 +224,7 @@ unsigned char tile;
 /*C_ABE5*/IsMonster3D(tile)
 unsigned char tile;
 {
-	register int kind;
+	register int16 kind;
 
 	kind = tile & 0xf0;
 	if(
@@ -245,8 +245,8 @@ unsigned char tile;
 /*C_AC23*/DrawSprite3D(tile)
 unsigned char tile;
 {
-	register int line;
-	long pause;
+	register int16 line;
+	int32 pause;
 
 	cursor_delay = 0;
 	switch(Depth) {
@@ -283,10 +283,10 @@ unsigned char tile;
  */
 /*C_AD6A*/RenderSquare3D(tile, depth)
 unsigned char tile;
-int depth;
+int16 depth;
 {
-	static int D_8CFA;
-	int spriteTile;
+	static int16 D_8CFA;
+	int16 spriteTile;
 
 	Depth = depth;
 	if(MonsterAnimTick-- == 0) {
@@ -361,9 +361,9 @@ int depth;
  * party's position and facing (the level wraps around).
  */
 /*C_AF36*/DNG_SquareAt(getX, getY, side)
-register int *getX;
-register int *getY;
-int side;
+register int16 *getX;
+register int16 *getY;
+int16 side;
 {
 	*getX = Party._x;
 	*getY = Party._y;
@@ -396,7 +396,7 @@ int side;
  */
 /*C_AFB5*/DrawLadderUp()
 {
-	register int d;
+	register int16 d;
 
 	d = Depth;
 	DrawCeilingHole();
@@ -423,7 +423,7 @@ int side;
  */
 /*C_B0E9*/DrawLadderDown()
 {
-	register int d;
+	register int16 d;
 
 	d = Depth;
 	DrawFloorHole();
@@ -549,7 +549,7 @@ The walls facing north/south and those facing east/west get different colours.*/
  */
 /*C_B418*/DrawRightWalls()
 {
-	int y, x;
+	int16 y, x;
 
 	DNG_SquareAt(&x, &y, 1);
 	switch(Area._map.x8x8x8[Party._z][y][x] >> 4) {
@@ -577,7 +577,7 @@ The walls facing north/south and those facing east/west get different colours.*/
  */
 /*C_B47A*/DrawLeftWalls()
 {
-	int y, x;
+	int16 y, x;
 
 	DNG_SquareAt(&x, &y, -1);
 	switch(Area._map.x8x8x8[Party._z][y][x] >> 4) {
@@ -608,7 +608,7 @@ The walls facing north/south and those facing east/west get different colours.*/
  */
 /*C_B4DF*/Render3D()
 {
-	int x, y;
+	int16 x, y;
 
 	x = Party._x;
 	y = Party._y;

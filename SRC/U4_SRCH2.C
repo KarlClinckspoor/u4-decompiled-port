@@ -17,8 +17,8 @@ char * /*D_2E04*/MsgHmmmNoEffect[] = {/*D_2DF0*/"\nHmmm--No Effect!\n"};
  * and playing the "hurt" sound three times.
  */
 /*C_B730*/HurtChara(chara, hundreds)
-int chara;
-int hundreds;
+int16 chara;
+int16 hundreds;
 {
 	Gra_InvertStatusLine(chara);
 	sound(SND_HURT);
@@ -33,18 +33,18 @@ int hundreds;
  * capped at 50.
  */
 /*C_B770*/AddStat(stat, amount)
-int *stat;
-int amount;
+int16 *stat;
+int16 amount;
 {
 	*stat += amount;
 	*stat = (*stat > 50)?50:*stat;
 }
 
 /*damage (in hundreds of hit points) of the magic ball of each dungeon*/
-int /*D_2E6E*/BallDamage[] = {2,2,2,4,4,4,6,6};
+int16 /*D_2E6E*/BallDamage[] = {2,2,2,4,4,4,6,6};
 /*characteristics raised by the magic ball of each dungeon: [0] strength,
   [1] dexterity, [2] intelligence; nonzero = +5*/
-int /*D_2E7E*/BallStats[][8] = {
+int16 /*D_2E7E*/BallStats[][8] = {
 	{0,0,5,0,5,5,5,0},
 	{0,5,0,5,5,0,5,0},
 	{5,0,0,5,0,5,5,0}
@@ -56,7 +56,7 @@ int /*D_2E7E*/BallStats[][8] = {
  */
 /*C_B795*/TouchBall()
 {
-	int chara;
+	int16 chara;
 
 	u4_puts(/*D_2E06*/"\nYou find a Magical Ball...\n");
 	if((chara = AskChara(/*D_2E23*/"Who touches?\x12\x12\b")) < 0)
@@ -89,7 +89,7 @@ int /*D_2E7E*/BallStats[][8] = {
  */
 /*C_B863*/DrinkFountain()
 {
-	int chara;
+	int16 chara;
 
 	u4_puts(/*D_2EAE*/"You find a Fountain.\n");
 	if((chara = AskChara(/*D_2EC4*/"Who drinks?\x12\x12\b")) < 0)

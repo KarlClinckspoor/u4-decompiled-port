@@ -15,10 +15,10 @@ Whirlpools and twisters
  * sound effect snd for each one.
  */
 /*C_7821*/SwallowNpcsAt(vortex, snd)
-register int vortex;
-int snd;
+register int16 vortex;
+int16 snd;
 {
-	register int npc;
+	register int16 npc;
 
 	for(npc = 31; npc >= 0; npc --) {
 		if(
@@ -40,7 +40,7 @@ int snd;
  * Then it swallows the NPCs on its square.
  */
 /*C_786F*/WhirlpoolContact(vortex)
-register int vortex;
+register int16 vortex;
 {
 	if(Party._x == Area._npc._x[vortex] && Party._y == Area._npc._y[vortex]) {
 		RefreshView();
@@ -64,7 +64,7 @@ register int vortex;
  * Then it swallows the NPCs on its square.
  */
 /*C_78D1*/TwisterContact(vortex)
-register int vortex;
+register int16 vortex;
 {
 	if(Party._x == Area._npc._x[vortex] && Party._y == Area._npc._y[vortex]) {
 		RefreshView();
@@ -85,7 +85,7 @@ register int vortex;
  */
 /*C_7918*/VortexContacts()
 {
-	register int npc;
+	register int16 npc;
 
 	if(CurMode != MOD_OUTDOORS)
 		return;
@@ -172,8 +172,8 @@ unsigned char y;
 unsigned char x;
 unsigned char y;
 {
-	register int n;
-	int row, col;
+	register int16 n;
+	int16 row, col;
 
 	for(n = 3; n >= 0; n --) {
 		if(RoomTriggerData[(n << 2)]) {
@@ -201,7 +201,7 @@ unsigned char y;
  * the destination must be walkable and slow terrain may waste the turn.
  */
 /*C_7AE3*/COM_MoveChara(chara, x, y)
-register int chara;
+register int16 chara;
 unsigned char x;
 unsigned char y;
 {
@@ -209,7 +209,7 @@ unsigned char y;
 
 	sound(SND_STEP);
 	/*-- out of bounds=>exiting*/
-	if((unsigned)x > 10 || (unsigned)y > 10) {
+	if((uint16)x > 10 || (uint16)y > 10) {
 		COM_TryExit(x, y);
 		return;
 	}

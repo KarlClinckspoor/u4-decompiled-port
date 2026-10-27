@@ -28,7 +28,7 @@ char /*D_27A6*/MsgNothingHere[] = "Nothing Here!\n";
  * Add 2 to 9 of reagent reagent (at most 99).
  */
 /*C_8D6D*/AddReagent(reagent)
-int reagent;
+int16 reagent;
 {
 	Party._reagents[reagent] += U4_RND1(7) + 2;
 	if(Party._reagents[reagent] > 99) {
@@ -201,7 +201,7 @@ int reagent;
  */
 /*C_8FB1*/UseTelescope()
 {
-	int town;
+	int16 town;
 
 	u4_puts(/*D_2897*/"You see a knob on the Telescope marked A-P\n");
 	if((town = AskLetter(/*D_28C3*/"You Select:\x12\x12\b", 'A', 'P')) < 0)
@@ -275,7 +275,7 @@ unsigned char /*D_2904*/RuneTowns[][2] = {
  */
 /*C_90C5*/FindRune()
 {
-	register int virtue;
+	register int16 virtue;
 
 	for(virtue = 7; virtue >= 0; virtue --)
 		if(RuneTowns[virtue][0] == Party._loc)

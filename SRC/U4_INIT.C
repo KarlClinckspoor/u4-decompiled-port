@@ -15,7 +15,7 @@
 /*C_C44F*/Unused3() {}
 
 /*nonzero if the machine has (or the command line says) two floppy drives*/
-static int /*D_9138*/TwoDrives;
+static int16 /*D_9138*/TwoDrives;
 
 /*
  * Make sure file fname can be found in the current drive; if not, show message
@@ -26,12 +26,12 @@ static int /*D_9138*/TwoDrives;
 char *message;
 char *fname;
 {
-	int key;
+	int16 key;
 
 	if(!u_fexist(fname)) {
 		CurMode = MOD_VISION;
 		txt_Y = 10;
-		txt_X = (unsigned int)(40 - strlen(message)) >> 1;
+		txt_X = (uint16)(40 - strlen(message)) >> 1;
 		u4_puts(message);
 		txt_Y ++;
 		txt_X = 18;
@@ -73,7 +73,7 @@ char *fname;
  */
 /*C_C51C*/GameInit()
 {
-	int programDrive, copyCheck;
+	int16 programDrive, copyCheck;
 
 	u4_toupper(PARAM1);
 	u4_toupper(PARAM0);

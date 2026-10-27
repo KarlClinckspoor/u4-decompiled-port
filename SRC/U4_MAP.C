@@ -10,8 +10,8 @@
 
 /*the world map (WORLD.MAP) is made of 8x8 chunks of 32x32 tiles; this is the
   chunk currently in memory (MapChunks), -1 for none*/
-int /*D_08CE*/LoadedChunkX = -1;
-int /*D_08D0*/LoadedChunkY = -1;
+int16 /*D_08CE*/LoadedChunkX = -1;
+int16 /*D_08D0*/LoadedChunkY = -1;
 
 /*
  * Load the chunk (chunkX, chunkY) of the world map into MapChunks, after
@@ -19,10 +19,10 @@ int /*D_08D0*/LoadedChunkY = -1;
  * Exits the program on error.
  */
 /*C_2399*/LoadMapChunk(chunkY, chunkX)
-unsigned chunkY;
-unsigned chunkX;
+uint16 chunkY;
+uint16 chunkX;
 {
-	int actual;
+	int16 actual;
 
 	if(LoadedChunkX != -1) {
 		dfree((void far *)MapChunks[LoadedChunkY][LoadedChunkX]);
@@ -50,7 +50,7 @@ unsigned chunkX;
  */
 /*C_249C*/LoadWindowNW()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	LoadMapChunk(WinBlock.y / 2, WinBlock.x / 2);
 	for(ty = 0; ty < 16; ty ++)
@@ -65,7 +65,7 @@ unsigned chunkX;
 
 /*C_2517*/LoadWindowNE()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	LoadMapChunk(WinBlock.y / 2, TMP0 / 2);
 	for(ty = 0; ty < 16; ty ++)
@@ -76,7 +76,7 @@ unsigned chunkX;
 
 /*C_259F*/LoadWindowSW()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	LoadMapChunk(TMP1 / 2, WinBlock.x / 2);
 	for(ty = 0; ty < 16; ty ++)
@@ -87,7 +87,7 @@ unsigned chunkX;
 
 /*C_2624*/LoadWindowSE()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	LoadMapChunk(TMP1 / 2, TMP0 / 2);
 	for(ty = 0; ty < 16; ty ++)
@@ -158,7 +158,7 @@ unsigned chunkX;
 /*C_27D9*/SpawnDaemons()
 {
 	if(spell_effect != 1) {
-		register int i;
+		register int16 i;
 
 		for(i = 7; i >= 0; i--) {
 			Area._npc._tile[i] = Area._npc._gtile[i] = TIL_DAEMON;
@@ -179,7 +179,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
  */
 /*C_280A*/SpawnPirates()
 {
-	register int i;
+	register int16 i;
 
 	for(i = 7; i >= 0; i --) {
 		Area._npc._x[i] = PirateX[i];
@@ -196,7 +196,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
  */
 /*C_2839*/ScrollNorth()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	Party._y --;
 	WinPos.y = (WinPos.y - 1) & 0xff;
@@ -216,7 +216,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
  */
 /*C_2891*/ScrollSouth()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	Party._y ++;
 	WinPos.y = (WinPos.y + 1) & 0xff;
@@ -236,7 +236,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
  */
 /*C_28E9*/ScrollWest()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	Party._x --;
 	WinPos.x = (WinPos.x - 1) & 0xff;
@@ -256,7 +256,7 @@ unsigned char /*D_08FC*/PirateTile[] = {TIL_PIRATE_E,TIL_PIRATE_E,TIL_PIRATE_E,T
  */
 /*C_2941*/ScrollEast()
 {
-	register int tx, ty;
+	register int16 tx, ty;
 
 	Party._x ++;
 	WinPos.x = (WinPos.x + 1) & 0xff;
@@ -286,7 +286,7 @@ unsigned char /*D_0904*/WalkableTiles[] = {
 /*C_2999*/IsWalkable(tile)
 unsigned char tile;
 {
-	register int i;
+	register int16 i;
 
 	for(i = 0; WalkableTiles[i]; i ++)
 		if(tile == WalkableTiles[i])
@@ -340,7 +340,7 @@ unsigned char tile;
  * the wind behind, always across the wind.
  */
 /*C_2A5A*/WindAllows(dir)
-unsigned int dir;
+uint16 dir;
 {
 	if(WindDir == dir)
 		return !(Party._moves & 3);

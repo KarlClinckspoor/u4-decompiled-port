@@ -11,7 +11,7 @@
  */
 /*C_919A*/SleepParty()
 {
-	register int chara;
+	register int16 chara;
 
 	for(chara = Party._members; --chara >= 0; ) {
 		if(isCharaConscious(chara) && U4_RND1(3) == 0) {
@@ -27,7 +27,7 @@
  */
 /*C_91D1*/PoisonParty()
 {
-	register int chara;
+	register int16 chara;
 
 	for(chara = Party._members; --chara >= 0; ) {
 		if(Party.chara[chara]._stat == 'G' && U4_RND1(7) == 0) {
@@ -52,7 +52,7 @@
  */
 /*C_9209*/TileEffects()
 {
-	unsigned damage;
+	uint16 damage;
 
 	if(CurMode == MOD_OUTDOORS && tile_cur == TIL_BRIDGE && U4_RND1(7) == 0) {
 		u4_puts(/*D_2998*/"\nBridge Trolls!\n");

@@ -56,9 +56,9 @@ unsigned char /*D_277E*/SpellRecipes[] = {
  */
 /*C_8C08*/CMD_Mix()
 {
-	register int n;
+	register int16 n;
 	unsigned char saved[8];
-	int  reagent, spellNo, cancel;
+	int16  reagent, spellNo, cancel;
 	char mask;
 
 	cancel = 0;

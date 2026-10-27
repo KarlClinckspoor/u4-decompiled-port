@@ -14,7 +14,7 @@
 /*C_93A5*/DNG_MonsterCanMove(x, y, npc)
 unsigned char x;
 unsigned char y;
-int npc;
+int16 npc;
 {
 	unsigned char tile;
 
@@ -42,7 +42,7 @@ int npc;
  */
 /*C_9414*/DNG_MoveMonsters()
 {
-	int incH, npc, incV, retry;
+	int16 incH, npc, incV, retry;
 	unsigned char toX, toY;
 	
 	for(npc = 31; npc >= 0; npc --) {
@@ -96,7 +96,7 @@ int npc;
  */
 /*C_95AA*/DNG_SpawnMonsters()
 {
-	int npc;
+	int16 npc;
 	unsigned char spawnCol, monster, spawnRow;
 
 	for(npc = Party._z * 4 + 1; npc >= 0; npc --) {
@@ -126,7 +126,7 @@ int npc;
  */
 /*C_9683*/CharaAtHit()
 {
-	register int chara;
+	register int16 chara;
 
 	for(chara = Party._members; --chara >= 0;  ) {
 		if(isCharaAlive(chara) && hit_x == Combat._charaX[chara] && hit_y == Combat._charaY[chara])
@@ -143,10 +143,10 @@ int npc;
  * Returns 1 if the character was killed.
  */
 /*C_96B9*/FoeHitsChara(chara, foe)
-int chara;
-int foe;
+int16 chara;
+int16 foe;
 {
-	unsigned damage;
+	uint16 damage;
 
 	Gra_InvertStatusLine(chara);
 	DrawCombat();
@@ -173,7 +173,7 @@ int foe;
  * Character chara is struck without damage (a missile with a special effect).
  */
 /*C_9764*/CharaStruck(chara)
-int chara;
+int16 chara;
 {
 	Gra_InvertStatusLine(chara);
 	DrawCombat();
@@ -190,11 +190,11 @@ int chara;
  */
 /*C_978C*/FoeShoot(missile, foe, dx, dy)
 unsigned char missile;
-int foe;
-int dx;
-int dy;
+int16 foe;
+int16 dx;
+int16 dy;
 {
-	register int chara;
+	register int16 chara;
 
 	hit_tile = missile;
 	hit_x = Combat._npcX[foe];
@@ -270,10 +270,10 @@ int dy;
 /*C_98E4*/FoeCanMoveTo(x, y, foe)
 unsigned char x;
 unsigned char y;
-int foe;
+int16 foe;
 {
 	unsigned char tile;
-	int i;
+	int16 i;
 
 	tile = Combat_MAP(y, x);
 	if(IsSlowTerrain(tile))
@@ -360,7 +360,7 @@ unsigned char tile;
 unsigned char x;
 unsigned char y;
 {
-	int victim;
+	int16 victim;
 
 	if(spell_effect == 'J') {
 		if((victim = COM_GetFighterId(x, y)) != -1) {
@@ -393,7 +393,7 @@ unsigned char y;
  */
 /*C_9BA6*/StealGold()
 {
-	register int amount;
+	register int16 amount;
 
 	if(U4_RND1(3) == 0) {
 		amount = U4_RND1(0x3f);
@@ -409,8 +409,8 @@ unsigned char y;
  * Returns 1 if the character was hit and survived, else 0 (the result is unused).
  */
 /*C_9BE5*/FoeMelee(foe, chara)
-int foe;
-int chara;
+int16 foe;
+int16 chara;
 {
 	hit_x = Combat._charaX[chara];
 	hit_y = Combat._charaY[chara];
@@ -431,7 +431,7 @@ int chara;
  * Justice.
  */
 /*C_9C56*/FoeFlees(foe)
-int foe;
+int16 foe;
 {
 	Gra_CR();
 	u4_puts(CreatureName((unsigned char)Fighters._tile[foe]));
@@ -458,11 +458,11 @@ int foe;
  *   fleeing foe that cannot move but is adjacent attacks.
  */
 /*C_9CBC*/FoeAct(foe, chara, dist)
-int foe;
-int chara;
-int dist;
+int16 foe;
+int16 chara;
+int16 dist;
 {
-	int incH, attempts, incV;
+	int16 incH, attempts, incV;
 	unsigned char toX, toY;
 
 	incH = u4_sign((unsigned char)Combat._charaX[chara] - (unsigned char)Combat._npcX[foe]);
@@ -476,7 +476,7 @@ int dist;
 	}
 	/*attempt projectile*/
 	if(U4_RND1(3) == 0) {
-		int missile;
+		int16 missile;
 
 		if((missile = FoeMissile((unsigned char)Fighters._tile[foe])) != 0) {
 			if(missile != TIL_MAGIC_BOLT || spell_effect != 'N') {
@@ -580,7 +580,7 @@ C_9DE5:
  */
 /*C_9F7B*/COM_FoesTurn()
 {
-	int foeId, chara, nearest, bestDist;
+	int16 foeId, chara, nearest, bestDist;
 	unsigned char posX, posY;
 
 	RefreshView();
@@ -607,7 +607,7 @@ C_9DE5:
 				nearest = -1;
 				for(chara = Party._members - 1; chara >= 0; chara --) {
 					if(isCharaAlive(chara) && Fighters._chtile[chara]) {
-						register int dist;/*Manhattan distance*/
+						register int16 dist;/*Manhattan distance*/
 
 						dist =
 							u4_abs((unsigned char)Combat._charaX[chara] - posX) +

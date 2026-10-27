@@ -23,9 +23,9 @@
  */
 /*C_45D6*/ZtatsTitle(str, shift)
 register char *str;
-unsigned shift;
+uint16 shift;
 {
-	register int len;
+	register int16 len;
 
 	len = strlen(str);
 	if(len > 12)
@@ -45,7 +45,7 @@ unsigned shift;
 /*Redraw the frame over the status area's title (top line); the cursor is preserved.*/
 /*C_4649*/ZtatsClearTitle()
 {
-	unsigned orig_y, orig_x;
+	uint16 orig_y, orig_x;
 
 	orig_y = txt_Y;
 	orig_x = txt_X;
@@ -63,7 +63,7 @@ unsigned shift;
  * level (max HP / 100), attributes, hit points, experience, weapon and armour.
  */
 /*C_4689*/ZtatsChara(member)
-int member;
+int16 member;
 {
 	register struct tChara *chara;
 
@@ -97,7 +97,7 @@ int member;
  */
 /*C_4832*/ZtatsWeapons()
 {
-	register int weapon;
+	register int16 weapon;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_18FF*/"Weapons", 0);
@@ -133,7 +133,7 @@ int member;
 /*Ztats page of the armours owned (no armour always shown).*/
 /*C_48F8*/ZtatsArmour()
 {
-	register int armour;
+	register int16 armour;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_1917*/"Armour", 0);
@@ -190,7 +190,7 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
  */
 /*C_4A3D*/ZtatsItems()
 {
-	register int bit;
+	register int16 bit;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_1955*/"Items", 0);
@@ -258,7 +258,7 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
 /*Ztats page of the reagents owned.*/
 /*C_4BC7*/ZtatsReagents()
 {
-	register int reagent;
+	register int16 reagent;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_19AD*/"Reagents", 0);
@@ -285,7 +285,7 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
  */
 /*C_4C42*/ZtatsMixtures()
 {
-	register int spell;
+	register int16 spell;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_19B6*/"Mixtures", 0);
@@ -309,7 +309,7 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
 	} while(++spell < 26);
 }
 
-typedef z_handler(int);
+typedef z_handler(int16);
 typedef z_handler *pZ_handler;
 
 /*the Ztats pages, by page number (0-7: party members)*/
@@ -330,14 +330,14 @@ pZ_handler /*D_19C0*/ZtatsPages[] = {
  * members), any other key leaves.
  */
 /*C_4CC1*/ZtatsBrowse(page)
-int page;
+int16 page;
 {
-	unsigned orig_y, orig_x;
+	uint16 orig_y, orig_x;
 
 	orig_y = txt_Y;
 	orig_x = txt_X;
 	do {
-		register int key;
+		register int16 key;
 
 		Gra_ClearStatus();
 		ZtatsClearTitle();
@@ -415,7 +415,7 @@ int page;
 		ZtatsBrowse(activeChara);
 		Gra_InvertStatusLine(activeChara);
 	} else {
-		int member;
+		int16 member;
 
 		member = AskChara(/*D_19E3*/"Ztats for:\x12\x12\b");
 		if(member != -1)

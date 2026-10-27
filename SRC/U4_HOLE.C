@@ -17,7 +17,7 @@ unsigned char /*D_26B8*/AmbushMonsters[] = {TIL_ORC,TIL_SKELETON,TIL_ROGUE,TIL_P
  */
 /*C_8A5A*/Ambush()
 {
-	register int chara;
+	register int16 chara;
 
 	u4_puts(/*D_26AC*/"Ambushed!\n");
 	CombatFoeX = Party._x;
@@ -39,7 +39,7 @@ unsigned char /*D_26B8*/AmbushMonsters[] = {TIL_ORC,TIL_SKELETON,TIL_ROGUE,TIL_P
  * clears Fighters._gtile (harmless).
  */
 /*C_8AB0*/CMD_HoleUp() {
-	register int chara;
+	register int16 chara;
 
 	u4_puts(/*D_26C0*/"Hole up & Camp\n");
 	if(CurMode != MOD_DUNGEON && Party._loc != 0) {

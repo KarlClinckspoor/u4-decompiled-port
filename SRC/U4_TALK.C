@@ -105,7 +105,7 @@ static char * D_8CCE[12];
  */
 #ifdef WIN32
 /*C_A22D*/TLK_Say(unused, text)
-int unused;
+int16 unused;
 char *text;
 #else
 /*C_A22D*/TLK_Say(text)
@@ -178,7 +178,7 @@ char * /*D_2BB2*/VirtueAdjectives[] = {
 	/*D_2B10*/"humble"
 };
 
-static unsigned D_8CE6;
+static uint16 D_8CE6;
 /*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
  uninitialised statics in the order of its symbol table, which depends on the names.
  Renaming them would move them; the readable names are macros.*/
@@ -196,10 +196,10 @@ static unsigned D_8CE6;
  */
 /*C_A2BD*/TLK_join()
 {
-	int chara;
+	int16 chara;
 
 	if(
-		(unsigned)Area._npc._tlkidx[TalkNpc] != 1 ||
+		(uint16)Area._npc._tlkidx[TalkNpc] != 1 ||
 		(Party._loc - LOC_TOWNS) >= 8 ||
 		(Party._loc - LOC_TOWNS) == Party.chara[0]._class
 	) {
@@ -240,7 +240,7 @@ static unsigned D_8CE6;
  */
 /*C_A3A2*/TLK_give()
 {
-	int amount;
+	int16 amount;
 
 	if(Area._npc._tile[TalkNpc] != TIL_BEGGAR) {
 		u4_puts(TalkStrings[1]);
@@ -299,9 +299,9 @@ char *str;
  * topic the citizen may turn away (TalkData[2]); if very unwilling, he attacks.
  */
 /*C_A4B4*/TalkToCitizen(npc)
-int npc;
+int16 npc;
 {
-	int done, members;
+	int16 done, members;
 
 	dlseek(File_TLK, (Area._npc._tlkidx[npc] - 1) * 0x120);
 	dread(File_TLK, TalkData, 0x120);
@@ -326,7 +326,7 @@ int npc;
 	}
 	done = 0;
 	do {
-		register int kw;
+		register int16 kw;
 		char interest[12];
 
 		u4_puts(/*D_2C6D*/"\nYour Interest:\n");
@@ -433,7 +433,7 @@ pHandler_tlk /*D_2D54*/ShopHandlers[] = {
 /*C_A686*/EnterShop(y)
 unsigned char y;
 {
-	register int shop;
+	register int16 shop;
 
 	for(shop = 7; shop >= 0;shop--) {
 		if(ShopRows[Party._loc - 1][shop] == y)
@@ -457,7 +457,7 @@ unsigned char y;
  */
 /*C_A6F3*/CMD_Talk() {
 	unsigned char y, x;
-	int h, npcAt, v;
+	int16 h, npcAt, v;
 
 	u4_puts(/*D_2D68*/"Talk\n");
 	if(Party._fly_light != 0) {

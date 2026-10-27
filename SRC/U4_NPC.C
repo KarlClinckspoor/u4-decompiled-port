@@ -17,12 +17,12 @@ char /*D_1FD8*/MsgAttackedBy[] = "\nAttacked by ";
  * water and energy fields, the others walk.
  */
 /*C_4E94*/NpcCanMoveTo(npc, x, y, tile)
-unsigned npc;
+uint16 npc;
 unsigned char x;
 unsigned char y;
 unsigned char tile;
 {
-	register int other, npc_tile;
+	register int16 other, npc_tile;
 
 	if(CurMode == MOD_BUILDING)
 		if(x >= 32 || y >= 32)
@@ -61,14 +61,14 @@ unsigned char tile;
 
 /*Absolute value of value.*/
 /*C_4FBE*/u4_abs(value)
-int value;
+int16 value;
 {
 	return (value < 0)?-value:value;
 }
 
 /*Sign of value: -1, 0 or 1.*/
 /*C_4FD7*/u4_sign(value)
-int value;
+int16 value;
 {
 	return (value < 0)?-1:(value > 0)?1:0;
 }
@@ -79,11 +79,11 @@ int value;
  * only refuses squares off the map on both axes.
  */
 /*C_4FF8*/NpcMoveInTown(npc, x, y)
-register int npc;
+register int16 npc;
 unsigned char x;
 unsigned char y;
 {
-	if((unsigned)x < 32 || (unsigned)y < 32) {
+	if((uint16)x < 32 || (uint16)y < 32) {
 		Area._npc._old_x[npc] = Area._npc._x[npc];
 		Area._npc._x[npc] = x;
 		Area._npc._old_y[npc] = Area._npc._y[npc];
@@ -93,7 +93,7 @@ unsigned char y;
 
 /*Move npc to (x, y), remembering its previous square.*/
 /*C_5036*/NpcMoveTo(npc, x, y)
-register int npc;
+register int16 npc;
 unsigned char x;
 unsigned char y;
 {
@@ -112,10 +112,10 @@ unsigned char y;
  * on the sign instead of the random number), so it is biased southward.
  */
 /*C_5062*/NpcStepOutdoors(npc, dx, dy, tries)
-int npc;
-int dx;
-int dy;
-int tries;
+int16 npc;
+int16 dx;
+int16 dy;
+int16 tries;
 {
 	unsigned char map_col, cur_col;
 	unsigned char map_row, cur_row;
@@ -150,12 +150,12 @@ int tries;
  * random direction, up to tries more times (not for _var 0x80 npcs).
  */
 /*C_51A7*/NpcStepInTown(npc, dx, dy, tries)
-int npc;
-int dx;
-int dy;
-int tries;
+int16 npc;
+int16 dx;
+int16 dy;
+int16 tries;
 {
-	unsigned npc_x, npc_y;
+	uint16 npc_x, npc_y;
 
 	npc_x = Area._npc._x[npc];
 	npc_y = Area._npc._y[npc];
@@ -193,9 +193,9 @@ Masking the sums should fix the problem:
  */
 /*C_5293*/MoveTownNpcs()
 {
-	int dx, dy;
+	int16 dx, dy;
 
-	{register int npc; for(npc = 31; npc >= 0; npc --) {
+	{register int16 npc; for(npc = 31; npc >= 0; npc --) {
 		if(Area._npc._tile[npc] && Area._npc._var[npc]) {
 			if((char)Area._npc._var[npc] >= 0) {
 				/*random mode*/
@@ -225,11 +225,11 @@ Masking the sums should fix the problem:
  * Returns the distance |dist_x| + |dist_y|.
  */
 /*C_535B*/NpcDistance(npc, dx, dy, dist_x, dist_y)
-int npc;
-int *dx;
-int *dy;
-int *dist_x;
-int *dist_y;
+int16 npc;
+int16 *dx;
+int16 *dy;
+int16 *dist_x;
+int16 *dist_y;
 {
 	*dist_y = (char)(Party._y - Area._npc._y[npc]);
 	*dy = u4_sign(*dist_y);
@@ -243,7 +243,7 @@ int *dist_y;
  * if it cannot go there, it turns at random.
  */
 /*C_53AF*/ShipSail(npc, x, y)
-register int npc;
+register int16 npc;
 unsigned char x;
 unsigned char y;
 {
@@ -264,9 +264,9 @@ unsigned char y;
  * face the party along the longer axis; otherwise sail one square ahead.
  */
 /*C_5443*/ShipSteer(npc)
-register int npc;
+register int16 npc;
 {
-	int dx, dy, dist_x, dist_y;
+	int16 dx, dy, dist_x, dist_y;
 
 	if(NpcDistance(npc, &dx, &dy, &dist_x, &dist_y) > 5 || U4_RND1(3) == 0) {
 		if(u4_abs(dist_x) < u4_abs(dist_y)) {
@@ -296,9 +296,9 @@ register int npc;
  * else steer.
  */
 /*C_5500*/ShipMove(npc, dx, dy)
-register int npc;
-int dx;
-int dy;
+register int16 npc;
+int16 dx;
+int16 dy;
 {
 	if(Area._npc._gtile[npc] == TIL_PIRATE_W) {
 		if(dx < 0) {
@@ -330,13 +330,13 @@ int dy;
  * on the way stops it, and is destroyed if it is #8-#31, else 1 time out of 4.
  */
 /*C_5569*/NpcShotHitsParty(npc, dx, dy, tile)
-int npc;
+int16 npc;
 unsigned char dx;
 unsigned char dy;
 unsigned char tile;
 {
 	unsigned char x, y;
-	int old_tile, step, victim;
+	int16 old_tile, step, victim;
 
 	x = Area._npc._x[npc] + dx;
 	y = Area._npc._y[npc] + dy;
@@ -366,10 +366,10 @@ unsigned char tile;
 
 /*npc shoots tile in direction (dx, dy); if the party is reached, everybody is hurt.*/
 /*C_564B*/NpcFireAtParty(npc, dx, dy, tile)
-int npc;
-int dx;
-int dy;
-int tile;
+int16 npc;
+int16 dx;
+int16 dy;
+int16 tile;
 {
 	if(NpcShotHitsParty(npc, dx, dy, tile) == 0) {
 		hit_tile = 0;
@@ -389,9 +389,9 @@ int tile;
  * broadside when the party is straight abeam, else moves.
  */
 /*C_568F*/ShipAttack(npc, dx, dy)
-int npc;
-int dx;
-int dy;
+int16 npc;
+int16 dx;
+int16 dy;
 {
 	if(Area._npc._gtile[npc] == TIL_PIRATE_W || Area._npc._gtile[npc] == TIL_PIRATE_E)
 		if(dx)
@@ -407,7 +407,7 @@ int dy;
 
 /*Is npc outside the loaded 32x32 map window?*/
 /*C_56D3*/NpcOffWindow(npc)
-int npc;
+int16 npc;
 {
 	return
 		(Area._npc._x[npc] - WinBlock.x*16) >= 32 ||
@@ -424,12 +424,12 @@ int npc;
  */
 /*C_5712*/MoveWorldNpcs()
 {
-	int dx, dy, dist_x, dist_y;
-	register int monster;
+	int16 dx, dy, dist_x, dist_y;
+	register int16 monster;
 
 	monster = 7; do {
-		int dist;
-		register int npc_tile;
+		int16 dist;
+		register int16 npc_tile;
 
 		npc_tile = Area._npc._tile[monster];
 		if(npc_tile == 0)
@@ -487,7 +487,7 @@ int npc;
  */
 /*C_5851*/SpawnMonsters()
 {
-	register int npc;
+	register int16 npc;
 	register unsigned char *ptile;
 	unsigned char pos_y, pos_x;
 
@@ -509,7 +509,7 @@ int npc;
 						Area._npc._tile[npc] = Area._npc._gtile[npc] = TIL_PIRATE_W;
 				}
 			} else if(*ptile >= TIL_GRASS && *ptile < TIL_MOUNTAINS) {/*on earth*/
-				unsigned level_mask;
+				uint16 level_mask;
 
 				Area._npc._x[npc] = pos_x + WinBlock.x*16;
 				Area._npc._y[npc] = pos_y + WinBlock.y*16;

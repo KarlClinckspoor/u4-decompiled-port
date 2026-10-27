@@ -63,7 +63,7 @@ char * /*D_3F0C*/SeerSayings[][8] = {
 
 static unsigned char D_913A;
 static unsigned char D_913B, D_913C;
-static unsigned D_913E;
+static uint16 D_913E;
 /*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
  uninitialised statics in the order of its symbol table, which depends on the names.
  Renaming them would move them; the readable names are macros.
@@ -82,7 +82,7 @@ static unsigned D_913E;
  */
 /*C_C922*/SHP_hawkwind()
 {
-	int karmaLevel, virtueIdx;
+	int16 karmaLevel, virtueIdx;
 	char input[16];
 
 	if(!isCharaConscious(0)) {
@@ -188,7 +188,7 @@ unsigned char /*D_4190*/ReagentPrices[][6] = {
 /*C_CAF6*/SHP_reagent()
 {
 	char reply;
-	int amount, reagent, paid, shortBy;
+	int16 amount, reagent, paid, shortBy;
 
 	ShopId = ReagentShopIds[Party._loc - 1] - 1;
 	u4_puts(/*D_3FAE*/"A blind woman turns to you and says: Welcome to ");
@@ -222,7 +222,7 @@ F-Black Pearl\n"
 			amount = AskInt(2);
 			if(amount > 0) {
 				u4_puts(/*D_40B7*/"\nVery good, that will be ");
-				u4_putl((long)amount * ReagentPrices[ShopId][reagent], 1, '0');
+				u4_putl((int32)amount * ReagentPrices[ShopId][reagent], 1, '0');
 				u4_puts(/*D_40D1*/"gp. You pay:\x12\x12\x12\x12\b\b\b");
 				paid = AskInt(3);
 				if(paid <= 0) {
@@ -296,7 +296,7 @@ unsigned char /*D_46BA*/WeaponShopStock[][4] = {
 };
 
 /*price of each weapon (WPN_*); selling gives half of it*/
-int /*D_46D2*/WeaponPrices[] = {
+int16 /*D_46D2*/WeaponPrices[] = {
 	   0,
 	  20,
 	   2,
@@ -342,8 +342,8 @@ char * /*D_4702*/WeaponPitches[] = {
  * expensive weapons (14 wands: 5000 * 14 = 70000 becomes 4464 gp).
  */
 /*C_CD1D*/WeaponShopDeal(weapon, count)
-int weapon;
-int count;
+int16 weapon;
+int16 count;
 {
 	if(WeaponPrices[weapon] * count > Party._gold) {
 		u4_puts(/*D_4652*/"I fear you have not the funds, perhaps something else.\n");
@@ -366,7 +366,7 @@ int count;
  */
 /*C_CD80*/WeaponShopBuy()
 {
-	int amount, entry, choice;
+	int16 amount, entry, choice;
 
 	Gra_CR();
 	u4_puts(/*D_471E*/"\n\nVery Good!\n\n");
@@ -429,7 +429,7 @@ int count;
  */
 /*C_CEBE*/WeaponShopSell()
 {
-	int amount, weapon;
+	int16 amount, weapon;
 	char answer;
 
 	u4_puts(/*D_47AB*/"\nExcellent! Which wouldst\n");
@@ -462,7 +462,7 @@ int count;
 					break;
 				}
 				u4_puts(/*D_4851*/"I will give you ");
-				u4_putl(((long)amount * WeaponPrices[weapon]) >> 1, 1, '0');
+				u4_putl(((int32)amount * WeaponPrices[weapon]) >> 1, 1, '0');
 				u4_puts(/*D_4862*/"gp for ");
 				if(amount > 1)
 					u4_puts(/*D_486A*/"them.");
@@ -471,7 +471,7 @@ int count;
 			} else {
 				amount = 1;
 				u4_puts(/*D_4874*/"I will give you ");
-				u4_putl((long)WeaponPrices[weapon] >> 1, 1, '0');
+				u4_putl((int32)WeaponPrices[weapon] >> 1, 1, '0');
 				u4_puts(/*D_4885*/"gp for that ");
 				u4_puts(Names[NAME_WEAPONS + weapon]);
 			}
@@ -483,7 +483,7 @@ int count;
 				u4_puts(/*D_489C*/"Hmmph. What else would\n");
 			} else {
 				Party._weapons[weapon] -= amount;
-				clamp(Party._gold, (((long)amount * WeaponPrices[weapon]) >> 1), 9999); dspl_Gold();
+				clamp(Party._gold, (((int32)amount * WeaponPrices[weapon]) >> 1), 9999); dspl_Gold();
 				ZtatsWeapons();
 				u4_puts(/*D_48B4*/"\nFine! What else?\n");
 			}
@@ -567,7 +567,7 @@ unsigned char /*D_4BC4*/ArmourShopStock[][4] = {
 };
 
 /*price of each armour (ARM_*); selling gives half of it*/
-int /*D_4BDC*/ArmourPrices[] = {
+int16 /*D_4BDC*/ArmourPrices[] = {
 	   0,
 	  50,
 	 200,
@@ -596,8 +596,8 @@ char * /*D_4BFC*/ArmourPitches[] = {
  * Probable original bug: as in WeaponShopDeal, price * count wraps in 16 bits.
  */
 /*C_D16D*/ArmourShopDeal(armour, count)
-int armour;
-int count;
+int16 armour;
+int16 count;
 {
 	if(ArmourPrices[armour] * count > Party._gold) {
 		u4_puts(/*D_4B63*/"You don't have enough gold.\nMaybe something cheaper?\n");
@@ -618,7 +618,7 @@ int count;
  */
 /*C_D1D0*/ArmourShopBuy()
 {
-	int amount, entry, choice;
+	int16 amount, entry, choice;
 
 
 	u4_puts(/*D_4C08*/"\n\n\nWell then,\n");
@@ -677,7 +677,7 @@ int count;
  */
 /*C_D2F8*/ArmourShopSell()
 {
-	int amount, armour;
+	int16 amount, armour;
 	char answer;
 
 	u4_puts(/*D_4C99*/"\nWhat will\n");
@@ -710,7 +710,7 @@ int count;
 					break;
 				}
 				u4_puts(/*D_4D24*/"I'll give ya\n");
-				u4_putl(((long)amount * ArmourPrices[armour]) >> 1, 1, '0');
+				u4_putl(((int32)amount * ArmourPrices[armour]) >> 1, 1, '0');
 				u4_puts(/*D_4D32*/"gp for ");
 				if(amount > 1)
 					u4_puts(/*D_4D3A*/"them.");
@@ -719,7 +719,7 @@ int count;
 			} else {
 				amount = 1;
 				u4_puts(/*D_4D44*/"I will give you\n");
-				u4_putl((long)ArmourPrices[armour] >> 1, 1, '0');
+				u4_putl((int32)ArmourPrices[armour] >> 1, 1, '0');
 				u4_puts(/*D_4D55*/"gp for that ");
 				u4_puts(Names[NAME_ARMOURS + armour]);
 			}
@@ -731,7 +731,7 @@ int count;
 				u4_puts(/*D_4D6C*/"Harumph. What else would\n");
 			} else {
 				Party._armors[armour] -= amount;
-				clamp(Party._gold, (((long)amount * ArmourPrices[armour]) >> 1), 9999); dspl_Gold();
+				clamp(Party._gold, (((int32)amount * ArmourPrices[armour]) >> 1), 9999); dspl_Gold();
 				ZtatsArmour();
 				u4_puts(/*D_4D86*/"\nFine! What else?\n");
 			}
@@ -823,8 +823,8 @@ int count;
 unsigned char /*D_5196*/GuildShopIds[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0};
 
 /*torches, gems, keys, sextant: price, and number sold for that price*/
-int /*D_51A6*/GuildPrices[] = {50, 60, 60, 900};
-int /*D_51AE*/GuildQuantities[] = { 5,  5,  6,   1};
+int16 /*D_51A6*/GuildPrices[] = {50, 60, 60, 900};
+int16 /*D_51AE*/GuildQuantities[] = { 5,  5,  6,   1};
 
 char * /*D_51B6*/GuildShopNames[] = {
 	/*D_4F2A*/"Pirate's Guild",
@@ -848,7 +848,7 @@ char * /*D_51BE*/GuildPitches[] = {
  */
 /*C_D61E*/SHP_guild()
 {
-	int item;
+	int16 item;
 	char reply;
 	U16 *pQuantity;
 
@@ -957,7 +957,7 @@ char * /*D_54C8*/InnPitches[] = {
  */
 /*C_D7A8*/InnAmbush()
 {
-	int savedMode;
+	int16 savedMode;
 
 	u4_puts(/*D_544B*/"\nIn the middle of the night, while out for a stroll...\n");
 	savedMode = CurMode;
@@ -976,7 +976,7 @@ char * /*D_54C8*/InnPitches[] = {
  */
 /*C_D7D6*/InnNight()
 {
-	int chara;
+	int16 chara;
 
 	u_delay(1, 0);
 	Party._x = InnBedX;
@@ -1022,7 +1022,7 @@ unsigned char /*D_567A*/InnRoomPrices[] = {30,60,90, 0};
  */
 /*C_D8DD*/SHP_inn()
 {
-	int room;
+	int16 room;
 	char answer;
 
 	if(Party._tile != TIL_AVATAR) {
@@ -1113,7 +1113,7 @@ char * /*D_57AC*/HealerKeepers[] = {
  */
 /*C_DA05*/HealerAskWho()
 {
-	register int chara;
+	register int16 chara;
 
 	Gra_CR();
 	u4_puts(HealerKeepers[ShopId]);
@@ -1128,7 +1128,7 @@ char * /*D_57AC*/HealerKeepers[] = {
  * Ask whether to pay price gold; if Yes, take it and return 1, else return 0.
  */
 /*C_DA3E*/HealerAskPay(price)
-int price;
+int16 price;
 {
 	char answer;
 
@@ -1149,7 +1149,7 @@ int price;
  * a magic sound.
  */
 /*C_DA79*/HealerSpell(chara)
-int chara;
+int16 chara;
 {
 	Gra_InvertView();
 	Gra_InvertStatusLine(chara);
@@ -1163,7 +1163,7 @@ int chara;
  */
 /*C_DAA2*/HealerCure()
 {
-	int chara;
+	int16 chara;
 
 	chara = HealerAskWho();
 	if(chara == -1)
@@ -1194,7 +1194,7 @@ int chara;
  */
 /*C_DB29*/HealerHeal()
 {
-	int chara;
+	int16 chara;
 
 	chara = HealerAskWho();
 	if(chara == -1)
@@ -1220,7 +1220,7 @@ int chara;
  */
 /*C_DB93*/HealerResurrect()
 {
-	int chara;
+	int16 chara;
 
 	chara = HealerAskWho();
 	if(chara == -1)
@@ -1248,7 +1248,7 @@ int chara;
 /*C_DBF5*/HealerBlood()
 {
 	char answer;
-	int dummy;
+	int16 dummy;
 
 	u4_puts(/*D_59B6*/"Art thou willing to give 100pts of thy blood to aid others?\x12\x12\b");
 	answer = AskY_N();
@@ -1270,7 +1270,7 @@ int chara;
  */
 /*C_DC4D*/SHP_healer()
 {
-	int service;
+	int16 service;
 	char answer;
 
 	ShopId = HealerIds[Party._loc - 1] - 1;
@@ -1311,7 +1311,7 @@ C-Resurrection\n");
 unsigned char /*D_5EE8*/PubIds[16] = {0, 0, 0, 0, 0, 1, 2, 0, 0, 3, 0, 0, 4, 5, 6, 0};
 
 /*gold to pay for the answer about each topic of PubTopics*/
-int /*D_5EF8*/PubTopicPrices[] = {20, 30, 10, 40, 99, 25};
+int16 /*D_5EF8*/PubTopicPrices[] = {20, 30, 10, 40, 99, 25};
 
 char * /*D_5F04*/PubNames[] = {
 	/*D_5B16*/"Jolly Spirits",
@@ -1340,7 +1340,7 @@ char * /*D_5F1C*/PubSpecialties[] = {
 	/*D_5BDD*/"Green Granukit"
 };
 
-int /*D_5F28*/PubFoodPrices[] = {4,2,3,2,4,2};
+int16 /*D_5F28*/PubFoodPrices[] = {4,2,3,2,4,2};
 
 /*what can be asked in a pub; "mandrake root" is the same as "mandrake". Each pub
  only answers about the topics from its own number (ShopId) on.*/
@@ -1370,7 +1370,7 @@ char * /*D_5F42*/PubAnswers[] = {
  */
 /*C_DD24*/PubFood()
 {
-	int plates, sold;
+	int16 plates, sold;
 
 	u4_puts(/*D_5E68*/"Our specialty is ");
 	u4_puts(PubSpecialties[ShopId]);
@@ -1419,11 +1419,11 @@ char * /*D_5F42*/PubAnswers[] = {
  */
 /*C_DE35*/PubAle()
 {
-	int money;
+	int16 money;
 	char ans;
-	int topic;
+	int16 topic;
 	char question[16];
-	int extra;
+	int16 extra;
 
 	if(PubDrinks == 3) {
 		Gra_CR();
@@ -1545,7 +1545,7 @@ C_E004:
 unsigned char /*D_636C*/FoodShopIds[16] = {0, 0, 0, 0, 1, 2, 0, 3, 0, 0, 4, 0, 5, 0, 0, 0};
 
 /*price of a pack of 25 rations in each shop*/
-int /*D_637C*/FoodPrices[] = {25, 40, 35, 20, 30};
+int16 /*D_637C*/FoodPrices[] = {25, 40, 35, 20, 30};
 
 char * /*D_6386*/FoodShopNames[] = {
 	/*D_61A4*/"The Sage Deli",
@@ -1602,7 +1602,7 @@ char * /*D_6390*/FoodShopKeepers[] = {
 				break;
 			}
 			u4_puts(/*D_6319*/"You can only afford ");
-			u4_putl((long)Party._gold / (long)FoodPrices[ShopId], 1, '0');
+			u4_putl((int32)Party._gold / (int32)FoodPrices[ShopId], 1, '0');
 			u4_puts(/*D_632E*/" packs.\n");
 			answer = 'Y';
 			continue;

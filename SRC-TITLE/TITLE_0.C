@@ -9,10 +9,10 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-int /*D_00C0*/MonsterAnimDelay = 0;
-int /*D_00C2*/TileAnimDelay = 1;
-int /*D_00C4*/ViewScriptPos = -1;
-int /*D_00C6*/ViewFrameWait = 0;
+int16 /*D_00C0*/MonsterAnimDelay = 0;
+int16 /*D_00C2*/TileAnimDelay = 1;
+int16 /*D_00C4*/ViewScriptPos = -1;
+int16 /*D_00C6*/ViewFrameWait = 0;
 
 /*Base tile of each of the view's 15 actors (the low nibble of a ViewScript command):
  moongate, pirate ship, ship, 2 sleeping people, 2 rogues, fighter, mage, sea serpent,
@@ -21,7 +21,7 @@ unsigned char /*D_00C8*/ViewBaseTiles[] = {0x40,0x80,0x10,0x38,0x38,0xC8,0xC8,0x
 
 /*====---- _BSS ----====*/
 static unsigned char D_3A24[19 * 5];
-static unsigned D_3A84;
+static uint16 D_3A84;
 /*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
  uninitialised statics in the order of its symbol table, which depends on the names.
  Renaming them would move them; the readable names are macros.
@@ -39,7 +39,7 @@ static unsigned D_3A84;
  */
 /*C_019A*/AnimateMonsters()
 {
-	unsigned frame;
+	uint16 frame;
 
 	if(ViewRunning)
 		MonsterAnimDelay = 0;
@@ -78,11 +78,11 @@ unsigned char c;
  * Busy-wait count * speed_info iterations, unless a key is waiting (then return at once).
  */
 /*C_02A3*/DelayUnlessKey(count)
-long count;
+int32 count;
 {
 	if(u_kbhit())
 		return;
-	count *= (long)speed_info;
+	count *= (int32)speed_info;
 	while(-- count);
 }
 
@@ -92,16 +92,16 @@ long count;
  * handwritten, then wait a moment at the end.
  */
 /*C_02D1*/DrawSignature(slowly)
-unsigned slowly;
+uint16 slowly;
 {
-	register int dot;
+	register int16 dot;
 
 	for(dot = 0; SignatureDots[dot]; ) {
 		Gra_Dot(191 - SignatureDots[dot+1], SignatureDots[dot] + 20, 3);
 		Gra_Dot(191 - SignatureDots[dot+1], SignatureDots[dot] + 21, 3);
 		dot += 2;
 		if(slowly)
-			DelayUnlessKey((long)440);
+			DelayUnlessKey((int32)440);
 	}
 	if(slowly)
 		u_delay(1, 1);
@@ -116,10 +116,10 @@ unsigned slowly;
  */
 /*C_034D*/AnimateViewTiles()
 {
-	register int slot;
+	register int16 slot;
 
 	for(slot = 0; slot < 32; slot ++) {
-		register int tile;
+		register int16 tile;
 
 		tile = Area._npc._tile[slot];
 		if(
@@ -162,7 +162,7 @@ unsigned slowly;
  */
 /*C_041A*/StepViewScript()
 {
-	int idx;
+	int16 idx;
 
 	if(ViewFrameWait) {
 		ViewFrameWait --;
@@ -206,7 +206,7 @@ unsigned slowly;
  */
 /*C_05A4*/ShowView()
 {
-	register int repeat;
+	register int16 repeat;
 
 	ViewRunning = 1;
 	cursor_enabled = 0;
@@ -236,8 +236,8 @@ unsigned slowly;
  */
 /*C_068C*/TitleSequence()
 {
-	register unsigned step, redraw;
-	int temp;
+	register uint16 step, redraw;
+	int16 temp;
 
 	u_delay(1, 1);
 	/*"lord british"*/
@@ -248,12 +248,12 @@ unsigned slowly;
 	/*draw line*/
 	for(step = 86; step < 238; step++) {
 		Gra_Dot(31, step, 2);
-		DelayUnlessKey((long)320);
+		DelayUnlessKey((int32)320);
 	}
 	/*"origin systems inc."*/
 	for(step = 1; step < 10; step ++) {
 		Gra_Blit(21, step, 9, 21, pTitle, 30 - step, -1, 9);
-		DelayUnlessKey((long)5000);
+		DelayUnlessKey((int32)5000);
 	}
 	u_delay(1, 1);
 	/* */
@@ -261,7 +261,7 @@ unsigned slowly;
 		/*"present"*/
 		for(step = 1; step <= 5; step++) {
 			Gra_Blit(15, step, 14, 5 - step, pTitle, 33, -1, 14);
-			DelayUnlessKey((long)5000);
+			DelayUnlessKey((int32)5000);
 		}
 		u_delay(1, 1);
 		/*"Ultima iv"*/
@@ -281,7 +281,7 @@ unsigned slowly;
 	for(step = 1; step <= 6; step ++) {
 		Gra_Blit(33, step, 3,      81, pTitle, 86 - step, -1, 3);
 		Gra_Blit(33, step, 3, 93 - step, pTitle,      86, -1, 3);
-		DelayUnlessKey((long)4000);
+		DelayUnlessKey((int32)4000);
 	}
 	/*open view like scroll*/
 	for(step = 1; step <= 20; step ++) {
@@ -293,7 +293,7 @@ unsigned slowly;
 			Gra_DrawViewOver(5, 19, ViewBackground, 104, pTitle, 2);
 		temp = 20 - step;
 		Gra_Blit(step * 2, 96, temp, 96, pTitle, 96, -1, temp);
-		DelayUnlessKey((long)680);
+		DelayUnlessKey((int32)680);
 		AnimateViewTiles();
 		Gra_DrawViewOver(5, 19, ViewBackground, 104, pTitle, 2);
 	}
@@ -332,8 +332,8 @@ unsigned slowly;
  * Print the string str at text position (row, col).
  */
 /*C_0B1E*/PutsAt(row, col, str)
-int row;
-int col;
+int16 row;
+int16 col;
 register char *str;
 {
 	txt_Y = row;
@@ -368,7 +368,7 @@ register char *str;
  */
 /*C_0BCA*/RedrawTitle()
 {
-	int temp;
+	int16 temp;
 
 	Gra_ClearScreen();
 	if((pShapes = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
@@ -480,7 +480,7 @@ cdecl /*C_0EAA*/main()
 	ShowView();
 	ShowMenu();
 	do {
-		int key;
+		int16 key;
 
 /*C_10E8:*/
 		key = u_kbread();

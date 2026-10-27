@@ -24,8 +24,8 @@
  * Give xp experience points to the character chara (max 9999).
  */
 /*C_097D*/XP_inc(chara, xp)
-int chara;
-int xp;
+int16 chara;
+int16 xp;
 {
 	Party.chara[chara]._XP += xp;
 	if(Party.chara[chara]._XP > 9999)
@@ -41,8 +41,8 @@ int xp;
  * Give amount hit points to the character chara, up to its maximum.
  */
 /*C_09B1*/HP_inc(chara, amount)
-int chara;
-int amount;
+int16 chara;
+int16 amount;
 {
 	register U16 *hp = Party.chara[chara]._HP;
 	if((hp[0] += amount) > hp[1])
@@ -53,7 +53,7 @@ int amount;
  * Flash the status line of the character chara, with the "hurt" sound.
  */
 /*C_09D9*/FlashChara(chara)
-int chara;
+int16 chara;
 {
 	Gra_InvertStatusLine(chara);
 	sound(SND_HURT);
@@ -66,7 +66,7 @@ int chara;
  */
 /*C_09F8*/karma_inc(karma, amount)
 U16 *karma;
-unsigned amount;
+uint16 amount;
 {
 	if(*karma) {
 		*karma += amount;
@@ -83,7 +83,7 @@ unsigned amount;
  */
 /*C_0A17*/karma_dec(karma, amount)
 U16 *karma;
-unsigned amount;
+uint16 amount;
 {
 	if(*karma == 0) {
 		*karma = 99;
@@ -104,11 +104,11 @@ unsigned amount;
  * Returns its index, or -1 if there is none.
  */
 /*C_0A58*/FindNpcAt(last, x, y)
-int last;
+int16 last;
 unsigned char x;
 unsigned char y;
 {
-	register int i;
+	register int16 i;
 	for(i = last; i >= 0; i--) {
 		if(
 			Area._npc._tile[i] != 0 &&
@@ -133,8 +133,8 @@ unsigned char y;
  * a % b, or 0 when b is 0.
  */
 /*C_0AB1*/SafeModulo(a, b)
-int a;
-int b;
+int16 a;
+int16 b;
 {
 	if(b == 0)
 		return 0;
@@ -178,9 +178,9 @@ unsigned char tile;
 /*C_0B38*/u4_puts(txt)
 register char *txt;
 {
-	register int i;
-	int lines;/*lines since the last pause*/
-	int wordLen;/*characters left in the current word*/
+	register int16 i;
+	int16 lines;/*lines since the last pause*/
+	int16 wordLen;/*characters left in the current word*/
 
 	lines = wordLen = 0;
 	i = 0;
@@ -224,8 +224,8 @@ register char *txt;
  * padding and garbage after it. The game only prints positive values.
  */
 /*C_0C03*/u4_putl(value, width, pad)
-long value;
-int width;
+int32 value;
+int16 width;
 char pad;
 {
 	if(value < 0) {
@@ -284,10 +284,10 @@ unsigned char c;
  */
 /*C_0CF7*/dspl_Stats()
 {
-	register int i;
+	register int16 i;
 	register struct tChara *pChara;
-	int member;
-	int prevCol, prevRow;
+	int16 member;
+	int16 prevCol, prevRow;
 
 	Gra_VirtueGlyph();
 	prevRow = txt_Y;
@@ -327,7 +327,7 @@ unsigned char c;
  * Redraw the gold in the status area (the text cursor is kept).
  */
 /*C_0E0E*/dspl_Gold() {
-	int prevCol, prevRow;
+	int16 prevCol, prevRow;
 
 	prevCol = txt_X;
 	prevRow = txt_Y;
@@ -343,7 +343,7 @@ unsigned char c;
  * 'P' (poisoned) or 'S' (asleep).
  */
 /*C_0E4E*/isCharaAlive(chara)
-int chara;
+int16 chara;
 {
 	if(chara >= Party._members)
 		return 0;
@@ -357,7 +357,7 @@ int chara;
  * Returns 1 if the character chara exists and can act: state 'G' or 'P'.
  */
 /*C_0E82*/isCharaConscious(chara)
-int chara;
+int16 chara;
 {
 	if(chara >= Party._members)
 		return 0;
@@ -375,7 +375,7 @@ int chara;
  */
 /*C_0EB1*/PartyDeath()
 {
-	int i;
+	int16 i;
 
 	for(i = Party._members - 1; i >= 0; i --) {
 		Party.chara[i]._stat = 'D';
@@ -397,7 +397,7 @@ int chara;
 	u4_puts("Afterlife?...\n");
 	u_delay(5, 0);
 	u4_puts("You hear:\n");
-	txt_X = (12 - (unsigned)strlen(Party.chara[0]._name)) / 2 + 25;
+	txt_X = (12 - (uint16)strlen(Party.chara[0]._name)) / 2 + 25;
 	u4_puts(Party.chara[0]._name);
 	Gra_CR();
 	u_delay(5, 0);
@@ -457,7 +457,7 @@ int chara;
  */
 /*C_10FD*/CheckPartyAlive()
 {
-	register int i;
+	register int16 i;
 
 	for(i = Party._members - 1; i >= 0; i --) {
 		if(isCharaAlive(i)) {
@@ -476,8 +476,8 @@ int chara;
  * Returns 0 if it survives, 1 if it dies.
  */
 /*C_1135*/hitChara(chara, damage)
-unsigned damage;
-int chara;
+uint16 damage;
+int16 chara;
 {
 	register struct tChara *pChara = &(Party.chara[chara]);
 	if(pChara->_HP[0] >= damage) {
@@ -544,7 +544,7 @@ char *prompt;
 char lo;
 char hi;
 {
-	register int key;
+	register int16 key;
 
 	key = -1;
 	do {
@@ -580,7 +580,7 @@ char hi;
 /*C_1287*/AskChara(prompt)
 char *prompt;
 {
-	register int key;
+	register int16 key;
 
 	if(Party._members == 1) {
 		u4_puts(prompt);
@@ -603,10 +603,10 @@ char *prompt;
  */
 /*C_12D6*/AskDir(prompt, dx, dy)
 char *prompt;
-register int *dx;
-register int *dy;
+register int16 *dx;
+register int16 *dy;
 {
-	unsigned valid, key;
+	uint16 valid, key;
 
 	*dx = *dy = 0;
 	do {
@@ -649,7 +649,7 @@ register int *dy;
  * else 0.
  */
 /*C_138B*/food_dec(amount)
-int amount;
+int16 amount;
 {
 	Party._food -= amount;
 	if(Party._food >= 0)
@@ -667,11 +667,11 @@ int amount;
 /*C_13B6*/MP_recover()
 {
 	register struct tChara *p;
-	int chara;
+	int16 chara;
 
 	for(chara = Party._members - 1; chara >= 0; chara --) {
 		if(isCharaAlive(chara)) {
-			register int maxMP;
+			register int16 maxMP;
 			p = &(Party.chara[chara]);
 			switch(p->_class) {
 				case CLASS_MAGE: maxMP = p->_int * 2; break;
@@ -699,10 +699,10 @@ int amount;
  */
 /*C_1445*/u4_gets(buf, size)
 register char *buf;
-unsigned size;
+uint16 size;
 {
-	register int len;
-	unsigned key;
+	register int16 len;
+	uint16 key;
 
 	len = 0;
 	do {
@@ -780,8 +780,8 @@ unsigned char tile;
  */
 /*C_1584*/DamageAllParty()
 {
-	register int i;
-	int damage;
+	register int16 i;
+	int16 damage;
 
 	for(i = Party._members - 1; i >= 0; i --)
 		Gra_InvertStatusLine(i);
@@ -818,7 +818,7 @@ unsigned char tile;
  */
 /*C_162F*/AskY_N()
 {
-	int key;
+	int16 key;
 
 	key = -1;
 	do {
@@ -840,8 +840,8 @@ unsigned char tile;
  * Read a number of at most digits characters. Returns it, or -1 for an
  * empty answer.
  */
-long /*C_169C*/AskInt(digits)
-int digits;
+int32 /*C_169C*/AskInt(digits)
+int16 digits;
 {
 	char answer[20];
 

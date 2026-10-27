@@ -27,7 +27,7 @@ char /*D_010E*/AltarStoneMasks[] = {
  */
 void /*C_01E1*/USE_StonesAtAltar()
 {
-	int color, hole;
+	int16 color, hole;
 	char answer[12];
 	char mask;/*colors given so far*/
 
@@ -108,7 +108,7 @@ char * /*D_0284*/AbyssVirtueNames[] = {
  * to USE_StonesAtAltar, which then usually adds "Hmm...No effect!".
  */
 /*C_0311*/USE_Stones() {
-	int color;
+	int16 color;
 
 	if(Party.mStones) {
 		char answer[14];
@@ -281,7 +281,7 @@ bad_answer:
  * Either way the skull is lost.
  */
 /*C_05CE*/USE_Skull() {
-	int i;
+	int16 i;
 
 	if(!TST_MSK(Party.mItems, ST_SKULL)) {
 		u4_puts(MsgNoneOwned);
@@ -361,7 +361,7 @@ struct {
  * The (U)se command: asks for an item name and calls its handler.
  */
 /*C_07AE*/CMD_Use() {
-	register int item;
+	register int16 item;
 	char answer[12];
 
 	u4_puts("Use which item:\n");

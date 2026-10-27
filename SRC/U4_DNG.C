@@ -20,8 +20,8 @@ DNG_EndOfTurn();*/
  */
 /*C_84D2*/DNG_main()
 {
-	register unsigned cmd;
-	int prevCmd;
+	register uint16 cmd;
+	int16 prevCmd;
 
 	Redraw3D = 1;
 	u_kbflush();
@@ -106,7 +106,7 @@ DNG_EndOfTurn();*/
  */
 /*C_8743*/DNG_CheckEncounter()
 {
-	register int npc;
+	register int16 npc;
 
 	if(
 		(tile_cur & 0x0f) == 0 ||
@@ -144,7 +144,7 @@ DNG_EndOfTurn();*/
  */
 /*C_87E2*/DNG_EndOfTurn()
 {
-	register int chara;
+	register int16 chara;
 	register struct tChara *pChara;
 
 	CheckPartyAlive();
@@ -199,7 +199,7 @@ DNG_EndOfTurn();*/
  */
 /*C_88E8*/DNG_CanEnter(tile, backward)
 unsigned char tile;
-unsigned backward;
+uint16 backward;
 {
 	if(backward == 0) {
 		if(

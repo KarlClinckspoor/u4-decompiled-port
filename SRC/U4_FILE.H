@@ -6,12 +6,14 @@
 #ifndef __U4_FILE_H__
 #define __U4_FILE_H__
 
+#include "portable.h"
+
 #ifdef WIN32
 #define far
 #endif
 
 extern /*C_0812*/Console(char *);
-extern /*C_0855*/Load(char *, unsigned, void far *);
-extern /*C_08D1*/Save(char *, unsigned, void far *);
+extern /*C_0855*/Load(char *, uint16, void far *);
+extern /*C_08D1*/Save(char *, uint16, void far *);
 
 #endif

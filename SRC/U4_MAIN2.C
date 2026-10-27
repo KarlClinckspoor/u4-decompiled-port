@@ -7,7 +7,7 @@
 #include "u4.h"
 
 /*0 when the last command took no time (no EndOfTurn)*/
-unsigned /*D_07F8*/TurnDone = 1;
+uint16 /*D_07F8*/TurnDone = 1;
 
 /*the 8 virtues' karma points, in the order of the virtues*/
 U16 /*D_07FA*/*pKarmas[] = {
@@ -22,7 +22,7 @@ U16 /*D_07FA*/*pKarmas[] = {
 };
 
 /*combat: column of the active character's highlight box (-1: none)*/
-int /*D_080A*/activeCharaX = -1;
+int16 /*D_080A*/activeCharaX = -1;
 
 /*steps for the directions DIR_W, DIR_N, DIR_E, DIR_S*/
 char /*D_080C*/DirDX[] = {-1,0,1,0};

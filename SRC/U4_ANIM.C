@@ -6,7 +6,7 @@
 
 #include "u4.h"
 
-unsigned /*D_1630*/FlowCounter = 0;
+uint16 /*D_1630*/FlowCounter = 0;
 
 /*
  * Animate the flowing tiles (water, lava, force fields) once every speed_info
@@ -34,10 +34,10 @@ unsigned /*D_1630*/FlowCounter = 0;
  * The text cursor is preserved.
  */
 /*C_353D*/ShowDirection(dir, label)
-unsigned dir;
+uint16 dir;
 char *label;
 {
-	unsigned save_x, save_y;
+	uint16 save_x, save_y;
 
 	save_x = txt_X;
 	save_y = txt_Y;
@@ -60,7 +60,7 @@ char *label;
 	txt_Y = save_y;
 }
 
-unsigned /*D_1654*/WindCounter = 0;
+uint16 /*D_1654*/WindCounter = 0;
 
 /*
  * Once every speed_info calls, maybe turn the wind: with a 1/64 chance it
@@ -77,7 +77,7 @@ unsigned /*D_1654*/WindCounter = 0;
 }
 
 /*chance (out of 256) for a monster to change frame, by speed_info - 1*/
-unsigned /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
+uint16 /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
 
 /*
  * Animate the map's npcs (their _gtile): the two-frame creatures (sea monsters,
@@ -87,7 +87,7 @@ unsigned /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
  */
 /*C_3605*/AnimateNpcs()
 {
-	register int npc, npc_tile;
+	register int16 npc, npc_tile;
 
 	for(npc = 0; npc < 32; npc++) {
 		npc_tile = Area._npc._tile[npc];
@@ -117,14 +117,14 @@ unsigned /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
  */
 /*C_36C7*/DrawView()
 {
-	register unsigned under;
+	register uint16 under;
 
 	under = ViewTiles[hit_y*11 + hit_x];
 	if(hit_tile)
 		ViewTiles[hit_y*11 + hit_x] = hit_tile;
 	Gra_DrawTiles(11, 11, ViewTiles, 4  * 80 + 2);
 	if(activeCharaX != -1) {
-		register int old_blink;
+		register int16 old_blink;
 
 		old_blink = CursorBlink;
 		CursorBlink -= u4_sign(CursorBlink);
@@ -148,13 +148,13 @@ unsigned /*D_1656*/NpcAnimChance[] = {192, 96, 60, 36, 20, 12, 8};
  * squares on its sides. Recursive.
  */
 /*C_376F*/CastRay(dx, dy, x, y)
-int dx;
-int dy;
+int16 dx;
+int16 dy;
 unsigned char x;
 unsigned char y;
 {
-	register unsigned idx;
-	unsigned map_tile;
+	register uint16 idx;
+	uint16 map_tile;
 
 	idx = &(ViewTiles[y*11 + x]) - ViewTiles;
 	if(x > 10 || y > 10)
@@ -190,7 +190,7 @@ unsigned char y;
  */
 /*C_38BB*/ComputeVisibility()
 {
-	register int cell;
+	register int16 cell;
 
 	/*-- set all visible squares to TIL_BLACK --*/
 	for(cell = 10 * 11 + 10; cell >= 0; cell --)
@@ -235,7 +235,7 @@ a | . |   |   |   |   | . |   |   |   |   | . |
 /*Put the npcs that are within 5 squares of the party into the 11x11 Combat._map.*/
 /*C_3960*/PlaceNpcsInView()
 {
-	register int npc;
+	register int16 npc;
 	unsigned char off_x, off_y;
 
 	for(npc = 31; npc >= 0; npc --) {
@@ -254,7 +254,7 @@ a | . |   |   |   |   | . |   |   |   |   | . |
  */
 /*C_39BA*/FinishView()
 {
-	register int cell;
+	register int16 cell;
 
 	PlaceNpcsInView();
 	if(MoongateTile) {
@@ -299,7 +299,7 @@ unsigned char /*D_1666*/FeluccaCounter = 0;/*felucca counter*/
 	return ((MoonSubStep & 0xc0) >> 6);
 }
 
-unsigned /*D_1668*/MoonTick = 0;
+uint16 /*D_1668*/MoonTick = 0;
 
 /*
  * Advance the moons every speed_info / 2 + 1 calls (the moongate grows during the
@@ -339,8 +339,8 @@ unsigned /*D_1668*/MoonTick = 0;
 /*Draw the outdoors view: the 11x11 squares around WinPos, then the npcs, ...*/
 /*C_3B35*/DrawOutdoors()
 {
-	register unsigned cell;
-	int view_y, view_x;
+	register uint16 cell;
+	int16 view_y, view_x;
 
 	AnimateNpcs();/*animate sprites*/
 	UpdateMoons();/*display tramel and feluca*/
@@ -360,14 +360,14 @@ unsigned /*D_1668*/MoonTick = 0;
  */
 /*C_3B83*/DrawTown()
 {
-	register int dx, dy;
+	register int16 dx, dy;
 
 	AnimateNpcs();
 	for(dy = -5; dy <= 5; dy ++) {
 		for(dx = -5; dx <= 5; dx ++) {
 			if(
-				((int)Party._x + dx < 0) || ((int)Party._x + dx > 0x1f) ||
-				((int)Party._y + dy < 0) || ((int)Party._y + dy > 0x1f)
+				((int16)Party._x + dx < 0) || ((int16)Party._x + dx > 0x1f) ||
+				((int16)Party._y + dy < 0) || ((int16)Party._y + dy > 0x1f)
 			) {
 				Combat_MAP(dy+5, dx+5) = TIL_GRASS;
 			} else {
@@ -379,7 +379,7 @@ unsigned /*D_1668*/MoonTick = 0;
 	UpdateWind();/*update/display wind*/
 }
 
-unsigned /*D_166A*/BalloonTick = 0;
+uint16 /*D_166A*/BalloonTick = 0;
 
 /*Once every speed_info + 1 calls, the flying balloon drifts with the wind (one move).*/
 /*C_3C08*/DriftBalloon()
@@ -397,7 +397,7 @@ unsigned /*D_166A*/BalloonTick = 0;
 }
 
 /*random mask for the combat animations, by speed_info - 1*/
-unsigned /*D_166C*/CombatAnimMask[] = {1,3,3,7,7,7,7,15};
+uint16 /*D_166C*/CombatAnimMask[] = {1,3,3,7,7,7,7,15};
 
 /*
  * Draw the combat (or shrine) view: Combat._map, with the animated fighters and
@@ -406,8 +406,8 @@ unsigned /*D_166C*/CombatAnimMask[] = {1,3,3,7,7,7,7,15};
  */
 /*C_3C54*/DrawCombat()
 {
-	register int n;
-	unsigned frame_mask;
+	register int16 n;
+	uint16 frame_mask;
 	unsigned char *p_gtile;
 	unsigned char *p_cell;
 	unsigned char *p_tile;

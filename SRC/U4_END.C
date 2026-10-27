@@ -41,7 +41,7 @@ unsigned char /*D_0BF0*/ExpelX[] = {0xE7,0x53,0x23,0x3B,0x9E,0x69,0x17,0xBA,0xD8
 unsigned char /*D_0BFE*/ExpelY[] = {0x88,0x69,0xDD,0x2C,0x15,0xB7,0x81,0xAC,0x6A,0x30,0xF3,0x6A,0xE9};
 
 /*the party's size before EndGame (where the Avatar is alone)*/
-static unsigned /*D_8CCA*/SavedPartySize;
+static uint16 /*D_8CCA*/SavedPartySize;
 
 /*
  * Failure at the end of the game: the party is put back together on the
@@ -49,7 +49,7 @@ static unsigned /*D_8CCA*/SavedPartySize;
  * jumps back to the main loop.
  */
 /*C_2F9D*/ExpelToSurface(place)
-unsigned place;
+uint16 place;
 {
 	u_delay(5, 0);
 	Gra_CR();
@@ -193,7 +193,7 @@ char * /*D_1620*/VirtuePictures[] = {
  */
 /*C_31F4*/EndGame()
 {
-	int i;
+	int16 i;
 	char answer[16];
 
 	SavedPartySize = Party._members;

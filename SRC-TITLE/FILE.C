@@ -4,6 +4,8 @@
  * reverse-coded by Ergonomy Joe in 2012
  */
 
+#include "portable.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +21,7 @@
 /*C_0010*/Console(msg)
 char *msg;
 {
-	int written;
+	int16 written;
 
 	if((written = write(1, msg, strlen(msg))) == -1 || strlen(msg) != written) {
 		exit(3);
@@ -34,13 +36,13 @@ char *msg;
  */
 /*C_0051*/Load(fname, size, dest)
 char *fname;
-unsigned size;
+uint16 size;
 void far *dest;
 {
 	void *nearBuf;
-	int handle;
+	int16 handle;
 	void far *farPtr;
-	int readCount;
+	int16 readCount;
 
 	nearBuf = malloc(size);
 	farPtr = nearBuf;
@@ -83,10 +85,10 @@ void far *dest;
  */
 /*C_0110*/Save(fname, size, buf)
 char *fname;
-unsigned size;
+uint16 size;
 void /*far */*buf;
 {
-	int handle, writeCount;
+	int16 handle, writeCount;
 
 	if((handle = open(fname, O_BINARY|O_WRONLY)) == -1) {
 		Console("\r\nOpening ");

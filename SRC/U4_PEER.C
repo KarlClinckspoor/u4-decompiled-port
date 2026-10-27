@@ -20,7 +20,7 @@ unsigned char /*D_2F72*/GemMapStyle[] = {
 };
 
 /*character drawn on the dungeon gem map for each kind of dungeon tile (tile >> 4)*/
-int /*D_2FF2*/DngMapChars[] = {0x20, 0x06, 0x05, 0x04, 0x24, 0x20, 0x20, 0x0F, 0x54, 0x46, 0x5E, 0x00, 0x0E, 0x0E, 0x02, 0x03};
+int16 /*D_2FF2*/DngMapChars[] = {0x20, 0x06, 0x05, 0x04, 0x24, 0x20, 0x20, 0x0F, 0x54, 0x46, 0x5E, 0x00, 0x0E, 0x0E, 0x02, 0x03};
 
 /*screen coordinate of dot d (0-3) of map cell n: each cell is 4x4 dots, the map
   starts 8 cells from the corner of the view. Gra_Dot takes (y, x, colour).*/
@@ -50,9 +50,9 @@ static unsigned char D_8F54[22][22];
  * position blinks (a moving bar) until a key is pressed.
  */
 /*C_B9EF*/ShowAreaMap(showParty)
-unsigned showParty;
+uint16 showParty;
 {
-	int row, savedMode, col;
+	int16 row, savedMode, col;
 
 	savedMode = CurMode; CurMode = MOD_VISION;
 	Gra_ClearView();
@@ -199,9 +199,9 @@ unsigned showParty;
  */
 /*C_C23B*/ShowDungeonMap()
 {
-	int y, h;
-	register unsigned sp;
-	int v, prevMode, x;
+	int16 y, h;
+	register uint16 sp;
+	int16 v, prevMode, x;
 
 	prevMode = CurMode; CurMode = MOD_VISION;
 	Gra_ClearView();
@@ -225,7 +225,7 @@ unsigned showParty;
 		for(h = -1; h < 2; txt_X ++, txt_Y -= 3, h++) {
 			for(v = -1; v < 2; txt_Y ++, v++) {
 				if((h | v)) {
-					int nextX, nextY;
+					int16 nextX, nextY;
 					nextX = (h + x) & 7;
 					nextY = (v + y) & 7;
 					if(

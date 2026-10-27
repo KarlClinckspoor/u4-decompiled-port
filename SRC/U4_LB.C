@@ -145,7 +145,7 @@ char * /*D_7028*/LBAnswers[24] = {
 /*C_E37E*/LB_FindKeyword(word)
 char *word;
 {
-	int kw;
+	int16 kw;
 
 	for(kw = 0; LBKeywords[kw][0]; kw++) {
 		if(strnicmp(word, LBKeywords[kw], 4) == 0)
@@ -162,7 +162,7 @@ char *word;
 /*C_E3D2*/LB_Speak(text)
 register char *text;
 {
-	register int lines;
+	register int16 lines;
 
 	lines = 0;
 	while(*text) {
@@ -181,7 +181,7 @@ register char *text;
  * Heal every character that is not dead: full hit points, status Good.
  */
 /*C_E408*/HealParty() {
-	int chara;
+	int16 chara;
 
 	for(chara = Party._members - 1; chara >= 0; chara --) {
 		if(Party.chara[chara]._stat != 'D') {
@@ -215,7 +215,7 @@ register char *text;
  * Raise the characteristic *stat by 1 to 8 (random), capped at 50.
  */
 /*C_E498*/RaiseStat(stat)
-int *stat;
+int16 *stat;
 {
 	*stat += U4_RND1(7)+1;
 	*stat = u4_min(*stat, 50);
@@ -229,7 +229,7 @@ int *stat;
  * +1 to +8.
  */
 /*C_E4C3*/LB_LevelUp() {
-	int limit, chara, newMax;
+	int16 limit, chara, newMax;
 
 	for(chara = 0; chara < Party._members; chara++) {
 		for(newMax = limit = 100; limit <= Party.chara[chara]._XP; newMax += 100, limit <<= 1);
@@ -259,7 +259,7 @@ int *stat;
  */
 /*C_E59B*/TalkToLB()
 {
-	int topic;
+	int16 topic;
 	char question[15];
 
 	if(Party._metLB == 0) {

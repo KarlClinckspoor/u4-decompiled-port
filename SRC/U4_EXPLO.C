@@ -35,7 +35,7 @@ char * /*D_1738*/TalkFiles[] ={
  * loc (LOC_*) and open its dialogue file (indexed by Party._loc, not loc).
  */
 /*C_3E30*/LoadTown(loc)
-unsigned loc;
+uint16 loc;
 {
 	if(Save(/*D_172B*/"OUTMONST.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
@@ -51,7 +51,7 @@ unsigned loc;
  */
 /*C_3E94*/LoadDungeon()
 {
-	register int npc;
+	register int16 npc;
 
 	if(Load(DungeonFiles[Party._loc - LOC_DUNGEONS], sizeof(tMap8x8x8), &(Area._map)) == -1)
 		exit(3);
@@ -96,7 +96,7 @@ unsigned loc;
  */
 /*C_3F4A*/EnterTown()
 {
-	register int member;
+	register int16 member;
 
 	u4_puts(Names[NAME_LOCATIONS + Party._loc - 1]);
 	Gra_CR();
@@ -143,7 +143,7 @@ unsigned loc;
  */
 /*C_4018*/CMD_Enter()
 {
-	register int place;
+	register int16 place;
 
 	u4_puts(/*D_1765*/"Enter ");
 	if(Party._loc != 0 || Party._tile == TIL_BALLOON) {
@@ -221,7 +221,7 @@ unsigned loc;
  */
 /*C_4164*/LeaveVehicle()
 {
-	register int npc;
+	register int16 npc;
 
 	for(npc = 31; npc >= 8 ;npc --) {
 		if(Area._npc._tile[npc] == 0)
@@ -264,9 +264,9 @@ unsigned loc;
  * Note the misleading indentation: the last statement is not part of the if.
  */
 /*C_4206*/BoardVehicle(vehicle)
-unsigned vehicle;
+uint16 vehicle;
 {
-	register int npc;
+	register int16 npc;
 
 	for(npc = 31; npc >= 8; npc --) {
 		if(
@@ -327,9 +327,9 @@ unsigned vehicle;
 	}
 }
 
-unsigned /*D_17FA*/DoorX = 0;/*current opened door's x*/
-unsigned /*D_17FC*/DoorY = 0;/*current opened door's y*/
-unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
+uint16 /*D_17FA*/DoorX = 0;/*current opened door's x*/
+uint16 /*D_17FC*/DoorY = 0;/*current opened door's y*/
+uint16 /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 
 /*Count down the opened door's timer and close the door when it expires.*/
 /*C_431D*/AutoCloseDoor()
@@ -348,7 +348,7 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
  */
 /*C_4353*/CMD_Open()
 {
-	unsigned dx, dy;
+	uint16 dx, dy;
 
 	while(DoorTimer)
 		AutoCloseDoor();
@@ -386,7 +386,7 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
  */
 /*C_43F8*/CMD_Jimmy()
 {
-	int dy, dx;
+	int16 dy, dx;
 
 	u4_puts(/*D_1818*/"Jimmy lock!\n");
 	AskDir(/*D_1825*/"Dir: ", &dx, &dy);

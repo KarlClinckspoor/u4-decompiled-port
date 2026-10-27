@@ -20,8 +20,8 @@
  */
 void cdecl /*C_191E*/main()
 {
-	register unsigned cmd;
-	int prevCmd;
+	register uint16 cmd;
+	int16 prevCmd;
 
 	low_init();
 	GameInit();
@@ -114,7 +114,7 @@ void cdecl /*C_191E*/main()
  */
 /*C_1C21*/CheatShowKarma()
 {
-	register int virtue;
+	register int16 virtue;
 
 	Gra_CR();
 	for(virtue = 0; virtue < 8; virtue++)
@@ -131,7 +131,7 @@ void cdecl /*C_191E*/main()
  */
 /*C_1C53*/EndOfTurn()
 {
-	register int chara;
+	register int16 chara;
 	register struct tChara *pChara;
 
 	CheckPartyAlive();

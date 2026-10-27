@@ -10,7 +10,7 @@
  * Acid trap: flash the character and hurt him by 0-29 HP.
  */
 /*C_70CE*/AcidTrap(chara)
-int chara;
+int16 chara;
 {
 	FlashChara(chara);
 	hitChara(chara, U4_RND3(30));
@@ -21,7 +21,7 @@ int chara;
  */
 /*C_70F1*/ChestGold()
 {
-	register int gold;
+	register int16 gold;
 
 	u4_puts(/*D_2240*/"The Chest Holds:\n");
 	gold = U4_RND3(80) + U4_RND1(7) + 10;
@@ -37,9 +37,9 @@ int chara;
  * at most his dexterity + 25.
  */
 /*C_7150*/ChestTrap(chara)
-int chara;
+int16 chara;
 {
-	register unsigned trap;
+	register uint16 trap;
 
 	if(((trap = U4_RND1(3))&1) == 0) {
 		/*note: trap's bit 0 is always clear when reaching here, so
@@ -85,7 +85,7 @@ int chara;
  * writing out of the arrays (cannot happen as tile_cur was a chest).
  */
 /*C_722F*/OpenChest(chara)
-int chara;
+int16 chara;
 {
 	if(CurMode == MOD_DUNGEON) {
 		if(tile_cur != 0x40) {
@@ -104,7 +104,7 @@ int chara;
 			karma_dec(&(Party._justi), 1);
 			karma_dec(&(Party._honor), 1);
 		} else {
-			register int npc;
+			register int16 npc;
 
 			for(npc = 0x1f; npc >= 0; npc --)
 				if(
@@ -124,7 +124,7 @@ int chara;
  */
 /*C_72EC*/CMD_Get()
 {
-	register int chara;
+	register int16 chara;
 
 	if(Party._fly_light != 0 && Party._tile == TIL_BALLOON) {
 		u4_puts(/*D_2281*/"Get chest\n");
@@ -180,7 +180,7 @@ char /*D_22C8*/MsgBroadsidesOnly[] = "Broadsides Only!\n";
  */
 /*C_73C9*/CMD_Fire()
 {
-	int npc, row, stepX, stepY, range, col;
+	int16 npc, row, stepX, stepY, range, col;
 
 	u4_puts(/*D_22B2*/"Fire ");
 	if(Party._tile < TIL_SHIP_W || Party._tile > TIL_SHIP_S) {

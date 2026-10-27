@@ -1,14 +1,16 @@
 #ifndef __TITLE_H__
 #define __TITLE_H__
 
+#include "portable.h"
+
 #ifdef WIN32
 	#define far
 	#pragma pack(1)
-	typedef unsigned short U16;
-	typedef short S16;
+	typedef uint16 U16;
+	typedef int16 S16;
 #else
-	typedef unsigned U16;
-	typedef int S16;
+	typedef uint16 U16;
+	typedef int16 S16;
 #endif
 
 #include "u4_scan.h"
@@ -20,8 +22,8 @@
 #define u4_toupper2(c) if(u4_islower(c)) (c) += 'A' - 'a'
 #define u4_tolower(c) if(u4_isupper(c)) (c) += 'a' - 'A'
 
-extern unsigned /*D_0036*/Monster1Pos;
-extern unsigned /*D_0038*/Monster2Pos;
+extern uint16 /*D_0036*/Monster1Pos;
+extern uint16 /*D_0038*/Monster2Pos;
 
 struct tPSP {
 	unsigned char _00[0x80];
@@ -30,8 +32,8 @@ struct tPSP {
 
 extern struct tPSP far *far_psp;/*D_041C*/
 
-extern unsigned /*D_31BC*/cursor_delay;
-extern unsigned /*D_31C0*/cursor_enabled;
+extern uint16 /*D_31BC*/cursor_delay;
+extern uint16 /*D_31C0*/cursor_enabled;
 
 extern unsigned char /*D_3380*/Monster1Seq[];
 extern unsigned char /*D_33F8*/Monster2Seq[];
@@ -44,8 +46,8 @@ extern unsigned char /*D_36E2*/ViewScript[];
 
 /*====---- ----====*/
 
-extern unsigned /*D_692E*/speed_info;
-extern unsigned /*D_6931*/equip_flags;
+extern uint16 /*D_692E*/speed_info;
+extern uint16 /*D_6931*/equip_flags;
 
 struct tNPC {
 	unsigned char _gtile[32];/*__6D76*/
@@ -75,7 +77,7 @@ struct tArea {
 extern struct tArea /*D_6976*/Area;
 
 /*====---- c_common ----====*/
-extern unsigned /*D_6E80*/MonstersShown;
+extern uint16 /*D_6E80*/MonstersShown;
 
 
 struct tChara /*size:0x27*/ {
@@ -95,11 +97,11 @@ struct tChara /*size:0x27*/ {
 };
 
 struct tParty /*size:0x1f6*/ {
-	/*+000*/unsigned long _tick;/*a counter*/
+	/*+000*/uint32 _tick;/*a counter*/
 	/* */
-	/*+004*/unsigned long _moves;
+	/*+004*/uint32 _moves;
 	/*+008*/struct tChara chara[8];
-	/*+140*/long _food;
+	/*+140*/int32 _food;
 	/*+144*/U16 _gold;
 	/*karmas*/
 	/*+146*/U16 _hones;
@@ -144,21 +146,21 @@ struct tParty /*size:0x1f6*/ {
 #endif
 
 extern struct tParty /*D_6E82*/Party;
-extern unsigned /*D_7078*/GraphicsType;
+extern uint16 /*D_7078*/GraphicsType;
 extern void far /*D_707A*/*pShapes;
 extern void far /*D_707E*/*pAnim;
-extern unsigned /*D_7082*/TwoDrives;
+extern uint16 /*D_7082*/TwoDrives;
 extern void far /*D_7084*/*pCharset;
-extern unsigned /*D_7088*/txt_X;
-extern unsigned /*D_708A*/txt_Y;
+extern uint16 /*D_7088*/txt_X;
+extern uint16 /*D_708A*/txt_Y;
 extern void far /*D_708C*/*pTitle;
 /*====---- ----====*/
 
 /*====---- ----====*/
 
 extern /*C_0010*/Console(char *);
-extern /*C_0051*/Load(char *, unsigned, void far *);
-extern /*C_0110*/Save(char *, unsigned, void /*far */*);
+extern /*C_0051*/Load(char *, uint16, void far *);
+extern /*C_0110*/Save(char *, uint16, void /*far */*);
 
 extern /*C_027A*/u4_putc();
 
@@ -170,12 +172,12 @@ extern cdecl Gra_Dot();
 extern Gra_ClearMenu();
 extern cdecl Gra_Blit(
 #if 0
-	int w/*in 8 pixels blocs*/, int h,
-	int src_x/*in 8 pixels blocs*/, int src_y,
+	int16 w/*in 8 pixels blocs*/, int16 h,
+	int16 src_x/*in 8 pixels blocs*/, int16 src_y,
 	void far *pic_data,
-	int dst_y,
-	int rand_pts,/*only works for cga?*/
-	int dst_x
+	int16 dst_y,
+	int16 rand_pts,/*only works for cga?*/
+	int16 dst_x
 #endif
 );
 extern cdecl Gra_LoadPicture(
@@ -190,12 +192,12 @@ extern Gra_ClearScreen();
 extern Gra_PutChar();
 extern cdecl Gra_BlitReveal(
 #if 0
-	int w/*in 8 pixels blocs*/, int h,
-	int src_x/*in 8 pixels blocs*/, int src_y,
+	int16 w/*in 8 pixels blocs*/, int16 h,
+	int16 src_x/*in 8 pixels blocs*/, int16 src_y,
 	void far *pic_data,
-	int dst_y,
-	int rand_pts,
-	int dst_x
+	int16 dst_y,
+	int16 rand_pts,
+	int16 dst_x
 #endif
 );
 extern cdecl Gra_DrawViewOver(
@@ -212,7 +214,7 @@ extern /*C_2583*/low_gra();
 
 extern /*C_3030*/NewGame();
 
-extern cdecl /*C_3149*/u_delay(unsigned, unsigned);
+extern cdecl /*C_3149*/u_delay(uint16, uint16);
 extern /*C_31ED*/u_rand_a();
 extern unsigned char /*C_321E*/u_rand_b();
 extern /*C_3290*/u_getdrive();
@@ -220,6 +222,6 @@ extern /*C_3299*/u_setdrive();
 extern /*C_32AB*/u_fexist();
 extern /*C_331E*/u_setint24();
 
-extern /*C_3F77*/Unused3F77(unsigned long, unsigned long*);
+extern /*C_3F77*/Unused3F77(uint32, uint32*);
 
 #endif

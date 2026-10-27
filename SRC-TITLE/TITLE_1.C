@@ -27,13 +27,13 @@
    curQuestionIndex number of dilemmas answered (0..7)
    player_name      the name typed
    tmp_karma        the 8 karma values being built*/
-/*D_6938*/static unsigned static_A;
-/*D_693A*/static int static_B;
-/*D_693C*/static int static_C;
+/*D_6938*/static uint16 static_A;
+/*D_693A*/static int16 static_B;
+/*D_693C*/static int16 static_C;
 /*D_693E*/static unsigned char static_D;
 /*D_6940*/static void far *static_E;
 /*D_6944*/static unsigned char static_F;
-/*D_6946*/static unsigned static_G;
+/*D_6946*/static uint16 static_G;
 /*D_6948*/static char static_H[20];
 /*D_695C*/static unsigned char static_I;
 /*D_695E*/static unsigned char static_J[8];
@@ -509,10 +509,10 @@ char *str;
  */
 /*C_2656*/u4_gets(buf, size)
 register char *buf;
-unsigned size;
+uint16 size;
 {
-	register unsigned len;
-	unsigned key;
+	register uint16 len;
+	uint16 key;
 
 	len = 0;
 	do {
@@ -574,7 +574,7 @@ char *text;
  */
 /*C_273E*/MoongateRises()
 {
-	int step, delay;
+	int16 step, delay;
 
 	for(step = 1; step <= 23; step++) {
 		Gra_Blit(3,      step, 0, 152, pPicture, 92 - step, -1, 9);
@@ -589,7 +589,7 @@ char *text;
  */
 /*C_27E0*/MoongateSinks()
 {
-	int step, delay;
+	int16 step, delay;
 
 	for(step = 1; step <= 23; step ++) {
 		Gra_Blit(3,      step, 3, 152, pPicture,         68, -1, 9);
@@ -607,7 +607,7 @@ char *text;
  */
 /*C_2883*/Introduction()
 {
-	unsigned page;
+	uint16 page;
 
 	if((pPicture = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
 		exit(0x5e);
@@ -662,16 +662,16 @@ char *text;
 }
 
 /*screen row of the abacus's bead rows, one per question*/
-int /*D_3012*/AbacusRowY[] = {0x18,0x28,0x36,0x44,0x52,0x62,0x70};
+int16 /*D_3012*/AbacusRowY[] = {0x18,0x28,0x36,0x44,0x52,0x62,0x70};
 
 /*
  * Draw a bead on the gypsy's abacus: in the column of the virtue, on the row of the
  * question, with a different bead picture for the chosen and the discarded virtue.
  */
 /*C_2B2A*/DrawBead(discarded, virtue, row)
-unsigned discarded;/*0: chosen virtue, 1: discarded virtue*/
-unsigned virtue;/*virtue index 0..7*/
-unsigned row;/*question index 0..6*/
+uint16 discarded;/*0: chosen virtue, 1: discarded virtue*/
+uint16 virtue;/*virtue index 0..7*/
+uint16 row;/*question index 0..6*/
 {
 	Gra_Blit(1, 12, (discarded == 0)?1:3, 187, pPicture, AbacusRowY[row], -1, virtue + 16);
 }
@@ -695,8 +695,8 @@ char * /*D_307E*/CardPictures[] = {
  * the EGA ones in CardPictures.
  */
 /*C_2B6D*/DrawCard(virtue, side)
-unsigned virtue;/*virtue index 0..7*/
-unsigned side;/*0: left, 1: right*/
+uint16 virtue;/*virtue index 0..7*/
+uint16 side;/*0: left, 1: right*/
 {
 	void far *pic;
 
@@ -736,7 +736,7 @@ unsigned char /*D_30CA*/DilemmaBase[] = {
  */
 /*C_2C12*/GypsyReading()
 {
-	int n;
+	int16 n;
 	unsigned char chosen, discarded;
 	unsigned char flags[8];
 
@@ -813,7 +813,7 @@ unsigned char /*D_30CA*/DilemmaBase[] = {
 unsigned char /*D_30DC*/StartX[] = {0xE7,0x53,0x23,0x3B,0x9E,0x69,0x17,0xBA};
 unsigned char /*D_30E4*/StartY[] = {0x88,0x69,0xDD,0x2C,0x15,0xB7,0x81,0xAB};
 
-unsigned /*D_30EC*/*pKarmas[] = {
+uint16 /*D_30EC*/*pKarmas[] = {
 	&(Party._hones),
 	&(Party._compa),
 	&(Party._valor),
@@ -831,7 +831,7 @@ unsigned /*D_30EC*/*pKarmas[] = {
  */
 /*C_2E04*/CreateParty()
 {
-	int idx;
+	int16 idx;
 	struct tChara temp;
 
 	if(Load(/*D_30D1*/"PARTY.NEW", sizeof(struct tParty), &Party) == -1)
@@ -873,11 +873,11 @@ unsigned /*D_30EC*/*pKarmas[] = {
 char *prompt;
 char *fname;
 {
-	int key;
+	int16 key;
 
 	Gra_ClearScreen();
 	txt_Y = 10;
-	txt_X = (40 - (unsigned)strlen(prompt)) / 2;
+	txt_X = (40 - (uint16)strlen(prompt)) / 2;
 	u4_puts(prompt);
 	txt_Y ++;
 	txt_X = 18;
@@ -909,7 +909,7 @@ char *fname;
  */
 /*C_2FB8*/WritePlayerDisk()
 {
-	unsigned programDrive;
+	uint16 programDrive;
 
 	programDrive = u_getdrive() & 0xff;
 	AskForDisk(/*D_311D*/"Insert PLAYER disk", /*D_3113*/"WORLD.MAP");
@@ -924,7 +924,7 @@ char *fname;
 		u_setdrive(programDrive);
 }
 
-extern /*C_0B1E*/PutsAt(int, int, char *);
+extern /*C_0B1E*/PutsAt(int16, int16, char *);
 
 /*
  * "Initiate New Game": ask the name and the sex, then run the introduction, the gypsy's
