@@ -53,3 +53,12 @@ Two constraints of Microsoft C 4.00 shaped the renaming:
 builds both programs with Microsoft C 4.00, MASM 3.00 and LINK in a headless DOSBox
 (`apt install dosbox`) and compares them with `tools/build.sha1`. `DIR` holds
 `Microsoft C Compiler 4.0.zip` and MASM 3.00 (see the script's help).
+
+---
+
+## Native port for Windows and Linux (branch `portable`)
+
+The same sources also build a native Windows/Linux version on SDL2: the title, the gypsy's
+character creation and the game, with a settings screen over the game (F11), the PC speaker
+effects, and a recording of every session that replays exactly (on either system). The
+DOS build stays byte-identical. See [docs/port/PORT.md](docs/port/PORT.md).
