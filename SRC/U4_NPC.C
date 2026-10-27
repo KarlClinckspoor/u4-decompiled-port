@@ -410,8 +410,8 @@ int16 /*C_56D3*/NpcOffWindow(npc)
 int16 npc;
 {
 	return
-		(Area._npc._x[npc] - WinBlock.x*16) >= 32 ||
-		(Area._npc._y[npc] - WinBlock.y*16) >= 32
+		(uint16)((Area._npc._x[npc] - WinBlock.x*16)) >= 32 ||
+		(uint16)((Area._npc._y[npc] - WinBlock.y*16)) >= 32
 	;
 }
 

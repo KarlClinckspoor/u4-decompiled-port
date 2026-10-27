@@ -179,7 +179,7 @@ unsigned char y;
 		if(RoomTriggerData[(n << 2)]) {
 			if(
 				(uint16)((x << 12)) == (*(U16 *)(RoomTriggerData+(n << 2)) & 0xf000) &&
-				(y <<  8) == (*(U16 *)(RoomTriggerData+(n << 2)) & 0x0f00)
+				(uint16)((y <<  8)) == (uint16)((*(U16 *)(RoomTriggerData+(n << 2)) & 0x0f00))
 			) {
 				row = *(U16 *)(RoomTriggerData+(n << 2)+2) & 0xf;
 				if(

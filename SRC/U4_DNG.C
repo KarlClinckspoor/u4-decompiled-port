@@ -120,7 +120,7 @@ int16 /*C_8743*/DNG_CheckEncounter()
 	Area._map.x8x8x8[Party._z][Party._y][Party._x] &= 0xf0;
 	for(npc = 0x1f; npc >= 0; npc --) {
 		if(
-			Area._npc._var[npc] == Party._z &&
+			Area._npc._var[npc] == (uint16)(Party._z) &&
 			Area._npc._x[npc] == Party._x &&
 			Area._npc._y[npc] == Party._y
 		) {

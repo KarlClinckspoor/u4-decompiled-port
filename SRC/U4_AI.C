@@ -48,7 +48,7 @@ int16 /*C_9414*/DNG_MoveMonsters()
 	for(npc = 31; npc >= 0; npc --) {
 		if(
 			Area._npc._tile[npc] != 0 &&
-			Area._npc._var[npc] == Party._z &&
+			Area._npc._var[npc] == (uint16)(Party._z) &&
 			Area._npc._tile[npc] != TIL_REAPER &&
 			Area._npc._tile[npc] != TIL_MIMIC
 		) {
@@ -74,7 +74,7 @@ int16 /*C_9414*/DNG_MoveMonsters()
 						break;
 				}
 				if(retry != -1) {
-					Area._map.x8x8x8[Party._z][toY][toX] |= (Area._npc._tile[npc] - TIL_RAT) / 4 + 1;
+					Area._map.x8x8x8[Party._z][toY][toX] |= (uint16)((Area._npc._tile[npc] - TIL_RAT)) / 4 + 1;
 					Area._map.x8x8x8[Party._z][Area._npc._y[npc]][Area._npc._x[npc]] &= 0xf0;
 					Area._npc._old_x[npc] = Area._npc._x[npc];
 					Area._npc._old_y[npc] = Area._npc._y[npc];
@@ -113,7 +113,7 @@ int16 /*C_95AA*/DNG_SpawnMonsters()
 						Area._npc._x[npc] = Area._npc._old_x[npc] = spawnCol;
 						Area._npc._y[npc] = Area._npc._old_y[npc] = spawnRow;
 						Area._npc._var[npc] = Party._z;
-						Area._map.x8x8x8[Party._z][spawnRow][spawnCol] = ((monster - TIL_RAT) >> 2) + 1;
+						Area._map.x8x8x8[Party._z][spawnRow][spawnCol] = ((uint16)((monster - TIL_RAT)) >> 2) + 1;
 					}
 				}
 			}
@@ -397,7 +397,9 @@ int16 /*C_9BA6*/StealGold()
 
 	if(U4_RND1(3) == 0) {
 		amount = U4_RND1(0x3f);
-		Party._gold = u4_max((uint16)(Party._gold - amount), 0);
+		/*MSC turns "gold - amount >= 0" into "gold >= amount": no wrap; the port's int
+		  arithmetic gives the same*/
+		Party._gold = u4_max(Party._gold - amount, 0);
 		dspl_Stats();
 		sound(SND_FAIL);
 	}

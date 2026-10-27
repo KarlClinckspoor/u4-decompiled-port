@@ -254,7 +254,7 @@ int16 /*C_66DA*/SPL_Dispel()
 	if(!SpellStart())
 		return;
 	if(CurMode >= MOD_COMBAT) {
-		if(Combat._charaY[activeChara] + dy >= 11 || Combat._charaX[activeChara] + dx >= 11) {
+		if((uint16)(Combat._charaY[activeChara] + dy) >= 11 || (uint16)(Combat._charaX[activeChara] + dx) >= 11) {
 			w_Failed();
 			return;
 		}
@@ -269,7 +269,7 @@ int16 /*C_66DA*/SPL_Dispel()
 	if(CurMode == MOD_OUTDOORS) {
 		p_field = &(Area._map.x32x32[WinPos.y+dy][WinPos.x+dx]);
 	} else {
-		if(Party._y + dy >= 32 || Party._x + dx >= 32) {
+		if((uint16)(Party._y + dy) >= 32 || (uint16)(Party._x + dx) >= 32) {
 			w_Failed();
 			return;
 		}
@@ -329,7 +329,7 @@ the original bytecode*/
 			return;
 		if(!SpellStart())
 			return;
-		if(Combat._charaY[activeChara] + dy < 11 && Combat._charaX[activeChara] + dx < 11) {
+		if((uint16)(Combat._charaY[activeChara] + dy) < 11 && (uint16)(Combat._charaX[activeChara] + dx) < 11) {
 			if(IsWalkable(*(p_square = &(Combat_MAP(dy + Combat._charaY[activeChara], dx + Combat._charaX[activeChara]))))) {
 				*p_square = field;
 				return;

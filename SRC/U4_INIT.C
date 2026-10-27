@@ -49,7 +49,7 @@ char *fname;
 					u_setdrive(key);
 				}
 			}
-			if(u_getdrive() == key && u_fexist(fname))
+			if(u_getdrive() == (uint16)(key) && u_fexist(fname))
 				return;
 			sound(SND_BEEP);
 			while(!u_kbhit());
@@ -167,7 +167,7 @@ int16 /*C_C51C*/GameInit()
 		sound(SND_FAIL);
 		u_delay(3, 0);
 		u_kbflush();
-		if(programDrive == u_getdrive()) {
+		if((uint16)(programDrive) == u_getdrive()) {
 			AskForDisk(/*D_310B*/"Re-Insert PROGRAM Disk", /*D_3010*/"TITLE.EXE");
 		} else {
 			u_setdrive(programDrive);

@@ -389,7 +389,7 @@ int16 /*C_43F8*/CMD_Jimmy()
 	AskDir(/*D_1825*/"Dir: ", &dx, &dy);
 	if(!(dx | dy))
 		return;
-	if(CurMode != MOD_BUILDING || (dx + Party._x) > 0x1f || dy) {
+	if(CurMode != MOD_BUILDING || (uint16)((dx + Party._x)) > 0x1f || dy) {
 		w_NotHere();
 	} else {
 		register unsigned char *p_door;

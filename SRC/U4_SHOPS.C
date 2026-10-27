@@ -229,7 +229,7 @@ F-Black Pearl\n"
 					if(paid < 0)
 						sound(SND_BEEP);
 				} else {
-					if(paid < amount * ReagentPrices[ShopId][reagent]) {
+					if((uint16)(paid) < (uint16)(amount * ReagentPrices[ShopId][reagent])) {
 						shortBy = amount * ReagentPrices[ShopId][reagent] - paid;
 						shortBy = (shortBy < 12)?4:(shortBy / 3);
 						karma_dec(&(Party._hones), shortBy);
@@ -387,7 +387,7 @@ int16 /*C_CD80*/WeaponShopBuy()
 			if(choice <= 0)
 				break;
 			for(entry = 0; entry < 4; entry ++) {
-				if(WeaponShopStock[ShopId][entry] == choice)
+				if(WeaponShopStock[ShopId][entry] == (uint16)(choice))
 					break;
 			}
 			if(entry == 4)
@@ -639,7 +639,7 @@ int16 /*C_D1D0*/ArmourShopBuy()
 			if(choice <= 0)
 				break;
 			for(entry = 0; entry < 4; entry ++) {
-				if(ArmourShopStock[ShopId][entry] == choice)
+				if(ArmourShopStock[ShopId][entry] == (uint16)(choice))
 					break;
 			}
 			if(entry == 4)

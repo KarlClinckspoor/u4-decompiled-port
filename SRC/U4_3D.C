@@ -94,8 +94,8 @@ int16 /*C_A7F2*/DrawField3D(tile)
 unsigned char tile;
 {
 	Gra_FillTiles(
-		(Wall_y1[Depth] - Wall_y0[Depth] + 1) / 16,
-		(Wall_x1[Depth] - Wall_x0[Depth] + 1) / 16,
+		(uint16)((Wall_y1[Depth] - Wall_y0[Depth] + 1)) / 16,
+		(uint16)((Wall_x1[Depth] - Wall_x0[Depth] + 1)) / 16,
 		(tile & 3) | TIL_POISON_FIELD,
 		Wall_y0[Depth],
 		Wall_x0[Depth] >> 2

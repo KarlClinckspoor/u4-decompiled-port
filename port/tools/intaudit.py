@@ -3,8 +3,9 @@
 
     python3 port/tools/intaudit.py [FILE.c ...] > audit.txt
 
-Microsoft C 4.00 does unsigned 16-bit arithmetic when an operand is `unsigned` (uint16) and
-none is long; the host promotes uint16 to a signed 32-bit int first. So a comparison, a division,
+Microsoft C 4.00 does unsigned 16-bit arithmetic when an operand is `unsigned` (uint16) or
+`unsigned char` (it promotes unsigned types to unsigned int: the pre-ANSI "unsigned
+preserving" rule) and none is long; the host promotes both to a signed 32-bit int first. So a comparison, a division,
 a modulo or a right shift whose operand is (or contains, before any narrowing) such an
 operation can give a different answer, and so can an `int` arithmetic result that leaves
 16 bits before it is compared, divided, shifted right or widened. Hexadecimal constants
@@ -43,7 +44,7 @@ def dos_type(qt):
         return 'u32'
     if 'int32' in q or t == 'int':
         return 's32' if 'int32' in q else 'int'
-    if t in ('unsigned char',):
+    if t in ('unsigned char',) or (t == 'char' and CHAR_UNSIGNED):
         return 'u8'
     if t in ('char', 'signed char'):
         return 's8'
@@ -86,7 +87,9 @@ def dtype_of(n):
     if k == 'ConditionalOperator':
         return arith(dtype_of(n0['inner'][1]), dtype_of(n0['inner'][2]), '?')
     t = dos_type(n0.get('type', {}))
-    if t in ('u8', 's8'):
+    if t == 'u8':
+        return 'u16'   # MSC 4.00 promotes unsigned char to unsigned int (unsigned preserving)
+    if t == 's8':
         return 's16'
     if t == 'int':
         return 's16'   # an implicit-int function or an int the port still has
@@ -131,10 +134,10 @@ def raw_type(n):
             break
         n0 = n0['inner'][0]
     t = n0.get('type', {}).get('desugaredQualType', n0.get('type', {}).get('qualType', ''))
+    if t == 'unsigned char' or (t == 'char' and CHAR_UNSIGNED):
+        return 'u8'
     if t in ('char', 'signed char'):
         return 's8'
-    if t == 'unsigned char':
-        return 'u8'
     return None
 
 
@@ -198,6 +201,7 @@ def walk(n, out, src_of):
 
 
 FIX = False
+CHAR_UNSIGNED = False   # the file is compiled with /J
 
 
 def cast_edit(node, cast):
@@ -211,7 +215,7 @@ def cast_edit(node, cast):
 
 
 def main():
-    global FIX
+    global FIX, CHAR_UNSIGNED
     if '--fix' in sys.argv:
         sys.argv.remove('--fix')
         FIX = True
@@ -221,6 +225,7 @@ def main():
     for f in files:
         tu = os.path.splitext(os.path.basename(f))[0].upper()
         title = os.path.basename(os.path.dirname(os.path.realpath(f))).upper() == 'SRC-TITLE'
+        CHAR_UNSIGNED = tu in UNSIGNED_CHAR and not title
         prog = ['-I', os.path.join(INC, 'title'), '-include', os.path.join(INC, 'compat.h'),
                 '-include', os.path.join(INC, 'title', 'trename.h')] if title else \
                ['-I', os.path.join(INC, 'avatar'), '-include', os.path.join(INC, 'compat.h')]

@@ -761,9 +761,9 @@ unsigned char tile;
 {
 	if(tile >= TIL_PIRATE_W) {
 		if(tile >= TIL_RAT)
-			return Names[NAME_MONSTERS + (tile - TIL_PIRATE_W)/4 - (TIL_RAT - TIL_PIRATE_W)/4];
+			return Names[NAME_MONSTERS + (uint16)((tile - TIL_PIRATE_W))/4 - (TIL_RAT - TIL_PIRATE_W)/4];
 		else
-			return Names[NAME_CREATURES + (tile - TIL_PIRATE_W)/2];
+			return Names[NAME_CREATURES + (uint16)((tile - TIL_PIRATE_W))/2];
 	}
 	if(tile == TIL_SLEEPING)
 		return Names[NAME_VILLAGER];

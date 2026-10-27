@@ -335,8 +335,8 @@ int16 npc;
 		if(interest[0] == 0)
 			break;
 		/*kw is first a random number*/
-		if((kw = u_rand_a()) < TalkData[2]) {
-			if(TalkData[2] - kw >= 0x40) {
+		if((uint16)((kw = u_rand_a())) < TalkData[2]) {
+			if((uint16)(TalkData[2] - kw) >= 0x40) {
 				/*he/she gets upset: says the name unless it starts with
 				  "a " or "the ", and becomes hostile*/
 				if(strnicmp(TalkStrings[0], /*D_2C7E*/"a ", 2) && strnicmp(TalkStrings[0], /*D_2C81*/"the ", 4))
@@ -363,7 +363,7 @@ int16 npc;
 					done = 1;
 				}
 				if(!done) {
-					if(TalkData[0] == kw)
+					if(TalkData[0] == (uint16)(kw))
 						TLK_Question();
 				}
 				break;

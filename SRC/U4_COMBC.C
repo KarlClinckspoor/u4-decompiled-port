@@ -407,7 +407,7 @@ int16 /*C_7E7E*/PlaceFoes()
 		else
 			count = 0;
 	} else if((count = CombatFoe, CombatFoe < TIL_PIRATE_W) || (count = U4_RND1(7)) == 0) {
-		count = (U4_RND4(MonsterGroupSize[MonsterIndex(count)]) + MonsterGroupSize[MonsterIndex(count)]) / 2;
+		count = (uint16)((U4_RND4(MonsterGroupSize[MonsterIndex(count)]) + MonsterGroupSize[MonsterIndex(count)])) / 2;
 	}
 	while(fighter = count, (uint16)((count >> 1)) >= Party._members)
 		count = U4_RND4(Party._members * 2);
