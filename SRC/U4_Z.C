@@ -8,6 +8,7 @@
 
 #include <string.h>
 
+/*Blank the status area (columns 24-38) from the current line down to line 8.*/
 /*C_45B5*/ZtatsClearRest()
 {
 	for( ;txt_Y <= 8; txt_Y ++) {
@@ -16,75 +17,87 @@
 	}
 }
 
-/*display centered string*/
-/*C_45D6*/ZtatsTitle(si/*bp06*/, bp04)
-register char *si;
-unsigned bp04;
+/*
+ * Print str centered in the status area (plus shift columns) on line txt_Y;
+ * on the top line (the frame), between the two title brackets 0x10 and 0x11.
+ */
+/*C_45D6*/ZtatsTitle(str, shift)
+register char *str;
+unsigned shift;
 {
-	register int di;
+	register int len;
 
-	di = strlen(si);
-	if(di > 12)
-		di = 12;
-	di -= (di & 1);
+	len = strlen(str);
+	if(len > 12)
+		len = 12;
+	len -= (len & 1);
 
-	txt_X = (di>=8) + ((12 - di)  / 2) + bp04 + 25;
+	txt_X = (len>=8) + ((12 - len)  / 2) + shift + 25;
 	if(txt_Y == 0) {
 		txt_X --;
 		u4_putc(0x10);
 	}
-	u4_puts(si);
+	u4_puts(str);
 	if(txt_Y == 0)
 		u4_putc(0x11);
 }
 
+/*Redraw the frame over the status area's title (top line); the cursor is preserved.*/
 /*C_4649*/ZtatsClearTitle()
 {
-	unsigned bp_02, bp_04;
+	unsigned orig_y, orig_x;
 
-	bp_02 = txt_Y;
-	bp_04 = txt_X;
+	orig_y = txt_Y;
+	orig_x = txt_X;
 	txt_Y = 0;
 	txt_X = 24;
 	do
 		Gra_PutChar('\r');
 	while(++txt_X < 39);
-	txt_Y = bp_02;
-	txt_X = bp_04;
+	txt_Y = orig_y;
+	txt_X = orig_x;
 }
 
-/*C_4689*/ZtatsChara(bp04)
-int bp04;
+/*
+ * Ztats page of party member #member: name, sex, class, status, magic points,
+ * level (max HP / 100), attributes, hit points, experience, weapon and armour.
+ */
+/*C_4689*/ZtatsChara(member)
+int member;
 {
-	register struct tChara *si;
+	register struct tChara *chara;
 
-	si = &(Party.chara[bp04]);
-	txt_Y = 0; ZtatsTitle(si->_name, 0);
+	chara = &(Party.chara[member]);
+	txt_Y = 0; ZtatsTitle(chara->_name, 0);
 	txt_X = 24;
-	txt_Y = 1; u4_putc(si->_sex);
-	txt_Y = 1; ZtatsTitle(Names[77 + si->_class], 0);
-	txt_X = 38; u4_putc(si->_stat);
+	txt_Y = 1; u4_putc(chara->_sex);
+	txt_Y = 1; ZtatsTitle(Names[NAME_CLASSES + chara->_class], 0);
+	txt_X = 38; u4_putc(chara->_stat);
 	txt_X = 25;
-	txt_Y = 3; u4_puts(/*D_18D6*/"MP:"); u4_putl(si->_MP, 2, '0');
-	txt_X = 32; u4_puts(/*D_18DA*/"LV:"); u4_putc((si->_HP[1]/100)+'0');
+	txt_Y = 3; u4_puts(/*D_18D6*/"MP:"); u4_putl(chara->_MP, 2, '0');
+	txt_X = 32; u4_puts(/*D_18DA*/"LV:"); u4_putc((chara->_HP[1]/100)+'0');
 	txt_X = 24;
-	txt_Y = 4; u4_puts(/*D_18DE*/"STR:"); u4_putl(si->_str, 2, '0');
-	txt_X = 32; u4_puts(/*D_18E3*/"HP:"); u4_putl(si->_HP[0], 4, '0');
+	txt_Y = 4; u4_puts(/*D_18DE*/"STR:"); u4_putl(chara->_str, 2, '0');
+	txt_X = 32; u4_puts(/*D_18E3*/"HP:"); u4_putl(chara->_HP[0], 4, '0');
 	txt_X = 24;
-	txt_Y = 5; u4_puts(/*D_18E7*/"DEX:"); u4_putl(si->_dex, 2, '0');
-	txt_X = 32; u4_puts(/*D_18EC*/"HM:"); u4_putl(si->_HP[1], 4, '0');
+	txt_Y = 5; u4_puts(/*D_18E7*/"DEX:"); u4_putl(chara->_dex, 2, '0');
+	txt_X = 32; u4_puts(/*D_18EC*/"HM:"); u4_putl(chara->_HP[1], 4, '0');
 	txt_X = 24;
-	txt_Y = 6; u4_puts(/*D_18F0*/"INT:"); u4_putl(si->_int, 2, '0');
-	txt_X = 32; u4_puts(/*D_18F5*/"EX:"); u4_putl(si->_XP, 4, '0');
+	txt_Y = 6; u4_puts(/*D_18F0*/"INT:"); u4_putl(chara->_int, 2, '0');
+	txt_X = 32; u4_puts(/*D_18F5*/"EX:"); u4_putl(chara->_XP, 4, '0');
 	txt_Y = 7;
-	txt_X = 24; u4_puts(/*D_18F9*/"W:"); u4_puts(Names[37 + si->_weapon]);
+	txt_X = 24; u4_puts(/*D_18F9*/"W:"); u4_puts(Names[NAME_WEAPONS + chara->_weapon]);
 	txt_Y = 8;
-	txt_X = 24; u4_puts(/*D_18FC*/"A:"); u4_puts(Names[53 + si->_armor]);
+	txt_X = 24; u4_puts(/*D_18FC*/"A:"); u4_puts(Names[NAME_ARMOURS + chara->_armor]);
 }
 
+/*
+ * Ztats page of the weapons owned (hands always shown): letter, count and
+ * code, in columns of 8 lines.
+ */
 /*C_4832*/ZtatsWeapons()
 {
-	register int si;
+	register int weapon;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_18FF*/"Weapons", 0);
@@ -93,20 +106,20 @@ int bp04;
 	u4_puts(/*D_1907*/"A-Hands");
 	txt_Y = 2;
 	txt_X = 24;
-	si = 1;
+	weapon = 1;
 	do {
-		if(Party._weapons[si]) {
-			u4_putc(si+'A');
-			u4_putl(Party._weapons[si], 2, '-');
+		if(Party._weapons[weapon]) {
+			u4_putc(weapon+'A');
+			u4_putl(Party._weapons[weapon], 2, '-');
 			u4_putc('-');
-			u4_puts(Names[61 + si]);
+			u4_puts(Names[NAME_WEAPON_CODES + weapon]);
 			txt_X = (txt_X - 1) & ~7;
 			if(++txt_Y == 9) {
 				txt_Y = 1;
 				txt_X += 8;
 			}
 		}
-	} while(++si < 0x10);
+	} while(++weapon < 0x10);
 	while(txt_X < 40) {
 		u4_puts(/*D_190F*/"       ");
 		txt_X = (txt_X - 1) & ~7;
@@ -117,9 +130,10 @@ int bp04;
 	}
 }
 
+/*Ztats page of the armours owned (no armour always shown).*/
 /*C_48F8*/ZtatsArmour()
 {
-	register int si;
+	register int armour;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_1917*/"Armour", 0);
@@ -127,13 +141,13 @@ int bp04;
 	txt_X = 24;
 	u4_puts(/*D_191E*/"A  -No Armour");
 	txt_Y = 2;
-	for(si = 1; si < 8; si ++) {
-		if(Party._armors[si]) {
+	for(armour = 1; armour < 8; armour ++) {
+		if(Party._armors[armour]) {
 			txt_X = 24;
-			u4_putc(si + 'A');
-			u4_putl(Party._armors[si], 2, '-');
+			u4_putc(armour + 'A');
+			u4_putl(Party._armors[armour], 2, '-');
 			u4_putc('-');
-			u4_puts(Names[53 + si]);
+			u4_puts(Names[NAME_ARMOURS + armour]);
 			while(txt_X != 39)
 				u4_putc(' ');
 			txt_Y ++;
@@ -142,6 +156,7 @@ int bp04;
 	ZtatsClearRest();
 }
 
+/*Ztats page of the torches, gems, keys and sextants (when any).*/
 /*C_4987*/ZtatsEquipment()
 {
 	txt_Y = 0;
@@ -164,12 +179,18 @@ int bp04;
 	ZtatsClearRest();
 }
 
+/*stones: Blue Yellow Red Green Orange Purple White Black*/
 char /*D_199A*/StoneLetters[] = "BYRGOPWB";
+/*runes: Honesty Compassion Valor Justice Sacrifice Honor Spirituality Humility*/
 char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
 
+/*
+ * Ztats page of the quest items: stones, runes, bell/book/candle ("Candl"
+ * when all three, to fit), the three part key, horn, wheel and skull.
+ */
 /*C_4A3D*/ZtatsItems()
 {
-	register int si;
+	register int bit;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_1955*/"Items", 0);
@@ -177,21 +198,21 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
 	if(Party.mStones) {
 		txt_X = 24;
 		u4_puts(/*D_195B*/"Stones:");
-		si = 0;
+		bit = 0;
 		do {
-			if(TST_MSK(Party.mStones, si))
-				u4_putc(StoneLetters[si]);
-		} while(++si < 8);
+			if(TST_MSK(Party.mStones, bit))
+				u4_putc(StoneLetters[bit]);
+		} while(++bit < 8);
 		txt_Y ++;
 	}
 	if(Party.mRunes) {
 		txt_X = 24;
 		u4_puts(/*D_1963*/"Runes:");
-		si = 0;
+		bit = 0;
 		do {
-			if(TST_MSK(Party.mRunes, si))
-				u4_putc(RuneLetters[si]);
-		} while(++si < 8);
+			if(TST_MSK(Party.mRunes, bit))
+				u4_putc(RuneLetters[bit]);
+		} while(++bit < 8);
 		txt_Y ++;
 	}
 	if(TST_MSK(Party.mItems, ST_BELL) || TST_MSK(Party.mItems, ST_BOOK) || TST_MSK(Party.mItems, ST_CANDLE)) {
@@ -234,43 +255,48 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
 	}
 }
 
+/*Ztats page of the reagents owned.*/
 /*C_4BC7*/ZtatsReagents()
 {
-	register int si;
+	register int reagent;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_19AD*/"Reagents", 0);
 	txt_Y = 1;
-	si = 0;
+	reagent = 0;
 	do {
-		if(Party._reagents[si]) {
+		if(Party._reagents[reagent]) {
 			txt_X = 24;
-			u4_putc(si+'A');
-			u4_putl(Party._reagents[si], 2, '-');
+			u4_putc(reagent+'A');
+			u4_putl(Party._reagents[reagent], 2, '-');
 			u4_putc('-');
-			u4_puts(Names[93 + si]);
+			u4_puts(Names[NAME_REAGENTS + reagent]);
 			while(txt_X != 39)
 				u4_putc(' ');
 			txt_Y ++;
 		}
-	} while(++si < 8);
+	} while(++reagent < 8);
 	ZtatsClearRest();
 }
 
+/*
+ * Ztats page of the mixtures (spell letter and count), in columns of 8 lines;
+ * stops when the status area is full.
+ */
 /*C_4C42*/ZtatsMixtures()
 {
-	register int si;
+	register int spell;
 
 	txt_Y = 0;
 	ZtatsTitle(/*D_19B6*/"Mixtures", 0);
 	txt_Y = 1;
 	txt_X = 24;
-	si = 0;
+	spell = 0;
 	do {
-		if(Party._mixtures[si]) {
-			u4_putc(si+'A');
+		if(Party._mixtures[spell]) {
+			u4_putc(spell+'A');
 			u4_putc('-');
-			u4_putl(Party._mixtures[si], 2, '0');
+			u4_putl(Party._mixtures[spell], 2, '0');
 			txt_X -= 4;
 			txt_Y ++;
 			if(txt_Y == 9) {
@@ -280,12 +306,13 @@ char /*D_19A4*/RuneLetters[] = "HCVJSHSH";
 					return;
 			}
 		}
-	} while(++si < 26);
+	} while(++spell < 26);
 }
 
 typedef z_handler(int);
 typedef z_handler *pZ_handler;
 
+/*the Ztats pages, by page number (0-7: party members)*/
 pZ_handler /*D_19C0*/ZtatsPages[] = {
 	ZtatsChara,ZtatsChara,ZtatsChara,ZtatsChara,
 	ZtatsChara,ZtatsChara,ZtatsChara,ZtatsChara,
@@ -297,21 +324,26 @@ pZ_handler /*D_19C0*/ZtatsPages[] = {
 	ZtatsMixtures
 };
 
-/*C_4CC1*/ZtatsBrowse(bp04)
-int bp04;
+/*
+ * Show the Ztats pages starting at page (see ZtatsPages): 1-8 select a member,
+ * 0 the weapons, arrows/PgUp/PgDn/Home/End browse (skipping the absent
+ * members), any other key leaves.
+ */
+/*C_4CC1*/ZtatsBrowse(page)
+int page;
 {
-	unsigned bp_02, bp_04;
+	unsigned orig_y, orig_x;
 
-	bp_02 = txt_Y;
-	bp_04 = txt_X;
+	orig_y = txt_Y;
+	orig_x = txt_X;
 	do {
-		register int si;
+		register int key;
 
 		Gra_ClearStatus();
 		ZtatsClearTitle();
-		(*ZtatsPages[bp04])(bp04);
+		(*ZtatsPages[page])(page);
 		while(!u_kbhit());
-		switch(si = u_kbread()) {
+		switch(key = u_kbread()) {
 			case KBD_1:
 			case KBD_2:
 			case KBD_3:
@@ -320,57 +352,61 @@ int bp04;
 			case KBD_6:
 			case KBD_7:
 			case KBD_8:
-				if((si&0xf) <= Party._members)
-					bp04 = (si&0xf) - 1;
+				if((key&0xf) <= Party._members)
+					page = (key&0xf) - 1;
 				else
-					sound(1);
+					sound(SND_BEEP);
 			break;
 			case KBD_RIGHT: case KBD_DOWN:
-				bp04 = (bp04 + 1) % 14;
-				if(bp04 == Party._members)
-					bp04 = 8;
+				page = (page + 1) % 14;
+				if(page == Party._members)
+					page = 8;
 			break;
 			case KBD_UP: case KBD_LEFT:
-				if(bp04 == 8)
-					bp04 = Party._members - 1;
+				if(page == 8)
+					page = Party._members - 1;
 				else
-					bp04 = (bp04 + 13) % 14;
+					page = (page + 13) % 14;
 			break;
 			case KBD_PGUP:
-				if(bp04 >= 1 && bp04 <= 8)
-					bp04 = 0;
-				else if(bp04 > 8 && bp04 <= 13)
-					bp04 = 8;
-				else bp04 = 13;
+				if(page >= 1 && page <= 8)
+					page = 0;
+				else if(page > 8 && page <= 13)
+					page = 8;
+				else page = 13;
 			break;
 			case KBD_HOME:
-				bp04 = 0;
+				page = 0;
 			break;
 			case KBD_0:
-				bp04 = 8;
+				page = 8;
 			break;
 			case KBD_PGDN:
-				if(bp04 >= 0 && bp04 <= 7)
-					bp04 = 8;
-				else if(bp04 >= 8 && bp04 <= 12)
-					bp04 = 13;
+				if(page >= 0 && page <= 7)
+					page = 8;
+				else if(page >= 8 && page <= 12)
+					page = 13;
 				else
-					bp04 = 0;
+					page = 0;
 			break;
 			case KBD_END:
-				bp04 = 13;
+				page = 13;
 			break;
 			default:
-				bp04 = -1;
+				page = -1;
 		}
-	} while(bp04 != -1);
+	} while(page != -1);
 	ZtatsClearTitle();
 	Gra_ClearStatus();
 	dspl_Stats();
-	txt_Y = bp_02;
-	txt_X = bp_04;
+	txt_Y = orig_y;
+	txt_X = orig_x;
 }
 
+/*
+ * Ztats: in combat, of the active character; otherwise ask for a member
+ * (0 for the weapons page).
+ */
 /*C_4E45*/CMD_Ztats()
 {
 	if(CurMode >= MOD_COMBAT) {
@@ -379,10 +415,10 @@ int bp04;
 		ZtatsBrowse(activeChara);
 		Gra_InvertStatusLine(activeChara);
 	} else {
-		int bp_02;
+		int member;
 
-		bp_02 = AskChara(/*D_19E3*/"Ztats for:\x12\x12\b");
-		if(bp_02 != -1)
-			ZtatsBrowse((bp_02 == -2)?8:bp_02);
+		member = AskChara(/*D_19E3*/"Ztats for:\x12\x12\b");
+		if(member != -1)
+			ZtatsBrowse((member == -2)?8:member);
 	}
 }

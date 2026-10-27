@@ -12,71 +12,85 @@
 
 #include "u4_dos.h"
 
-/*C_0812*/Console(bp04)
-char *bp04;
+/*
+ * Write a message to the standard output (DOS handle 1), for the file errors.
+ * Exits the program (code 3) if it cannot be written.
+ */
+/*C_0812*/Console(msg)
+char *msg;
 {
-	int bp_02;
+	int written;
 
-	if((bp_02 = dwrite(1, bp04, strlen(bp04))) == -1 || strlen(bp04) != bp_02) {
+	if((written = dwrite(1, msg, strlen(msg))) == -1 || strlen(msg) != written) {
 		exit(3);
 	}
 }
 
-/*C_0855*/Load(bp0a, bp08, bp04)
-char *bp0a;
-unsigned bp08;
-void far *bp04;
+/*
+ * Read size bytes of the file fname into buf.
+ * Returns 0, or -1 after printing what went wrong.
+ * Note: the file is not closed when the read fails.
+ */
+/*C_0855*/Load(fname, size, buf)
+char *fname;
+unsigned size;
+void far *buf;
 {
-	int bp_02, bp_04;
+	int fd, actual;
 
-	if((bp_02 = dopen(bp0a, 0)) == -1) {
+	if((fd = dopen(fname, 0)) == -1) {
 		Console("\r\nOpening ");
-		Console(bp0a);
+		Console(fname);
 		return -1;
 	}
-	if((bp_04 = dread(bp_02, bp04, bp08)) == -1 || bp08 != bp_04) {
+	if((actual = dread(fd, buf, size)) == -1 || size != actual) {
 		Console("\r\nReading ");
-		if(bp_04 == -1) {
-			Console(bp0a);
+		if(actual == -1) {
+			Console(fname);
 		} else {
-			Console(bp0a);
+			Console(fname);
 			Console(": File wrong size\r\n");
 		}
 		return -1;
 	}
-	if(dclose(bp_02) == -1) {
+	if(dclose(fd) == -1) {
 		Console("\r\nClosing ");
-		Console(bp0a);
+		Console(fname);
 		return -1;
 	}
 	return 0;
 }
 
-/*C_08D1*/Save(bp0a, bp08, bp04)
-char *bp0a;
-unsigned bp08;
-void far *bp04;
+/*
+ * Write size bytes from buf to the (existing) file fname.
+ * Returns 0, or -1 after printing what went wrong; a failed write
+ * exits the program (code 1).
+ */
+/*C_08D1*/Save(fname, size, buf)
+char *fname;
+unsigned size;
+void far *buf;
 {
-	int bp_02, bp_04;
+	int fd, actual;
 
-	if((bp_02 = dopen(bp0a, 1)) == -1) {
+	if((fd = dopen(fname, 1)) == -1) {
 		Console("\r\nOpening ");
-		Console(bp0a);
+		Console(fname);
 		return -1;
 	}
-	if((bp_04 = dwrite(bp_02, bp04, bp08)) == -1 || bp08 != bp_04) {
+	if((actual = dwrite(fd, buf, size)) == -1 || size != actual) {
 		Console("\r\nWriting ");
-		if(bp_04 == -1) {
-			Console(bp0a);
+		if(actual == -1) {
+			Console(fname);
 		} else {
-			Console(bp0a);
+			Console(fname);
 			Console(": File wrong size\r\n");
 		}
 		exit(1);
 	}
-	if(dclose(bp_02) == -1) {
+	if(dclose(fd) == -1) {
 		Console("\r\nClosing ");
-		Console(bp0a);
+		Console(fname);
 		return -1;
 	}
 	return 0;

@@ -7,113 +7,137 @@
 #include "u4.h"
 
 /*----------------------------------------
-Whirlpool and Twister management?
+Whirlpools and twisters
 ----------------------------------------*/
 
-/*remove monster?*/
-/*C_7821*/SwallowNpcsAt(si/*bp06*/, bp04)
-register int si;
-int bp04;
+/*
+ * The vortex (NPC slot vortex) destroys every other NPC on its square, playing
+ * sound effect snd for each one.
+ */
+/*C_7821*/SwallowNpcsAt(vortex, snd)
+register int vortex;
+int snd;
 {
-	register int di;
+	register int npc;
 
-	for(di = 31; di >= 0; di --) {
+	for(npc = 31; npc >= 0; npc --) {
 		if(
-			di != si &&
-			Area._npc._tile[di] &&
-			Area._npc._x[di] == Area._npc._x[si] &&
-			Area._npc._y[di] == Area._npc._y[si]
+			npc != vortex &&
+			Area._npc._tile[npc] &&
+			Area._npc._x[npc] == Area._npc._x[vortex] &&
+			Area._npc._y[npc] == Area._npc._y[vortex]
 		) {
-			Area._npc._tile[di] = Area._npc._gtile[di] = 0;
+			Area._npc._tile[npc] = Area._npc._gtile[npc] = 0;
 			RefreshView();
-			sound(bp04);
+			sound(snd);
 		}
 	}
 }
 
-/*whirlpool contact?*/
-/*C_786F*/WhirlpoolContact(si/*bp04*/)
-register int si;
+/*
+ * Whirlpool (NPC slot vortex): if it is on the party, the party is damaged and
+ * thrown (as a ship heading west) to the fixed position (0x7f,0x4e), in Lock Lake.
+ * Then it swallows the NPCs on its square.
+ */
+/*C_786F*/WhirlpoolContact(vortex)
+register int vortex;
 {
-	if(Party._x == Area._npc._x[si] && Party._y == Area._npc._y[si]) {
+	if(Party._x == Area._npc._x[vortex] && Party._y == Area._npc._y[vortex]) {
 		RefreshView();
 		hit_y = hit_x = 5;
 		hit_tile = TIL_WHIRLPOOL;
 		DrawView();
 		Party._x = 0x7f;
 		Party._y = 0x4e;
-		sound(11);
+		sound(SND_WHIRLPOOL);
 		DamageAllParty();
 		Party._tile = TIL_SHIP_W;
 		hit_tile = 0;
 		LoadWorldWindow();
 	}
-	SwallowNpcsAt(si, 11);
+	SwallowNpcsAt(vortex, SND_WHIRLPOOL);
 }
 
-/*twister contact?*/
-/*C_78D1*/TwisterContact(si/*bp04*/)
-register int si;
+/*
+ * Twister (NPC slot vortex): if it is on the party, the party is damaged 4 times
+ * (resetting hit_tile looks like a leftover from WhirlpoolContact).
+ * Then it swallows the NPCs on its square.
+ */
+/*C_78D1*/TwisterContact(vortex)
+register int vortex;
 {
-	if(Party._x == Area._npc._x[si] && Party._y == Area._npc._y[si]) {
+	if(Party._x == Area._npc._x[vortex] && Party._y == Area._npc._y[vortex]) {
 		RefreshView();
-		sound(12);
+		sound(SND_TWISTER);
 		DamageAllParty();
 		DamageAllParty();
 		DamageAllParty();
 		DamageAllParty();
 		hit_tile = 0;
 	}
-	SwallowNpcsAt(si, 12);
+	SwallowNpcsAt(vortex, SND_TWISTER);
 }
 
-/*C_7918*/MoveVortices()
+/*
+ * Outdoors, the whirlpools and twisters among the monsters (NPC slots 0-3) hit the
+ * party and the NPCs on their square. (Despite the name, nothing moves here:
+ * the vortices move with the other NPCs, in MoveNpcs.)
+ */
+/*C_7918*/VortexContacts()
 {
-	register int si;
+	register int npc;
 
 	if(CurMode != MOD_OUTDOORS)
 		return;
 
-	for(si = 3; si >= 0; si--) {
-		if(Area._npc._tile[si] == TIL_WHIRLPOOL)
-			WhirlpoolContact(si);
-		else if(Area._npc._tile[si] == TIL_TWISTER)
-			TwisterContact(si);
+	for(npc = 3; npc >= 0; npc--) {
+		if(Area._npc._tile[npc] == TIL_WHIRLPOOL)
+			WhirlpoolContact(npc);
+		else if(Area._npc._tile[npc] == TIL_TWISTER)
+			TwisterContact(npc);
 	}
 }
 
 /*----------------------------------------
-
+Moving in combat
 ----------------------------------------*/
 
 /*C_794D*/w_SameExit()
 {
 	u4_puts(/*D_239E*/"All must use same exit!\n");
-	sound(1);
+	sound(SND_BEEP);
 }
 
-/*exit combat zone*/
+/*
+ * The active character leaves the combat map (position 0x80 = gone).
+ * Fleeing a normal combat against evil foes while unhurt (HP at max) costs
+ * Valor and Sacrifice.
+ */
 /*C_7962*/COM_CharaExits()
 {
 	Combat._charaX[activeChara] = Combat._charaY[activeChara] = 0x80;
 	Fighters._chtile[activeChara] = 0;
-	sound(8);
+	sound(SND_FAIL);
 	if(CurMode == MOD_COMBAT && !IsNonEvil(CombatFoeTile) && Party.chara[activeChara]._HP[0] == Party.chara[activeChara]._HP[1]) {
 		karma_dec(&(Party._valor), 2);
 		karma_dec(&(Party._sacri), 2);
 	}
 }
 
-/*exiting fight*/
-/*C_79C9*/COM_TryExit(bp06, bp04)
-unsigned char bp06;
-unsigned char bp04;
+/*
+ * The active character tries to step off the map at (x, y). In a dungeon room
+ * the whole party must leave by the same side: the first one to exit sets
+ * RoomExitX (left/right side, x = 0xff or 11) or RoomExitY (top/bottom side).
+ */
+/*C_79C9*/COM_TryExit(x, y)
+unsigned char x;
+unsigned char y;
 {
 	if(CurMode == MOD_COM_ROOM) {
 		/*-- dungeon room --*/
 		/*someone already exited W/E*/
 		if(RoomExitX != 0) {
-			if(bp06 != (unsigned char)RoomExitX) {
+			if(x != (unsigned char)RoomExitX) {
 				w_SameExit();
 				return;
 			}
@@ -122,7 +146,7 @@ unsigned char bp04;
 		}
 		/*someone already exited N/S*/
 		if(RoomExitY != 0) {
-			if(bp04 != (unsigned char)RoomExitY) {
+			if(y != (unsigned char)RoomExitY) {
 				w_SameExit();
 				return;
 			}
@@ -130,71 +154,79 @@ unsigned char bp04;
 			return;
 		}
 		/*-- --*/
-		if(bp06 > 10)
-			RoomExitX = bp06;
+		if(x > 10)
+			RoomExitX = x;
 		else
-			RoomExitY = bp04;
+			RoomExitY = y;
 	}
 	COM_CharaExits();
 }
 
-/*room special tiles*/
-/*C_7A15*/RoomTriggers(bp06, bp04)
-unsigned char bp06;
-unsigned char bp04;
+/*
+ * A character stepped on (x, y) in a dungeon room: fire the room's triggers there.
+ * RoomTriggerData holds 4 triggers of 4 bytes: the tile to place (0: no trigger),
+ * the trigger position (x in the high nibble, y in the low one), then two target
+ * positions coded the same way, where the tile is placed (unless the target is 0,0).
+ */
+/*C_7A15*/RoomTriggers(x, y)
+unsigned char x;
+unsigned char y;
 {
-	register int /*si*/loc_A;
-	int loc_B, loc_C/*bp_04, bp_06*/;
+	register int n;
+	int row, col;
 
-	for(loc_A = 3; loc_A >= 0; loc_A --) {
-		if(RoomTriggerData[(loc_A << 2)]) {
+	for(n = 3; n >= 0; n --) {
+		if(RoomTriggerData[(n << 2)]) {
 			if(
-				(bp06 << 12) == (*(U16 *)(RoomTriggerData+(loc_A << 2)) & 0xf000) &&
-				(bp04 <<  8) == (*(U16 *)(RoomTriggerData+(loc_A << 2)) & 0x0f00)
+				(x << 12) == (*(U16 *)(RoomTriggerData+(n << 2)) & 0xf000) &&
+				(y <<  8) == (*(U16 *)(RoomTriggerData+(n << 2)) & 0x0f00)
 			) {
-				loc_B = *(U16 *)(RoomTriggerData+(loc_A << 2)+2) & 0xf;
+				row = *(U16 *)(RoomTriggerData+(n << 2)+2) & 0xf;
 				if(
-					loc_B |
-					(loc_C = (*(U16 *)(RoomTriggerData+(loc_A << 2)+2) >> 4) & 0xf)
-				) Combat_MAP(loc_B, loc_C) = RoomTriggerData[(loc_A << 2)];
-				loc_B = (*(U16 *)(RoomTriggerData+(loc_A << 2)+2) >> 8) & 0xf;
+					row |
+					(col = (*(U16 *)(RoomTriggerData+(n << 2)+2) >> 4) & 0xf)
+				) Combat_MAP(row, col) = RoomTriggerData[(n << 2)];
+				row = (*(U16 *)(RoomTriggerData+(n << 2)+2) >> 8) & 0xf;
 				if(
-					loc_B |
-					(loc_C = (*(U16 *)(RoomTriggerData+(loc_A << 2)+2) >> 12) & 0xf)
-				) Combat_MAP(loc_B, loc_C) = RoomTriggerData[(loc_A << 2)] & 0xff;
+					row |
+					(col = (*(U16 *)(RoomTriggerData+(n << 2)+2) >> 12) & 0xf)
+				) Combat_MAP(row, col) = RoomTriggerData[(n << 2)] & 0xff;
 			}
 		}
 	}
 }
 
-/*move [fight]*/
-/*C_7AE3*/COM_MoveChara(si/*bp08*/, bp06, bp04)
-register int si;
-unsigned char bp06;
-unsigned char bp04;
+/*
+ * Move character chara to (x, y) in combat: leaving the map is an exit attempt;
+ * the destination must be walkable and slow terrain may waste the turn.
+ */
+/*C_7AE3*/COM_MoveChara(chara, x, y)
+register int chara;
+unsigned char x;
+unsigned char y;
 {
-	register unsigned char *di;
+	register unsigned char *tile;
 
-	sound(0);
+	sound(SND_STEP);
 	/*-- out of bounds=>exiting*/
-	if((unsigned)bp06 > 10 || (unsigned)bp04 > 10) {
-		COM_TryExit(bp06, bp04);
+	if((unsigned)x > 10 || (unsigned)y > 10) {
+		COM_TryExit(x, y);
 		return;
 	}
-	di = &(ViewTiles[bp04*11 + bp06]);
-	if(!IsWalkable(*di)) {
+	tile = &(ViewTiles[y*11 + x]);
+	if(!IsWalkable(*tile)) {
 		w_Blocked();
 		return;
 	}
-	if(IsSlowTerrain(*di)) {
+	if(IsSlowTerrain(*tile)) {
 		w_SlowProgress();
 		return;
 	}
-	Combat._charaX[si] = bp06;
-	Combat._charaY[si] = bp04;
-	sound(0);
+	Combat._charaX[chara] = x;
+	Combat._charaY[chara] = y;
+	sound(SND_STEP);
 	if(CurMode == MOD_COM_ROOM)
-		RoomTriggers(bp06, bp04);
+		RoomTriggers(x, y);
 }
 
 /*North [combat]*/

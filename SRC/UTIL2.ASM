@@ -13,7 +13,7 @@ EXTRN Party:BYTE
 EXTRN txt_X:WORD
 EXTRN txt_Y:WORD
 
-PUBLIC cursor_rate
+PUBLIC cursor_delay
 
 
 DGROUP	GROUP _DATA,_BSS
@@ -21,8 +21,8 @@ DGROUP	GROUP _DATA,_BSS
 _DATA	SEGMENT PUBLIC WORD 'DATA'
 	ASSUME DS:DGROUP
 ;----------------------------------------
-cursor_rate	dw 0	;D_0672
-cursor_rate_old	dw 0	;D_0674
+cursor_delay	dw 0	;D_0672
+cursor_delay_old	dw 0	;D_0674
 cursor_enabled	dw 0FFFFh	;D_0676 display cursor flag
 ;----------------------------------------
 _DATA	ENDS
@@ -55,8 +55,8 @@ _u_delay	PROC NEAR
 	;--
 	MOV	cursor_count,1
 	;--
-	MOV	AX,cursor_rate
-	MOV	cursor_rate_old,AX
+	MOV	AX,cursor_delay
+	MOV	cursor_delay_old,AX
 	;--
 	MOV	AH,2Ch	;get time
 	INT	21h
@@ -89,8 +89,8 @@ C_1710:	;--
 	AND	AX,cursor_enabled
 	JZ	C_1751
 	;-- update shape
-	MOV	AX,cursor_rate_old
-	CMP	AX,cursor_rate
+	MOV	AX,cursor_delay_old
+	CMP	AX,cursor_delay
 	JNZ	C_173D
 	DEC	cursor_count
 	JNZ	C_1751
@@ -103,12 +103,12 @@ C_1710:	;--
 	CALL	Gra_PutChar
 C_173D:	;-- reload cursor counter
 	MOV	AX,1
-	ADD	AX,cursor_rate
+	ADD	AX,cursor_delay
 	MUL	speed_info
 	MOV	cursor_count,AX
 	;--
-	MOV	AX,cursor_rate
-	MOV	cursor_rate_old,AX
+	MOV	AX,cursor_delay
+	MOV	cursor_delay_old,AX
 	;=======
 C_1751:	;==   ==
 	;=======

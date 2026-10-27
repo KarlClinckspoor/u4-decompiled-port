@@ -30,7 +30,7 @@ struct tPSP {
 
 extern struct tPSP far *far_psp;/*D_041C*/
 
-extern unsigned /*D_31BC*/cursor_rate;
+extern unsigned /*D_31BC*/cursor_delay;
 extern unsigned /*D_31C0*/cursor_enabled;
 
 extern unsigned char /*D_3380*/Monster1Seq[];

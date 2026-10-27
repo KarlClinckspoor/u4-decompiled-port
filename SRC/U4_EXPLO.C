@@ -30,30 +30,37 @@ char * /*D_1738*/TalkFiles[] ={
 	/*D_1722*/"COVE.TLK"
 };
 
-/*load casle/towne/village files*/
-/*C_3E30*/LoadTown(bp04)
-unsigned bp04;
+/*
+ * Save the outdoor monsters, then load the map and npcs of castle/towne/village
+ * loc (LOC_*) and open its dialogue file (indexed by Party._loc, not loc).
+ */
+/*C_3E30*/LoadTown(loc)
+unsigned loc;
 {
 	if(Save(/*D_172B*/"OUTMONST.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
-	if(Load(TownFiles[bp04 - 0x01], sizeof(struct tArea), &Area) == -1)
+	if(Load(TownFiles[loc - LOC_BUILDINGS], sizeof(struct tArea), &Area) == -1)
 		exit(3);
 	File_TLK = dopen(TalkFiles[Party._loc - 1], 0);
 	CurMode = MOD_BUILDING;
 }
 
-/*load dungeon files*/
+/*
+ * Load the map of dungeon Party._loc, keep its file open (File_DNG, for the
+ * rooms) and remove all the npcs.
+ */
 /*C_3E94*/LoadDungeon()
 {
-	register int si;
+	register int npc;
 
-	if(Load(DungeonFiles[Party._loc - 0x11], sizeof(tMap8x8x8), &(Area._map)) == -1)
+	if(Load(DungeonFiles[Party._loc - LOC_DUNGEONS], sizeof(tMap8x8x8), &(Area._map)) == -1)
 		exit(3);
-	File_DNG = dopen(DungeonFiles[Party._loc - 0x11], 0);
-	for(si = 0x1f; si >= 0; si --)
-		Area._npc._tile[si] = 0;
+	File_DNG = dopen(DungeonFiles[Party._loc - LOC_DUNGEONS], 0);
+	for(npc = 0x1f; npc >= 0; npc --)
+		Area._npc._tile[npc] = 0;
 }
 
+/*Load dungeon Party._loc and play it, from level 1 facing east.*/
 /*C_3EE4*/StartDungeon()
 {
 	LoadDungeon();
@@ -63,7 +70,10 @@ unsigned bp04;
 	DNG_main();
 }
 
-/*enter dungeon*/
+/*
+ * Enter dungeon Party._loc (on foot only): save the outdoor monsters and play
+ * the dungeon from (1, 1).
+ */
 /*C_3F03*/EnterDungeon()
 {
 	Gra_CR();
@@ -79,28 +89,35 @@ unsigned bp04;
 	StartDungeon();
 }
 
-/*enter towne*/
+/*
+ * Enter towne/village/ruin Party._loc at its west edge (1, 15).
+ * In the eight townes, npc #31 is the companion of the towne's class (Moonglow:
+ * mage, Britain: bard, ...); remove it if that companion has joined the party.
+ */
 /*C_3F4A*/EnterTown()
 {
-	register int si;
+	register int member;
 
-	u4_puts(Names[127 + Party._loc - 1]);
+	u4_puts(Names[NAME_LOCATIONS + Party._loc - 1]);
 	Gra_CR();
 	Gra_CR();
 	Party._y = WinPos.y = 15;
 	Party._x = WinPos.x = 1;
 	LoadTown(Party._loc);
 
-	if((Party._loc - 0x05) < 8) {
-		for(si = Party._members; --si >= 1; ) {
-			if(Party.chara[si]._class == (Party._loc - 0x05)) {
+	if((Party._loc - LOC_TOWNS) < 8) {
+		for(member = Party._members; --member >= 1; ) {
+			if(Party.chara[member]._class == (Party._loc - LOC_TOWNS)) {
 				Area._npc._tile[31] = Area._npc._gtile[31] = Area._npc._var[31] = 0;
 			}
 		}
 	}
 }
 
-/*enter the abyss?*/
+/*
+ * Enter the Great Stygian Abyss: only with the bell, book and candle, all
+ * three already used at the entrance; otherwise "Can't".
+ */
 /*C_3FB9*/EnterAbyss()
 {
 	if((
@@ -111,7 +128,7 @@ unsigned bp04;
 		(Party.mItems >> ST_USE_BELL) &
 		(Party.mItems >> ST_USE_CANDLE)
 	) & 1) {
-		u4_puts(Names[127 + Party._loc - 1]);
+		u4_puts(Names[NAME_LOCATIONS + Party._loc - 1]);
 		EnterDungeon();
 	} else {
 		Party._loc = 0;
@@ -119,36 +136,41 @@ unsigned bp04;
 	}
 }
 
+/*
+ * (E)nter: find the location at the party's position (LocationX/Y) and enter
+ * it according to the tile there. Lava enters the Abyss only at (0xe9, 0xe9)
+ * (falls through to the fire field case).
+ */
 /*C_4018*/CMD_Enter()
 {
-	register int si;
+	register int place;
 
 	u4_puts(/*D_1765*/"Enter ");
 	if(Party._loc != 0 || Party._tile == TIL_BALLOON) {
 		w_What();
 		return;
 	}
-	si = 31;
-	while(si >= 0) {
+	place = 31;
+	while(place >= 0) {
 #ifdef WIN32
-		if(Party._x == (unsigned char)LocationX[si] && Party._y == (unsigned char)LocationY[si])
+		if(Party._x == (unsigned char)LocationX[place] && Party._y == (unsigned char)LocationY[place])
 #else
-		if(Party._x == LocationX[si] && Party._y == LocationY[si])
+		if(Party._x == LocationX[place] && Party._y == LocationY[place])
 #endif
 			break;
-		si--;
+		place--;
 	}
-	if(si == -1) {
+	if(place == -1) {
 		w_What();
 		return;
 	}
-	Party._loc = si + 1;
+	Party._loc = place + 1;
 	Party.out_x = Party._x;
 	Party.out_y = Party._y;
 	switch(Area._map.x32x32[WinPos.y][WinPos.x]) {
 		case TIL_DUNGEON:
 			u4_puts(/*D_176C*/"dungeon!\n\n");
-			u4_puts(Names[127 + Party._loc - 1]);
+			u4_puts(Names[NAME_LOCATIONS + Party._loc - 1]);
 			EnterDungeon();
 		break;
 		case TIL_TOWN:
@@ -157,7 +179,7 @@ unsigned bp04;
 		break;
 		case TIL_CASTLE: case TIL_LCB_ENTRANCE:
 			u4_puts(/*D_1780*/"castle!\n\n");
-			u4_puts(Names[127 + Party._loc - 1]);
+			u4_puts(Names[NAME_LOCATIONS + Party._loc - 1]);
 			Gra_CR();
 			Gra_CR();
 			Party._y = WinPos.y = 0x1e;
@@ -183,7 +205,7 @@ unsigned bp04;
 		break;
 		case TIL_SHRINE:
 			u4_puts(/*D_179D*/"the Shrine of\n");
-			u4_puts(Names[151 + Party._loc - 0x19]);
+			u4_puts(Names[NAME_VIRTUES + Party._loc - LOC_SHRINES]);
 			Gra_CR();
 			EnterShrine();
 		break;
@@ -193,24 +215,32 @@ unsigned bp04;
 	}
 }
 
+/*
+ * Leave the vehicle as an npc on the map (in a free slot among #8-#31, else
+ * overwriting one of #16-#31 at random) and continue on foot.
+ */
 /*C_4164*/LeaveVehicle()
 {
-	register int si;
+	register int npc;
 
-	for(si = 31; si >= 8 ;si --) {
-		if(Area._npc._tile[si] == 0)
+	for(npc = 31; npc >= 8 ;npc --) {
+		if(Area._npc._tile[npc] == 0)
 			break;
 	}
-	if(si == 7)
-		si = U4_RND1(15) | 0x10;
-	Area._npc._gtile[si] = Area._npc._tile[si] = Party._tile;
-	Area._npc._x[si] = Party._x;
-	Area._npc._y[si] = Party._y;
-	Area._npc._var[si] = Area._npc._tlkidx[si] = 0;
+	if(npc == 7)
+		npc = U4_RND1(15) | 0x10;
+	Area._npc._gtile[npc] = Area._npc._tile[npc] = Party._tile;
+	Area._npc._x[npc] = Party._x;
+	Area._npc._y[npc] = Party._y;
+	Area._npc._var[npc] = Area._npc._tlkidx[npc] = 0;
 	Party._tile = TIL_AVATAR;
 	Gra_CR();
 }
 
+/*
+ * X-it the ship (remembering where it was left, see CMD_Board), the horse
+ * (stops galloping) or the balloon (only once landed).
+ */
 /*C_41C0*/CMD_X_it()
 {
 	u4_puts(/*D_17AC*/"X-it ");
@@ -228,23 +258,32 @@ unsigned bp04;
 	}
 }
 
-/*C_4206*/BoardVehicle(bp04)
-unsigned bp04;
+/*
+ * Remove the vehicle npc of kind vehicle (tile with the direction bits
+ * cleared) at the party's position, and take its tile as the party's tile.
+ * Note the misleading indentation: the last statement is not part of the if.
+ */
+/*C_4206*/BoardVehicle(vehicle)
+unsigned vehicle;
 {
-	register int si;
+	register int npc;
 
-	for(si = 31; si >= 8; si --) {
+	for(npc = 31; npc >= 8; npc --) {
 		if(
-			Party._x == Area._npc._x[si] &&
-			Party._y == Area._npc._y[si] &&
-			bp04 == (Area._npc._tile[si] & ~3)
+			Party._x == Area._npc._x[npc] &&
+			Party._y == Area._npc._y[npc] &&
+			vehicle == (Area._npc._tile[npc] & ~3)
 		) break;
 	}
-	if(si != 7)
-		Area._npc._gtile[si] = Area._npc._tile[si] = 0;
+	if(npc != 7)
+		Area._npc._gtile[npc] = Area._npc._tile[npc] = 0;
 		Party._tile = tile_cur;
 }
 
+/*
+ * Board a horse, the balloon or a ship. A ship other than the one the party
+ * last left (ship_x, ship_y) comes with a fully repaired hull (50).
+ */
 /*C_4253*/CMD_Board()
 {
 	if(Party._tile != TIL_AVATAR) {
@@ -274,6 +313,7 @@ unsigned bp04;
 		Party._ship = 50;
 }
 
+/*Yell: on horseback, toggle galloping.*/
 /*C_42E8*/CMD_Yell()
 {
 	u4_puts(/*D_17E3*/"Yell ");
@@ -291,7 +331,7 @@ unsigned /*D_17FA*/DoorX = 0;/*current opened door's x*/
 unsigned /*D_17FC*/DoorY = 0;/*current opened door's y*/
 unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 
-/*automatic door close*/
+/*Count down the opened door's timer and close the door when it expires.*/
 /*C_431D*/AutoCloseDoor()
 {
 	if(CurMode == MOD_BUILDING && DoorTimer) {
@@ -302,9 +342,13 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 	}
 }
 
+/*
+ * Open a door for 5 turns (closes any door still open first). Only doors to
+ * the east or the west can be opened: any north/south direction is "Not here".
+ */
 /*C_4353*/CMD_Open()
 {
-	unsigned bp_02, bp_04;
+	unsigned dx, dy;
 
 	while(DoorTimer)
 		AutoCloseDoor();
@@ -313,22 +357,22 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 		w_NotHere();
 		return;
 	}
-	AskDir(/*D_1807*/"Open: ", &bp_02, &bp_04);
-	if(!(bp_02 | bp_04))
+	AskDir(/*D_1807*/"Open: ", &dx, &dy);
+	if(!(dx | dy))
 		return;
-	if((bp_02 + Party._x) > 0x1f || bp_04) {
+	if((dx + Party._x) > 0x1f || dy) {
 		w_NotHere();
 	} else {
-		register unsigned char *si;
+		register unsigned char *p_door;
 
-		si = &(Area._map.x32x32[Party._y][bp_02 + Party._x]);
-		if(*si == TIL_LOCKED_DOOR) {
+		p_door = &(Area._map.x32x32[Party._y][dx + Party._x]);
+		if(*p_door == TIL_LOCKED_DOOR) {
 			w_Cant_t();
-		} else if(*si == TIL_DOOR) {
-			DoorX = (bp_02 + Party._x);
+		} else if(*p_door == TIL_DOOR) {
+			DoorX = (dx + Party._x);
 			DoorY = Party._y;
 			DoorTimer = 5;
-			*si = TIL_BRICK_FLOOR;
+			*p_door = TIL_BRICK_FLOOR;
 			u4_puts(/*D_180E*/"\nOpened!\n");
 		} else {
 			w_NotHere();
@@ -336,21 +380,25 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 	}
 }
 
+/*
+ * Jimmy a locked door with a key (east or west only, as with Open).
+ * The door stays a normal closed door.
+ */
 /*C_43F8*/CMD_Jimmy()
 {
-	int bp_04, bp_02;
+	int dy, dx;
 
 	u4_puts(/*D_1818*/"Jimmy lock!\n");
-	AskDir(/*D_1825*/"Dir: ", &bp_02, &bp_04);
-	if(!(bp_02 | bp_04))
+	AskDir(/*D_1825*/"Dir: ", &dx, &dy);
+	if(!(dx | dy))
 		return;
-	if(CurMode != MOD_BUILDING || (bp_02 + Party._x) > 0x1f || bp_04) {
+	if(CurMode != MOD_BUILDING || (dx + Party._x) > 0x1f || dy) {
 		w_NotHere();
 	} else {
-		register unsigned char *si;
+		register unsigned char *p_door;
 
-		si = &(Area._map.x32x32[Party._y][bp_02 + Party._x]);
-		if(*si != TIL_LOCKED_DOOR) {
+		p_door = &(Area._map.x32x32[Party._y][dx + Party._x]);
+		if(*p_door != TIL_LOCKED_DOOR) {
 			w_NotHere();
 			return;
 		}
@@ -359,10 +407,14 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 			return;
 		}
 		Party._keys --;
-		*si = TIL_DOOR;
+		*p_door = TIL_DOOR;
 	}
 }
 
+/*
+ * Klimb: outdoors, make the balloon fly (no line of sight while flying);
+ * in Lord British's castle, take the ladder up to the second floor.
+ */
 /*C_4477*/CMD_Klimb()
 {
 	u4_puts(/*D_183A*/"Klimb ");
@@ -376,7 +428,7 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 		LineOfSight = 0;
 		return;
 	}
-	if(Party._loc == 1 && tile_cur == TIL_LADDER_UP) {
+	if(Party._loc == LOC_LCB && tile_cur == TIL_LADDER_UP) {
 		if(Party._tile != TIL_AVATAR) {
 			Gra_CR();
 			w_OnlyOnFoot();
@@ -390,12 +442,17 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 	}
 }
 
+/*
+ * Descend: land the balloon (on grass only); in Lord British's castle, take
+ * the ladder down to the first floor, or from the first floor (the ladder at
+ * y == 2) into the dungeon Hythloth.
+ */
 /*C_44EE*/CMD_Descend()
 {
 	if(Party._tile == TIL_BALLOON) {
 		u4_puts(/*D_1867*/"Land Balloon\n");
 		if(tile_cur != TIL_GRASS) {
-			sound(1);
+			sound(SND_BEEP);
 			w_NotHere();
 			return;
 		}
@@ -407,7 +464,7 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 		LineOfSight = 1;
 		return;
 	}
-	if(Party._loc != 0x01) {
+	if(Party._loc != LOC_LCB) {
 		u4_puts(/*D_1886*/"Descend ");
 		w_What();
 		return;
@@ -427,7 +484,7 @@ unsigned /*D_17FE*/DoorTimer = 0;/*current opened door's delay*/
 		Party.out_x = 0xef;
 		Party.out_y = 0xf0;
 		Party._y = Party._x = 5;
-		Party._loc = 0x17;
+		Party._loc = LOC_HYTHLOTH;
 		StartDungeon();
 		return;
 	}

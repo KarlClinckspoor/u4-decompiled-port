@@ -6,11 +6,24 @@
 
 #include "u4.h"
 
+/*
+ * The first-person dungeon view. The view is drawn one square at a time from the
+ * party's square (depth 0) to 3 squares ahead (depth 3; the walls also use depth 4).
+ * The tables below give, for each depth, the screen coordinates (x 0x08-0xB7,
+ * y 0x08-0xB7, centre 0x5F/0x60) of the elements of a square.
+ * Dungeon tiles: high nibble = kind (0x00 corridor, 0x10/0x20/0x30 ladder up/down/
+ * both, 0x40 chest, 0x50/0x60 hole in the ceiling/floor, 0x70 magic ball, 0x80 trap,
+ * 0x90 fountain, 0xA0 field, 0xB0 altar, 0xC0 door, 0xD0 room entrance, 0xE0 secret
+ * door, 0xF0 wall); for the walkable ones the low nibble is the monster there.
+ */
+
+/*the near edge of the square at depth n (its far edge is n + 1)*/
 unsigned char /*D_2D74*/Wall_x0[] = {0x08,0x28,0x48,0x58,0x5F,0x00};
 unsigned char /*D_2D7A*/Wall_x1[] = {0xB7,0x97,0x77,0x67,0x60,0x00};
 unsigned char /*D_2D80*/Wall_y0[] = {0x08,0x28,0x48,0x58,0x5F,0x00};
 unsigned char /*D_2D86*/Wall_y1[] = {0xB7,0x97,0x77,0x67,0x60,0x00};
 
+/*doors in the side walls*/
 unsigned char /*D_2D8C*/LDoor_x0[]  = {0x08,0x30,0x4C,0x5A};
 unsigned char /*D_2D90*/LDoor_x1[]  = {0x18,0x40,0x54,0x5C};
 unsigned char /*D_2D94*/RDoor_x0[]  = {0xB7,0x8F,0x72,0x64};
@@ -20,6 +33,7 @@ unsigned char /*D_2DA0*/Door_y0p[] = {0x3D,0x51,0x5B,0x5F};
 unsigned char /*D_2DA4*/Door_y1[]  = {0xB7,0x8F,0x73,0x65};
 unsigned char /*D_2DA8*/Door_y1p[] = {0xA7,0x7F,0x6B,0x62};
 
+/*holes in the ceiling (Hole_y) and floor (FloorHole_y), and ladders*/
 unsigned char /*D_2DAC*/Hole_y0[] = {0x08,0x30,0x4C,0x5A};
 unsigned char /*D_2DB0*/Hole_y1[] = {0x18,0x40,0x54,0x5D};
 unsigned char /*D_2DB4*/FloorHole_y0[] = {0xB7,0x8F,0x73,0x65};
@@ -37,22 +51,23 @@ unsigned char /*D_2DE0*/LadderDown_y1[] = {0xAF,0x87,0x6F,0x62};/*down ladder ru
 unsigned char /*D_2DE4*/LadderDown_y2[] = {0x8F,0x77,0x69,0x61};/*down ladder rung 2 y*/
 unsigned char /*D_2DE8*/LadderDown_y3[] = {0x6F,0x67,0x63,0x60};/*down ladder rung 3 y*/
 
+/*countdowns (reloaded from speed_info) for the trap flicker and the monster frames*/
 int /*D_2DEC*/PitAnimTick = 0;
 int /*D_2DEE*/MonsterAnimTick = 0;
 
-/*TODO*/
-/*D_8CE8*/static unsigned char STA_A/*tile_forward_1*/;
-/*D_8CE9*/static unsigned char STA_B/*tile_forward_2*/;
-/*D_8CEA*/static int STA_C;/*<backup (Party._fly_light == 0)>*/
-/*D_8CEC*/static int STA_D;/*<backup Party._z>*/
+/*D_8CE8*/static unsigned char STA_A/*tile 2 squares ahead*/;
+/*D_8CE9*/static unsigned char STA_B/*tile 3 squares ahead*/;
+/*the state of the last full redraw (Render3DNow), see DNG_Render*/
+/*D_8CEA*/static int STA_C;/*(Party._fly_light == 0): no light*/
+/*D_8CEC*/static int STA_D;/*Party._z*/
 /*D_8CEE*/static int STA_E;/*current rendering depth*/
-/*D_8CF0*/static unsigned char STA_F;/*<backup Party._x>*/
-/*D_8CF2*/static unsigned STA_G;/*<backup Party._dir>*/
-/*D_8CF4*/static unsigned char STA_H;/*<backup Party._y>*/
-/*D_8CF5*/static unsigned char STA_I;/*<backup tile_cur>*/
-/*D_8CF6*/static unsigned char STA_J;/*<backup tile_forward>*/
-/*D_8CF7*/static unsigned char STA_K;/*<backup tile_forward_1>*/
-/*D_8CF8*/static unsigned char STA_L;/*<backup tile_forward_2>*/
+/*D_8CF0*/static unsigned char STA_F;/*Party._x*/
+/*D_8CF2*/static unsigned STA_G;/*Party._dir*/
+/*D_8CF4*/static unsigned char STA_H;/*Party._y*/
+/*D_8CF5*/static unsigned char STA_I;/*tile_cur*/
+/*D_8CF6*/static unsigned char STA_J;/*tile_forward*/
+/*D_8CF7*/static unsigned char STA_K;/*tile_forward2*/
+/*D_8CF8*/static unsigned char STA_L;/*tile_forward3*/
 /*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
  uninitialised statics in the order of its symbol table, which depends on the names.
  Renaming them would move them; the readable names are macros.*/
@@ -68,101 +83,120 @@ int /*D_2DEE*/MonsterAnimTick = 0;
 #define Saved_forward STA_J
 #define Saved_forward2 STA_K
 #define Saved_forward3 STA_L
+/*the static of RenderSquare3D*/
 #define MonsterFrame D_8CFA
 
-/*render force fields?*/
-/*C_A7F2*/DrawField3D(bp04)
-unsigned char bp04;
+/*
+ * Draw a force field across the near edge of the square at the current depth; its
+ * kind (poison/energy/fire/sleep) is the low 2 bits of tile.
+ */
+/*C_A7F2*/DrawField3D(tile)
+unsigned char tile;
 {
 	Gra_FillTiles(
 		(Wall_y1[Depth] - Wall_y0[Depth] + 1) / 16,
 		(Wall_x1[Depth] - Wall_x0[Depth] + 1) / 16,
-		(bp04 & 3) | 0x44,
+		(tile & 3) | TIL_POISON_FIELD,
 		Wall_y0[Depth],
 		Wall_x0[Depth] >> 2
 	);
 }
 
-/*drawLine*/
-/*C_A842*/DrawLine(bp0a, bp08, bp06, bp04)
-int bp0a;
-int bp08;
-int bp06;
-int bp04;
+/*
+ * Draw a slanted line from (x0, y0) to (x1, y1) (Bresenham), ORing colour 3.
+ * Called by Gra_Line (U4_GRAPH.ASM) for the lines that are neither horizontal nor
+ * vertical.
+ */
+/*C_A842*/DrawLine(x0, y0, x1, y1)
+int x0;
+int y0;
+int x1;
+int y1;
 {
-	int loc_A, loc_B, loc_C, loc_D, loc_E;
+	int y, stepX, stepY, acc, x;
 
-	loc_E = bp0a;
-	loc_A = bp08;
-	loc_B = u4_sign(bp06 - bp0a);
-	loc_C = u4_sign(bp04 - bp08);
+	x = x0;
+	y = y0;
+	stepX = u4_sign(x1 - x0);
+	stepY = u4_sign(y1 - y0);
 
-	if(u4_abs(bp0a - bp06) < u4_abs(bp08 - bp04)) {
-		loc_D = u4_abs(bp04 - bp08) / 2;
+	if(u4_abs(x0 - x1) < u4_abs(y0 - y1)) {
+		acc = u4_abs(y1 - y0) / 2;
 		do {
-			Gra_DotOr(loc_A, loc_E, 3);
-			loc_A += loc_C;
-			loc_D -= u4_abs(bp06 - bp0a);
-			if(loc_D <= 0) {
-				loc_E += loc_B;
-				loc_D += u4_abs(bp04 - bp08);
+			Gra_DotOr(y, x, 3);
+			y += stepY;
+			acc -= u4_abs(x1 - x0);
+			if(acc <= 0) {
+				x += stepX;
+				acc += u4_abs(y1 - y0);
 			}
-		} while(loc_A != bp04);
+		} while(y != y1);
 	} else {
-		loc_D = u4_abs(bp06 - bp0a) / 2;
+		acc = u4_abs(x1 - x0) / 2;
 		do {
-			Gra_DotOr(loc_A, loc_E, 3);
-			loc_E += loc_B;
-			loc_D -= u4_abs(bp04 - bp08);
-			if(loc_D <= 0) {
-				loc_A += loc_C;
-				loc_D += u4_abs(bp06 - bp0a);
+			Gra_DotOr(y, x, 3);
+			x += stepX;
+			acc -= u4_abs(y1 - y0);
+			if(acc <= 0) {
+				y += stepY;
+				acc += u4_abs(x1 - x0);
 			}
-		} while(loc_E != bp06);
+		} while(x != x1);
 	}
-	Gra_DotOr(loc_A, loc_E, 3);
+	Gra_DotOr(y, x, 3);
 }
 
-/*up pit*/
+/*
+ * Draw a hole in the ceiling of the square at the current depth.
+ */
 /*C_A94A*/DrawCeilingHole()
 {
-	register int si;
+	register int d;
 
-	si = Depth;
-	Gra_Line(HoleL_x0[si],   Hole_y0[si], HoleL_x1[si],   Hole_y1[si], 3);
-	Gra_Line(HoleL_x0[si]+1, Hole_y0[si], HoleL_x1[si]+1, Hole_y1[si], 3);
-	Gra_Line(HoleL_x1[si]+1, Hole_y1[si], HoleR_x1[si],   Hole_y1[si], 3);
-	Gra_Line(HoleR_x1[si],   Hole_y1[si], HoleR_x0[si],   Hole_y0[si], 3);
-	Gra_Line(HoleR_x1[si]-1, Hole_y1[si], HoleR_x0[si]-1, Hole_y0[si], 3);
-	Gra_Line(HoleR_x0[si]-1, Hole_y0[si], HoleL_x0[si]+1, Hole_y0[si], 3);
+	d = Depth;
+	Gra_Line(HoleL_x0[d],   Hole_y0[d], HoleL_x1[d],   Hole_y1[d], 3);
+	Gra_Line(HoleL_x0[d]+1, Hole_y0[d], HoleL_x1[d]+1, Hole_y1[d], 3);
+	Gra_Line(HoleL_x1[d]+1, Hole_y1[d], HoleR_x1[d],   Hole_y1[d], 3);
+	Gra_Line(HoleR_x1[d],   Hole_y1[d], HoleR_x0[d],   Hole_y0[d], 3);
+	Gra_Line(HoleR_x1[d]-1, Hole_y1[d], HoleR_x0[d]-1, Hole_y0[d], 3);
+	Gra_Line(HoleR_x0[d]-1, Hole_y0[d], HoleL_x0[d]+1, Hole_y0[d], 3);
 }
 
-/*low pit*/
+/*
+ * Draw a hole in the floor of the square at the current depth.
+ */
 /*C_AA29*/DrawFloorHole()
 {
-	register int si;
+	register int d;
 
-	si = Depth;
-	Gra_Line(HoleL_x0[si],   FloorHole_y0[si], HoleL_x1[si],   FloorHole_y1[si], 3);
-	Gra_Line(HoleL_x0[si]+1, FloorHole_y0[si], HoleL_x1[si]+1, FloorHole_y1[si], 3);
-	Gra_Line(HoleL_x1[si]+1, FloorHole_y1[si], HoleR_x1[si],   FloorHole_y1[si], 3);
-	Gra_Line(HoleR_x1[si],   FloorHole_y1[si], HoleR_x0[si],   FloorHole_y0[si], 3);
-	Gra_Line(HoleR_x1[si]-1, FloorHole_y1[si], HoleR_x0[si]-1, FloorHole_y0[si], 3);
-	Gra_Line(HoleR_x0[si]-1, FloorHole_y0[si], HoleL_x0[si]+1, FloorHole_y0[si], 3);
+	d = Depth;
+	Gra_Line(HoleL_x0[d],   FloorHole_y0[d], HoleL_x1[d],   FloorHole_y1[d], 3);
+	Gra_Line(HoleL_x0[d]+1, FloorHole_y0[d], HoleL_x1[d]+1, FloorHole_y1[d], 3);
+	Gra_Line(HoleL_x1[d]+1, FloorHole_y1[d], HoleR_x1[d],   FloorHole_y1[d], 3);
+	Gra_Line(HoleR_x1[d],   FloorHole_y1[d], HoleR_x0[d],   FloorHole_y0[d], 3);
+	Gra_Line(HoleR_x1[d]-1, FloorHole_y1[d], HoleR_x0[d]-1, FloorHole_y0[d], 3);
+	Gra_Line(HoleR_x0[d]-1, FloorHole_y0[d], HoleL_x0[d]+1, FloorHole_y0[d], 3);
 }
 
-/*C_AB08*/Special3D(bp04)
-unsigned char bp04;
+/*
+ * The object of dungeon tile in the square at the current depth. Returns the
+ * tile of the sprite to draw (TIL_SHIP_RAIL for a field, which is drawn here), 0 if
+ * nothing (traps sometimes flicker as a hole: a hint), -1 for doors, rooms and walls.
+ * For fields, cursor_delay (the cursor delay, see u_delay) is adjusted to the time the
+ * redraw takes.
+ */
+/*C_AB08*/Special3D(tile)
+unsigned char tile;
 {
 	if(PitAnimTick-- == 0)
 		PitAnimTick = speed_info - 1;
-	switch(bp04 & 0xf0) {
-		default: return ((bp04 & 0xf0) < 0xc0)?0:-1;
+	switch(tile & 0xf0) {
+		default: return ((tile & 0xf0) < 0xc0)?0:-1;
 		case 0x40: return TIL_CHEST;
 		case 0x70: return TIL_MAGIC_BOLT;
 		case 0x80:
-			if(PitAnimTick == 1 && U4_RND1(0x3f) == 0 && (bp04 & 0xf)) {
-				if((bp04 & 0x0f) >= 8)
+			if(PitAnimTick == 1 && U4_RND1(0x3f) == 0 && (tile & 0xf)) {
+				if((tile & 0x0f) >= 8)
 					DrawFloorHole();
 				else
 					DrawCeilingHole();
@@ -170,12 +204,12 @@ unsigned char bp04;
 		return 0;
 		case 0x90: return TIL_SHALLOWS;
 		case 0xa0:
-			DrawField3D((bp04 & 3) | TIL_POISON_FIELD);
+			DrawField3D((tile & 3) | TIL_POISON_FIELD);
 			switch(Depth) {
-				case 0: cursor_rate = 0; break;
-				case 1: cursor_rate = 1; break;
-				case 2: cursor_rate = 6; break;
-				case 3: cursor_rate = 10; break;
+				case 0: cursor_delay = 0; break;
+				case 1: cursor_delay = 1; break;
+				case 2: cursor_delay = 6; break;
+				case 3: cursor_delay = 10; break;
 			}
 		return TIL_SHIP_RAIL;
 		case 0xb0: return TIL_ALTAR;
@@ -183,88 +217,102 @@ unsigned char bp04;
 	return -1;
 }
 
-/*isSpriteRenderable?*/
-/*C_ABE5*/IsMonster3D(bp04)
-unsigned char bp04;
+/*
+ * Is there a monster (the low nibble) on this dungeon tile? Traps, fountains,
+ * fields and doors/rooms/walls have other uses for the low nibble.
+ */
+/*C_ABE5*/IsMonster3D(tile)
+unsigned char tile;
 {
-	register int si;
+	register int kind;
 
-	si = bp04 & 0xf0;
+	kind = tile & 0xf0;
 	if(
-		si == 0x80 ||
-		si == 0x90 ||
-		si == 0xa0 ||
-		si >= 0xd0
+		kind == 0x80 ||
+		kind == 0x90 ||
+		kind == 0xa0 ||
+		kind >= 0xd0
 	) return 0;
-	if(!(bp04 & 0x0f))
+	if(!(tile & 0x0f))
 		return 0;
 	return 1;
 }
 
-/*render sprites?*/
-/*C_AC23*/DrawSprite3D(bp04)
-unsigned char bp04;
+/*
+ * Draw tile as a sprite in the square at the current depth, zoomed (x3, x2, x1 or
+ * shrunk), then wait a while, shorter when near (the zoomed drawings take longer).
+ */
+/*C_AC23*/DrawSprite3D(tile)
+unsigned char tile;
 {
-	register int loc_B;
-	long loc_A;
+	register int line;
+	long pause;
 
-	cursor_rate = 0;
+	cursor_delay = 0;
 	switch(Depth) {
 		case 0:
-			for(loc_B = 0; loc_B < 48; loc_B++)
-				Gra_ZoomTileRow(bp04, loc_B / 3, loc_B + 0x70, 0x14, 2);
-			loc_A = 1000 * speed_info;
-			while(--loc_A);
+			for(line = 0; line < 48; line++)
+				Gra_ZoomTileRow(tile, line / 3, line + 0x70, 0x14, 2);
+			pause = 1000 * speed_info;
+			while(--pause);
 		break;
 		case 1:
-			for(loc_B = 0; loc_B < 32; loc_B++)
-				Gra_ZoomTileRow(bp04, loc_B >> 1, loc_B + 0x68, 0x14, 2);
-			loc_A = 1200 * speed_info;
-			while(--loc_A);
+			for(line = 0; line < 32; line++)
+				Gra_ZoomTileRow(tile, line >> 1, line + 0x68, 0x14, 2);
+			pause = 1200 * speed_info;
+			while(--pause);
 		break;
 		case 2:
-			Gra_FillTiles(1, 1, bp04, 0x60, 0x16);
-			loc_A = 2400 * speed_info;
-			while(--loc_A);
+			Gra_FillTiles(1, 1, tile, 0x60, 0x16);
+			pause = 2400 * speed_info;
+			while(--pause);
 		break;
 		case 3:
-			for(loc_B = 0; loc_B < 8; loc_B ++)
-				Gra_ZoomTileRow(bp04, loc_B << 1, loc_B + 0x60, 0x16, 1);
-			loc_A = 3000 * speed_info;
-			while(--loc_A);
+			for(line = 0; line < 8; line ++)
+				Gra_ZoomTileRow(tile, line << 1, line + 0x60, 0x16, 1);
+			pause = 3000 * speed_info;
+			while(--pause);
 		break;
 	}
 }
 
-/*C_AD6A*/RenderSquare3D(bp06, bp04)
-unsigned char bp06;
-int bp04;
+/*
+ * Draw the monster or object of dungeon tile, at the given depth. Returns 0 when
+ * the squares behind are hidden (by a sprite, a room entrance, a wall, or a door
+ * other than the one the party stands in), else 1.
+ */
+/*C_AD6A*/RenderSquare3D(tile, depth)
+unsigned char tile;
+int depth;
 {
 	static int D_8CFA;
-	int bp_02;
+	int spriteTile;
 
-	Depth = bp04;
+	Depth = depth;
 	if(MonsterAnimTick-- == 0) {
 		MonsterAnimTick = speed_info - 1;
 		MonsterFrame = U4_RND1(3);
 	}
-	if(IsMonster3D(bp06)) {
-		DrawSprite3D(TIL_RAT + ((bp06 & 0xf) << 2) - 4 + MonsterFrame);
+	if(IsMonster3D(tile)) {
+		DrawSprite3D(TIL_RAT + ((tile & 0xf) << 2) - 4 + MonsterFrame);
 		return 0;
 	}
-	if((bp_02 = Special3D(bp06)) > 0) {
-		if(bp_02 != TIL_SHIP_RAIL)
-			DrawSprite3D(bp_02);
+	if((spriteTile = Special3D(tile)) > 0) {
+		if(spriteTile != TIL_SHIP_RAIL)
+			DrawSprite3D(spriteTile);
 		return 0;
 	}
-	if(bp_02 != 0) {
-		if(Depth != 0 || bp06 >= 0xd0)
+	if(spriteTile != 0) {
+		if(Depth != 0 || tile >= 0xd0)
 			return 0;
 	}
 	return 1;
 }
 
-/*animate 3D sprites?*/
+/*
+ * Draw the sprites (monsters, objects, fields) of the 4 squares ahead, from the
+ * nearest, until one hides the rest; without light, only clears the view.
+ */
 /*C_ADEF*/RenderSprites3D()
 {
 	if(Party._fly_light == 0) {
@@ -280,61 +328,61 @@ int bp04;
 	RenderSquare3D(tile_forward3, 3);
 }
 
-/*compute nearest tiles*/
+/*
+ * Read the dungeon tiles behind the party, under it, and 1, 2 and 3 squares ahead.
+ */
 /*C_AE41*/DNG_LookAround()
 {
-	unsigned char bp_04, bp_02;
+	unsigned char x, y;
 
 	/*back*/
-	bp_04 = DNG_X_m(Party._x, Party._dir);
-	bp_02 = DNG_Y_m(Party._y, Party._dir);
-	tile_back = Area._map.x8x8x8[Party._z][bp_02][bp_04];
+	x = DNG_X_m(Party._x, Party._dir);
+	y = DNG_Y_m(Party._y, Party._dir);
+	tile_back = Area._map.x8x8x8[Party._z][y][x];
 	/*current tile*/
 	tile_cur = Area._map.x8x8x8[Party._z][Party._y][Party._x];
 	/*forward*/
-	bp_04 = DNG_X_p(Party._x, Party._dir);
-	bp_02 = DNG_Y_p(Party._y, Party._dir);
-	tile_forward = Area._map.x8x8x8[Party._z][bp_02][bp_04];
-	/*another 2 steps forward*/
-	bp_04 = DNG_X_p(bp_04, Party._dir);
-	bp_02 = DNG_Y_p(bp_02, Party._dir);
-	tile_forward2 = Area._map.x8x8x8[Party._z][bp_02][bp_04];
+	x = DNG_X_p(Party._x, Party._dir);
+	y = DNG_Y_p(Party._y, Party._dir);
+	tile_forward = Area._map.x8x8x8[Party._z][y][x];
+	/*2 and 3 squares ahead*/
+	x = DNG_X_p(x, Party._dir);
+	y = DNG_Y_p(y, Party._dir);
+	tile_forward2 = Area._map.x8x8x8[Party._z][y][x];
 
-	bp_04 = DNG_X_p(bp_04, Party._dir);
-	bp_02 = DNG_Y_p(bp_02, Party._dir);
-	tile_forward3 = Area._map.x8x8x8[Party._z][bp_02][bp_04];
+	x = DNG_X_p(x, Party._dir);
+	y = DNG_Y_p(y, Party._dir);
+	tile_forward3 = Area._map.x8x8x8[Party._z][y][x];
 }
 
-/*compute the actual x,y of the expected square on the map
- according to current {x, y, orientation}
- Depth: current depth of rendering
- bp04: current column of rendering:
- .-1 left
- . 0 straight
- .+1 right*/
-/*C_AF36*/DNG_SquareAt(getX, getY, bp04)
+/*
+ * Map coordinates (*getX, *getY) of the square at the current depth ahead of the
+ * party, in column side (-1 left, 0 straight ahead, +1 right), according to the
+ * party's position and facing (the level wraps around).
+ */
+/*C_AF36*/DNG_SquareAt(getX, getY, side)
 register int *getX;
 register int *getY;
-int bp04;
+int side;
 {
 	*getX = Party._x;
 	*getY = Party._y;
 	switch(Party._dir) {
 		case DIR_N:
 			*getY -= Depth; *getY &= 7;
-			*getX += bp04;   *getX &= 7;
+			*getX += side;   *getX &= 7;
 		break;
 		case DIR_S:
 			*getY += Depth; *getY &= 7;
-			*getX -= bp04;   *getX &= 7;
+			*getX -= side;   *getX &= 7;
 		break;
 		case DIR_E:
 			*getX += Depth; *getX &= 7;
-			*getY += bp04;   *getY &= 7;
+			*getY += side;   *getY &= 7;
 		break;
 		case DIR_W:
 			*getX -= Depth; *getX &= 7;
-			*getY -= bp04;   *getY &= 7;
+			*getY -= side;   *getY &= 7;
 		break;
 	}
 }
@@ -342,51 +390,57 @@ int bp04;
 #define VERTICAL(x, y0, y1, c) Gra_Line((unsigned char)(x), (y0), (unsigned char)(x), (y1), (c));
 #define HORIZONTAL(x0, y, x1, c) Gra_Line((unsigned char)(x0), (y), (unsigned char)(x1), (y), (c));
 
-/*up ladder*/
+/*
+ * Draw a ladder going up (through a hole in the ceiling) at the current depth; seen
+ * edge-on when facing north or south.
+ */
 /*C_AFB5*/DrawLadderUp()
 {
-	register int si;
+	register int d;
 
-	si = Depth;
+	d = Depth;
 	DrawCeilingHole();
 	if(Party._dir == DIR_N || Party._dir == DIR_S) {
-		VERTICAL(0x5f,   Hole_y0[si], 0x5f, 3);
-		VERTICAL(0x5f+1, Hole_y0[si], 0x5f, 3);
+		VERTICAL(0x5f,   Hole_y0[d], 0x5f, 3);
+		VERTICAL(0x5f+1, Hole_y0[d], 0x5f, 3);
 	} else {
 		/*left stile*/
-		VERTICAL(Ladder_x0[si],   Hole_y0[si], 0x5e, 3);
-		VERTICAL(Ladder_x0[si]+1, Hole_y0[si], 0x5e, 3);
+		VERTICAL(Ladder_x0[d],   Hole_y0[d], 0x5e, 3);
+		VERTICAL(Ladder_x0[d]+1, Hole_y0[d], 0x5e, 3);
 		/*right stile*/
-		VERTICAL(Ladder_x1[si],   Hole_y0[si], 0x5e, 3);
-		VERTICAL(Ladder_x1[si]-1, Hole_y0[si], 0x5e, 3);
+		VERTICAL(Ladder_x1[d],   Hole_y0[d], 0x5e, 3);
+		VERTICAL(Ladder_x1[d]-1, Hole_y0[d], 0x5e, 3);
 		/*rungs*/
-		HORIZONTAL(Ladder_x0[si], LadderUp_y1[si], Ladder_x1[si], 3);
-		HORIZONTAL(Ladder_x0[si], LadderUp_y2[si], Ladder_x1[si], 3);
-		HORIZONTAL(Ladder_x0[si], LadderUp_y3[si], Ladder_x1[si], 3);
+		HORIZONTAL(Ladder_x0[d], LadderUp_y1[d], Ladder_x1[d], 3);
+		HORIZONTAL(Ladder_x0[d], LadderUp_y2[d], Ladder_x1[d], 3);
+		HORIZONTAL(Ladder_x0[d], LadderUp_y3[d], Ladder_x1[d], 3);
 	}
 }
 
-/*down ladder*/
+/*
+ * Draw a ladder going down (through a hole in the floor) at the current depth; seen
+ * edge-on when facing north or south.
+ */
 /*C_B0E9*/DrawLadderDown()
 {
-	register int si;
+	register int d;
 
-	si = Depth;
+	d = Depth;
 	DrawFloorHole();
 	if(Party._dir == DIR_N || Party._dir == DIR_S) {
-		VERTICAL(0x5f,   FloorHole_y0[si], 0x5f, 3);
-		VERTICAL(0x5f+1, FloorHole_y0[si], 0x5f, 3);
+		VERTICAL(0x5f,   FloorHole_y0[d], 0x5f, 3);
+		VERTICAL(0x5f+1, FloorHole_y0[d], 0x5f, 3);
 	} else {
 		/*left stile*/
-		VERTICAL(Ladder_x0[si],   0x5f, FloorHole_y0[si], 3);
-		VERTICAL(Ladder_x0[si]+1, 0x5f, FloorHole_y0[si], 3);
+		VERTICAL(Ladder_x0[d],   0x5f, FloorHole_y0[d], 3);
+		VERTICAL(Ladder_x0[d]+1, 0x5f, FloorHole_y0[d], 3);
 		/*right stile*/
-		VERTICAL(Ladder_x1[si],   0x5f, FloorHole_y0[si], 3);
-		VERTICAL(Ladder_x1[si]-1, 0x5f, FloorHole_y0[si], 3);
+		VERTICAL(Ladder_x1[d],   0x5f, FloorHole_y0[d], 3);
+		VERTICAL(Ladder_x1[d]-1, 0x5f, FloorHole_y0[d], 3);
 		/*rungs*/
-		HORIZONTAL(Ladder_x0[si], LadderDown_y1[si], Ladder_x1[si], 3);
-		HORIZONTAL(Ladder_x0[si], LadderDown_y2[si], Ladder_x1[si], 3);
-		HORIZONTAL(Ladder_x0[si], LadderDown_y3[si], Ladder_x1[si], 3);
+		HORIZONTAL(Ladder_x0[d], LadderDown_y1[d], Ladder_x1[d], 3);
+		HORIZONTAL(Ladder_x0[d], LadderDown_y2[d], Ladder_x1[d], 3);
+		HORIZONTAL(Ladder_x0[d], LadderDown_y3[d], Ladder_x1[d], 3);
 	}
 }
 
@@ -394,13 +448,14 @@ int bp04;
 #undef HORIZONTAL
 
 /*Gra_DrawQuad(
-	x0, x1,
-	y0, y1,
-	y0p, y1p,
-	col0, col1
-);*/
+	x0, x1,      the two vertical edges
+	y0, y1,      top and bottom at x0
+	y0p, y1p,    top and bottom at x1
+	col0, col1   colours
+);
+The walls facing north/south and those facing east/west get different colours.*/
 
-/*front wall?*/
+/*the wall (or door) across the near edge of the square at the current depth*/
 /*C_B21D*/DrawFrontWall()
 {
 	Gra_DrawQuad(
@@ -411,8 +466,8 @@ int bp04;
 	);
 }
 
-/*left front wall?*/
-/*C_B25E*/DrawLeftFrontWall()
+/*the far wall of the open square left of the current depth, seen through the opening*/
+/*C_B25E*/DrawLeftFarWall()
 {
 	Gra_DrawQuad(
 		Wall_x0[Depth],   Wall_x0[Depth+1],
@@ -422,8 +477,8 @@ int bp04;
 	);
 }
 
-/*right front wall?*/
-/*C_B29C*/DrawRightFrontWall()
+/*the far wall of the open square right of the current depth*/
+/*C_B29C*/DrawRightFarWall()
 {
 	Gra_DrawQuad(
 		Wall_x1[Depth],   Wall_x1[Depth+1],
@@ -433,7 +488,7 @@ int bp04;
 	);
 }
 
-/*left lateral wall?*/
+/*the side wall on the left of the square at the current depth*/
 /*C_B2DA*/DrawLeftSideWall()
 {
 	Gra_DrawQuad(
@@ -444,7 +499,7 @@ int bp04;
 	);
 }
 
-/*right lateral wall?*/
+/*the side wall on the right of the square at the current depth*/
 /*C_B31B*/DrawRightSideWall()
 {
 	Gra_DrawQuad(
@@ -455,7 +510,7 @@ int bp04;
 	);
 }
 
-/*front door?*/
+/*the opening of a door drawn by DrawFrontWall*/
 /*C_B35C*/DrawFrontDoor()
 {
 	Gra_DrawQuad(
@@ -466,7 +521,7 @@ int bp04;
 	);
 }
 
-/*left door?*/
+/*a door in the left side wall*/
 /*C_B3AE*/DrawLeftDoor()
 {
 	Gra_DrawQuad(
@@ -477,7 +532,7 @@ int bp04;
 	);
 }
 
-/*right door?*/
+/*a door in the right side wall*/
 /*C_B3E3*/DrawRightDoor()
 {
 	Gra_DrawQuad(
@@ -488,13 +543,16 @@ int bp04;
 	);
 }
 
-/*right walls*/
+/*
+ * Draw what is on the right at the current depth: the wall of the next square seen
+ * beyond an opening, or a side wall (with a door for doors and rooms).
+ */
 /*C_B418*/DrawRightWalls()
 {
-	int bp_02, bp_04;
+	int y, x;
 
-	DNG_SquareAt(&bp_04, &bp_02, 1);
-	switch(Area._map.x8x8x8[Party._z][bp_02][bp_04] >> 4) {
+	DNG_SquareAt(&x, &y, 1);
+	switch(Area._map.x8x8x8[Party._z][y][x] >> 4) {
 		case 0x0:
 		case 0x1:
 		case 0x2:
@@ -506,7 +564,7 @@ int bp04;
 		case 0x8:
 		case 0x9:
 		case 0xa:
-		case 0xb: DrawRightFrontWall(); break;
+		case 0xb: DrawRightFarWall(); break;
 		case 0xc:
 		case 0xd: DrawRightSideWall(); DrawRightDoor(); break;
 		case 0xe:
@@ -514,13 +572,15 @@ int bp04;
 	}
 }
 
-/*left & right walls*/
-/*C_B47A*/DrawSideWalls()
+/*
+ * Same as DrawRightWalls for the left side, then the right side.
+ */
+/*C_B47A*/DrawLeftWalls()
 {
-	int bp_02, bp_04;
+	int y, x;
 
-	DNG_SquareAt(&bp_04, &bp_02, -1);
-	switch(Area._map.x8x8x8[Party._z][bp_02][bp_04] >> 4) {
+	DNG_SquareAt(&x, &y, -1);
+	switch(Area._map.x8x8x8[Party._z][y][x] >> 4) {
 		case 0x0:
 		case 0x1:
 		case 0x2:
@@ -532,7 +592,7 @@ int bp04;
 		case 0x8:
 		case 0x9:
 		case 0xa:
-		case 0xb: DrawLeftFrontWall(); break;
+		case 0xb: DrawLeftFarWall(); break;
 		case 0xc:
 		case 0xd: DrawLeftSideWall(); DrawLeftDoor(); break;
 		case 0xe:
@@ -541,43 +601,50 @@ int bp04;
 	DrawRightWalls();
 }
 
-/*render 3d*/
+/*
+ * Draw the walls, doors, ladders and holes of the view, from the party's square to
+ * 3 squares ahead, stopping at the first door (other than the one the party stands
+ * in), room entrance, field or wall; then the wall 4 squares ahead if there is one.
+ */
 /*C_B4DF*/Render3D()
 {
-	int bp_04, bp_02;
+	int x, y;
 
-	bp_04 = Party._x;
-	bp_02 = Party._y;
+	x = Party._x;
+	y = Party._y;
 	for(Depth = 0; Depth <= 3; Depth ++) {
-		DNG_SquareAt(&bp_04, &bp_02, 0);
-		switch(Area._map.x8x8x8[Party._z][bp_02][bp_04] & 0xf0) {
-			case 0x30: DrawLadderDown();
+		DNG_SquareAt(&x, &y, 0);
+		switch(Area._map.x8x8x8[Party._z][y][x] & 0xf0) {
+			case 0x30: DrawLadderDown();/*no break: up and down*/
 			case 0x10: DrawLadderUp();
 			case 0x00:
 			case 0x40:
 			case 0x70:
 			case 0x80:
 			case 0x90:
-			case 0xb0: DrawSideWalls(); break;
-			case 0x20: DrawLadderDown(); DrawSideWalls(); break;
-			case 0x50: DrawCeilingHole(); DrawSideWalls(); break;
-			case 0x60: DrawFloorHole(); DrawSideWalls(); break;
+			case 0xb0: DrawLeftWalls(); break;
+			case 0x20: DrawLadderDown(); DrawLeftWalls(); break;
+			case 0x50: DrawCeilingHole(); DrawLeftWalls(); break;
+			case 0x60: DrawFloorHole(); DrawLeftWalls(); break;
 			case 0xc0: DrawFrontWall(); DrawFrontDoor(); if(Depth) return; break;
 			case 0xd0: DrawFrontWall(); DrawFrontDoor(); return;
-			case 0xa0: DrawField3D(Area._map.x8x8x8[Party._z][bp_02][bp_04]); return;
+			case 0xa0: DrawField3D(Area._map.x8x8x8[Party._z][y][x]); return;
 			case 0xe0:
 			case 0xf0: DrawFrontWall(); return;
 		}
 	}
 	Depth = 4;
-	DNG_SquareAt(&bp_04, &bp_02, 0);
+	DNG_SquareAt(&x, &y, 0);
 	if(
-		(Area._map.x8x8x8[Party._z][bp_02][bp_04] & 0xf0) == 0xf0 ||
-		(Area._map.x8x8x8[Party._z][bp_02][bp_04] & 0xf0) == 0xe0
+		(Area._map.x8x8x8[Party._z][y][x] & 0xf0) == 0xf0 ||
+		(Area._map.x8x8x8[Party._z][y][x] & 0xf0) == 0xe0
 	) DrawFrontWall();
 }
 
-/*backup dungeon infos & render 3D*/
+/*
+ * Remember the state the view is drawn for, then clear the view and draw it (only
+ * with light).
+ */
 /*C_B61C*/Render3DNow()
 {
 	Saved_z = Party._z;
@@ -595,12 +662,16 @@ int bp04;
 		Render3D();
 }
 
-/*render 3d if necessary*/
+/*
+ * Redraw the dungeon view if something visible changed since the last redraw: the
+ * party's position, facing or light, or a tile in view (only the tiles up to the
+ * first one that blocks the view count).
+ */
 /*C_B677*/DNG_Render()
 {
-	unsigned char bp_02;
+	unsigned char kind;
 
-	cursor_rate = (Party._fly_light != 0)?13:1;
+	cursor_delay = (Party._fly_light != 0)?13:1;
 	DNG_LookAround();
 	if(
 		Redraw3D == 0 &&
@@ -611,20 +682,22 @@ int bp04;
 		Saved_tile == tile_cur &&
 		Saved_dark == (Party._fly_light == 0)
 	) {
-		bp_02 = tile_cur & 0xf0;
-		if(bp_02 == 0xa0 || bp_02 >= 0xd0)
+		kind = tile_cur & 0xf0;
+		if(kind == 0xa0 || kind >= 0xd0)
 			return;
 		if(tile_forward != Saved_forward)
-			goto C_B729;
-		if((bp_02 = tile_forward & 0xf0) == 0xa0 || bp_02 >= 0xc0)
+			goto redraw;
+		if((kind = tile_forward & 0xf0) == 0xa0 || kind >= 0xc0)
 			return;
 		if(tile_forward2 != Saved_forward2)
-			goto C_B729;
-		if((bp_02 = tile_forward2 & 0xf0) == 0xa0 || bp_02 >= 0xc0)
+			goto redraw;
+		if((kind = tile_forward2 & 0xf0) == 0xa0 || kind >= 0xc0)
 			return;
-		if(Saved_forward3 == Saved_forward3/*bug?*/)
+		/*original bug: compares Saved_forward3 with itself (always true) instead
+		  of with tile_forward3, so a change 3 squares ahead never forces a redraw*/
+		if(Saved_forward3 == Saved_forward3)
 			return;
 	}
-C_B729:
+redraw:
 	Render3DNow();
 }

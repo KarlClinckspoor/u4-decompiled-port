@@ -6,36 +6,53 @@
 
 #include "u4.h"
 
+/*
+ * Sleep field: each conscious character falls asleep one time in 4.
+ */
 /*C_919A*/SleepParty()
 {
-	register int si;
+	register int chara;
 
-	for(si = Party._members; --si >= 0; ) {
-		if(isCharaConscious(si) && U4_RND1(3) == 0) {
-			Party.chara[si]._stat = 'S';
-			FlashChara(si);
+	for(chara = Party._members; --chara >= 0; ) {
+		if(isCharaConscious(chara) && U4_RND1(3) == 0) {
+			Party.chara[chara]._stat = 'S';
+			FlashChara(chara);
 			dspl_Stats();
 		}
 	}
 }
 
+/*
+ * Swamp or poison field: each character in good health is poisoned one time in 8.
+ */
 /*C_91D1*/PoisonParty()
 {
-	register int si;
+	register int chara;
 
-	for(si = Party._members; --si >= 0; ) {
-		if(Party.chara[si]._stat == 'G' && U4_RND1(7) == 0) {
-			Party.chara[si]._stat = 'P';
-			FlashChara(si);
+	for(chara = Party._members; --chara >= 0; ) {
+		if(Party.chara[chara]._stat == 'G' && U4_RND1(7) == 0) {
+			Party.chara[chara]._stat = 'P';
+			FlashChara(chara);
 			dspl_Stats();
 		}
 	}
 }
 
-/*randomEvent*/
+/*
+ * The effects of the tile the party (in combat: the active character) stands on,
+ * at the start of each turn:
+ * - outdoors, on a bridge: bridge trolls attack one time in 8;
+ * - nothing while flying the balloon;
+ * - in combat, on the active character only: swamp/poison field poison, sleep field
+ *   sleep, fire field/lava 16-47 damage;
+ * - in a dungeon: the fields (0xA0 poison, 0xA2 fire, 0xA3 sleep; the energy field
+ *   0xA1 cannot be entered) and the traps (0x80 winds blow the torch out, 0x81-0x87
+ *   falling rocks, 0x88-0x8F pit);
+ * - elsewhere: swamp/poison field, fire field/lava, sleep field, on the whole party.
+ */
 /*C_9209*/TileEffects()
 {
-	unsigned bp_02;
+	unsigned damage;
 
 	if(CurMode == MOD_OUTDOORS && tile_cur == TIL_BRIDGE && U4_RND1(7) == 0) {
 		u4_puts(/*D_2998*/"\nBridge Trolls!\n");
@@ -69,8 +86,8 @@
 			break;
 			case TIL_FIRE_FIELD: case TIL_LAVA:
 				FlashChara(activeChara);
-				bp_02 = U4_RND3(32) + 16;
-				hitChara(activeChara, bp_02);
+				damage = U4_RND3(32) + 16;
+				hitChara(activeChara, damage);
 			break;
 		}
 		return;

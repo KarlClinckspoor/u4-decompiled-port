@@ -6,6 +6,8 @@
 
 #include "u4.h"
 
+/*how each tile (0x00-0x7F) is drawn on the gem map: one of the 4x4 dot patterns
+  of ShowAreaMap, 0 = left black*/
 unsigned char /*D_2F72*/GemMapStyle[] = {
 	0x0C,0x0B,0x0A,0x01,0x01,0x09,0x02,0x08,0x07,0x05,0x05,0x05,0x05,0x04,0x04,0x04,
 	0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x04,0x05,0x04,0x04,0x05,0x05,0x06,0x06,0x05,
@@ -17,36 +19,47 @@ unsigned char /*D_2F72*/GemMapStyle[] = {
 	0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x06,0x00,0x07
 };
 
+/*character drawn on the dungeon gem map for each kind of dungeon tile (tile >> 4)*/
 int /*D_2FF2*/DngMapChars[] = {0x20, 0x06, 0x05, 0x04, 0x24, 0x20, 0x20, 0x0F, 0x54, 0x46, 0x5E, 0x00, 0x0E, 0x0E, 0x02, 0x03};
 
-#define MK_COORD(a, b) (((a)+8)*4 + (b))
-#define PT(x,y,c) Gra_Dot(MK_COORD(loc_A,(x)),MK_COORD(loc_C,(y)),(c));
-/*green?*/
-#define PT_1(x,y) PT((x),(y),1)
-/*blue?*/
-#define PT_2(x,y) PT((x),(y),2)
-/*white?*/
-#define PT_3(x,y) PT((x),(y),3)
+/*screen coordinate of dot d (0-3) of map cell n: each cell is 4x4 dots, the map
+  starts 8 cells from the corner of the view. Gra_Dot takes (y, x, colour).*/
+#define MK_COORD(n, d) (((n)+8)*4 + (d))
+/*draw dot (dy, dx) of the current cell (row, col)*/
+#define PT(dy,dx,c) Gra_Dot(MK_COORD(row,(dy)),MK_COORD(col,(dx)),(c));
+/*colour 1 (green?)*/
+#define PT_1(dy,dx) PT((dy),(dx),1)
+/*colour 2 (blue?)*/
+#define PT_2(dy,dx) PT((dy),(dx),2)
+/*colour 3 (white)*/
+#define PT_3(dy,dx) PT((dy),(dx),3)
 
 static unsigned char D_8CFC[600];
 static unsigned char D_8F54[22][22];
 /*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
  uninitialised statics in the order of its symbol table, which depends on the names.
  Renaming them would move them; the readable names are macros.*/
+/*ShowDungeonMap's flood fill: stack of (screen y, screen x, map y, map x) entries*/
 #define FloodStack D_8CFC
+/*ShowDungeonMap's flood fill: screen positions already drawn*/
 #define FloodSeen D_8F54
 
-/*C_B9EF*/ShowTownMap(bp04/*display player pos*/)
-unsigned bp04;
+/*
+ * Gem view of a 32x32 map (town, castle, or the part of the world around the
+ * party): each tile is drawn as a 4x4 dot pattern. If showParty, the party's
+ * position blinks (a moving bar) until a key is pressed.
+ */
+/*C_B9EF*/ShowAreaMap(showParty)
+unsigned showParty;
 {
-	int loc_A, loc_B, loc_C;
+	int row, savedMode, col;
 
-	loc_B = CurMode; CurMode = MOD_VISION;
+	savedMode = CurMode; CurMode = MOD_VISION;
 	Gra_ClearView();
-	for(loc_A = 0; loc_A < 32; loc_A++) {
-	for(loc_C = 0; loc_C < 32; loc_C++) {
-		if(Area._map.x32x32[loc_A][loc_C] < 0x80) {
-			switch(GemMapStyle[Area._map.x32x32[loc_A][loc_C]]) {
+	for(row = 0; row < 32; row++) {
+	for(col = 0; col < 32; col++) {
+		if(Area._map.x32x32[row][col] < 0x80) {
+			switch(GemMapStyle[Area._map.x32x32[row][col]]) {
 				case 1:/*grass*/
 					PT_1(0,1);
 					PT_1(1,3);
@@ -83,7 +96,7 @@ unsigned bp04;
 					PT_3(3,2);
 					PT_3(3,3);
 				break;
-				case 5:/*dungeon/town*//*C_BCA0:*/
+				case 5:/*dungeon/town*/
 					PT_3(1,1);
 					PT_3(2,1);
 					PT_3(1,2);
@@ -150,106 +163,116 @@ unsigned bp04;
 					PT_2(2,2);
 				break;
 				case 12:/*deep water*/
-					PT_3(2*(loc_C&1),2);
+					PT_3(2*(col&1),2);
 				break;
 			}
-		} else {/*goto C_BCA0;*/
+		} else {/*creatures and people: drawn like case 5*/
 			PT_3(1,1);
 			PT_3(2,1);
 			PT_3(1,2);
 			PT_3(2,2);
 		}
-/*C_BD04*/
 	}
 	}
-/*C_BD1C*/
-	loc_C = 0;
+	/*col is now the blinking counter*/
+	col = 0;
 	u_kbflush();
-/*C_C174*/
-	for(; !u_kbhit(); loc_C++) {
-		if(bp04) {
-			Gra_DotXor(MK_COORD(WinPos.y,0), MK_COORD(WinPos.x,loc_C&3), 3);
-			Gra_DotXor(MK_COORD(WinPos.y,1), MK_COORD(WinPos.x,loc_C&3), 3);
-			Gra_DotXor(MK_COORD(WinPos.y,2), MK_COORD(WinPos.x,loc_C&3), 3);
-			Gra_DotXor(MK_COORD(WinPos.y,3), MK_COORD(WinPos.x,loc_C&3), 3);
+	for(; !u_kbhit(); col++) {
+		if(showParty) {
+			Gra_DotXor(MK_COORD(WinPos.y,0), MK_COORD(WinPos.x,col&3), 3);
+			Gra_DotXor(MK_COORD(WinPos.y,1), MK_COORD(WinPos.x,col&3), 3);
+			Gra_DotXor(MK_COORD(WinPos.y,2), MK_COORD(WinPos.x,col&3), 3);
+			Gra_DotXor(MK_COORD(WinPos.y,3), MK_COORD(WinPos.x,col&3), 3);
 		}
 	}
 	u_kbread();
-	CurMode = loc_B;
+	CurMode = savedMode;
 }
 #undef PT
 #undef MK_COORD
 
+/*
+ * Gem view of the current dungeon level: starting from the party (in the middle of
+ * a 22x22 character area), flood-fill outwards through everything that is not a wall,
+ * printing a character for each tile reached. The 8x8 level wraps around, so it is
+ * repeated until the edges of the area.
+ */
 /*C_C23B*/ShowDungeonMap()
 {
-	int loc_A, loc_B;
-	register unsigned loc_C;
-	int loc_D, loc_E, loc_F;
+	int y, h;
+	register unsigned sp;
+	int v, prevMode, x;
 
-	loc_E = CurMode; CurMode = MOD_VISION;
+	prevMode = CurMode; CurMode = MOD_VISION;
 	Gra_ClearView();
 	txt_Y = 21; do { txt_X = 21; do {
 		FloodSeen[txt_Y][txt_X] = 0;
 	} while(--txt_X >= 0); } while(--txt_Y >= 0);
 
-	loc_C = 0;
-	FloodStack[loc_C++] = txt_Y = 11;
-	FloodStack[loc_C++] = txt_X = 11;
-	FloodStack[loc_C++] = Party._y;
-	FloodStack[loc_C++] = Party._x;
+	sp = 0;
+	FloodStack[sp++] = txt_Y = 11;
+	FloodStack[sp++] = txt_X = 11;
+	FloodStack[sp++] = Party._y;
+	FloodStack[sp++] = Party._x;
 	FloodSeen[10][10] = 1;
-	Gra_PutChar(0x01);
-/*C_C2B5*/
+	Gra_PutChar(0x01);/*the party*/
 	do {
-		loc_F = FloodStack[--loc_C];
-		loc_A = FloodStack[--loc_C];
-		txt_X = FloodStack[--loc_C] - 1;
-		txt_Y = FloodStack[--loc_C] - 1;
-		for(loc_B = -1; loc_B < 2; txt_X ++, txt_Y -= 3, loc_B++) {
-/*C_C2E0*/
-			for(loc_D = -1; loc_D < 2; txt_Y ++, loc_D++) {
-				if((loc_B | loc_D)) {
-					int bp_0e, bp_10;
-					bp_0e = (loc_B + loc_F) & 7;
-					bp_10 = (loc_D + loc_A) & 7;
+		x = FloodStack[--sp];
+		y = FloodStack[--sp];
+		txt_X = FloodStack[--sp] - 1;
+		txt_Y = FloodStack[--sp] - 1;
+		/*the 8 neighbours: h and v are the horizontal and vertical offsets*/
+		for(h = -1; h < 2; txt_X ++, txt_Y -= 3, h++) {
+			for(v = -1; v < 2; txt_Y ++, v++) {
+				if((h | v)) {
+					int nextX, nextY;
+					nextX = (h + x) & 7;
+					nextY = (v + y) & 7;
 					if(
 						txt_Y < 1 || txt_Y > 22 ||
 						txt_X < 1 || txt_X > 22 ||
 						FloodSeen[txt_Y-1][txt_X-1]
 					) continue;
-/*C_C347*/
-					Gra_PutChar(DngMapChars[Area._map.x8x8x8[Party._z][bp_10][bp_0e] >> 4]);
-					if((Area._map.x8x8x8[Party._z][bp_10][bp_0e] & 0xf0) != 0xf0) {
-						FloodStack[loc_C++] = txt_Y;
-						FloodStack[loc_C++] = txt_X;
-						FloodStack[loc_C++] = bp_10;
-						FloodStack[loc_C++] = bp_0e;
-						if(loc_C >= 600)
-							loc_C = 0;
+					Gra_PutChar(DngMapChars[Area._map.x8x8x8[Party._z][nextY][nextX] >> 4]);
+					if((Area._map.x8x8x8[Party._z][nextY][nextX] & 0xf0) != 0xf0) {
+						FloodStack[sp++] = txt_Y;
+						FloodStack[sp++] = txt_X;
+						FloodStack[sp++] = nextY;
+						FloodStack[sp++] = nextX;
+						/*overflow: wraps to the bottom (and if it ends at 0
+						  the loop stops)*/
+						if(sp >= 600)
+							sp = 0;
 						FloodSeen[txt_Y-1][txt_X-1] = 1;
 					}
 				}
-/*C_C33E*/
 			}
 		}
-	} while(loc_C);
+	} while(sp);
 	txt_Y = 23;
 	txt_X = 24;
 	u_kbflush();
 	u_kbread();
-	CurMode = loc_E;
+	CurMode = prevMode;
 	Redraw3D = 1;
 }
 
+/*
+ * Gem view (also the View spell): the dungeon map in dungeons, else the 32x32 map with
+ * the party's position.
+ */
 /*C_C403*/ShowMap()
 {
-	if(Party._loc >= 0x11) {
+	if(Party._loc >= LOC_DUNGEONS) {
 		ShowDungeonMap();
 	} else {
-		ShowTownMap(1);
+		ShowAreaMap(1);
 	}
 }
 
+/*
+ * (P)eer at a gem: uses one gem to show the map.
+ */
 /*C_C41D*/CMD_Peer()
 {
 	u4_puts(/*D_3012*/"Peer at ");

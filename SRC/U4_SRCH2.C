@@ -12,128 +12,151 @@ MODULE SEARCH[dungeon]
 
 char * /*D_2E04*/MsgHmmmNoEffect[] = {/*D_2DF0*/"\nHmmm--No Effect!\n"};
 
-/*C_B730*/HurtChara(bp06, bp04)
-int bp06;
-int bp04;
+/*
+ * Hurt character #chara for 100 * hundreds hit points, flashing its status line
+ * and playing the "hurt" sound three times.
+ */
+/*C_B730*/HurtChara(chara, hundreds)
+int chara;
+int hundreds;
 {
-	Gra_InvertStatusLine(bp06);
-	sound(7);
-	sound(7);
-	sound(7);
-	Gra_InvertStatusLine(bp06);
-	hitChara(bp06, 100 * bp04);
+	Gra_InvertStatusLine(chara);
+	sound(SND_HURT);
+	sound(SND_HURT);
+	sound(SND_HURT);
+	Gra_InvertStatusLine(chara);
+	hitChara(chara, 100 * hundreds);
 }
 
-/*increment characteristic (max 50)*/
-/*C_B770*/AddStat(bp06, bp04)
-int *bp06;
-int bp04;
+/*
+ * Add amount to the characteristic (strength, dexterity or intelligence) *stat,
+ * capped at 50.
+ */
+/*C_B770*/AddStat(stat, amount)
+int *stat;
+int amount;
 {
-	*bp06 += bp04;
-	*bp06 = (*bp06 > 50)?50:*bp06;
+	*stat += amount;
+	*stat = (*stat > 50)?50:*stat;
 }
 
-int /*D_2E6E*/BallDamage[] = {2,2,2,4,4,4,6,6};/*magical ball hits points*/
-int /*D_2E7E*/BallStats[][8] = {/*magical ball characteristic*/
+/*damage (in hundreds of hit points) of the magic ball of each dungeon*/
+int /*D_2E6E*/BallDamage[] = {2,2,2,4,4,4,6,6};
+/*characteristics raised by the magic ball of each dungeon: [0] strength,
+  [1] dexterity, [2] intelligence; nonzero = +5*/
+int /*D_2E7E*/BallStats[][8] = {
 	{0,0,5,0,5,5,5,0},
 	{0,5,0,5,5,0,5,0},
 	{5,0,0,5,0,5,5,0}
 };
 
-/*magical ball*/
+/*
+ * Search found a magic ball: a chosen character touches it, takes damage and gains
+ * +5 in the characteristic(s) of this dungeon's ball. The ball is removed from the map.
+ */
 /*C_B795*/TouchBall()
 {
-	int bp_02;
+	int chara;
 
 	u4_puts(/*D_2E06*/"\nYou find a Magical Ball...\n");
-	if((bp_02 = AskChara(/*D_2E23*/"Who touches?\x12\x12\b")) < 0)
+	if((chara = AskChara(/*D_2E23*/"Who touches?\x12\x12\b")) < 0)
 		return;
-	if(!isCharaConscious(bp_02)) {
+	if(!isCharaConscious(chara)) {
 		u4_puts(/*D_2E33*/"\nDisabled!\n");
 		return;
 	}
 	Area._map.x8x8x8[Party._z][Party._y][Party._x] = 0;
-	HurtChara(bp_02, BallDamage[Party._loc - 0x11]);
+	HurtChara(chara, BallDamage[Party._loc - LOC_DUNGEONS]);
 	/*-- which characteristic(s) ? --*/
-	if(BallStats[0][Party._loc - 0x11]) {
-		AddStat(&(Party.chara[bp_02]._str), 5);
+	if(BallStats[0][Party._loc - LOC_DUNGEONS]) {
+		AddStat(&(Party.chara[chara]._str), 5);
 		u4_puts(/*D_2E3F*/"Strength + 5\n");
 	}
-	if(BallStats[1][Party._loc - 0x11]) {
-		AddStat(&(Party.chara[bp_02]._dex), 5);
+	if(BallStats[1][Party._loc - LOC_DUNGEONS]) {
+		AddStat(&(Party.chara[chara]._dex), 5);
 		u4_puts(/*D_2E4D*/"Dexterity + 5\n");
 	}
-	if(BallStats[2][Party._loc - 0x11]) {
-		AddStat(&(Party.chara[bp_02]._int), 5);
+	if(BallStats[2][Party._loc - LOC_DUNGEONS]) {
+		AddStat(&(Party.chara[chara]._int), 5);
 		u4_puts(/*D_2E5C*/"Intelligence + 5\n");
 	}
 }
 
-/*fountain*/
+/*
+ * Search found a fountain: a chosen character drinks from it. The kind of fountain is
+ * the low nibble of the tile: 0 nothing, 1 heals fully, 2 hurts, 3 cures poison,
+ * 4 poisons (and hurts).
+ */
 /*C_B863*/DrinkFountain()
 {
-	int bp_02;
+	int chara;
 
 	u4_puts(/*D_2EAE*/"You find a Fountain.\n");
-	if((bp_02 = AskChara(/*D_2EC4*/"Who drinks?\x12\x12\b")) < 0)
+	if((chara = AskChara(/*D_2EC4*/"Who drinks?\x12\x12\b")) < 0)
 		return;
-	if(!isCharaConscious(bp_02)) {
+	if(!isCharaConscious(chara)) {
 		u4_puts(/*D_2ED3*/"\nDisabled!\n");
 		return;
 	}
 	switch(tile_cur & 0xf) {
 		case 0:	u4_puts(MsgHmmmNoEffect[0]); break;
 		case 1:
-			if(Party.chara[bp_02]._HP[0] == Party.chara[bp_02]._HP[1]) {
+			if(Party.chara[chara]._HP[0] == Party.chara[chara]._HP[1]) {
 				u4_puts(MsgHmmmNoEffect[0]);
 			} else {
 				u4_puts(/*D_2EDF*/"\nAhh-Refreshing!\n");
-				Party.chara[bp_02]._HP[0] = Party.chara[bp_02]._HP[1];
+				Party.chara[chara]._HP[0] = Party.chara[chara]._HP[1];
 			}
 		break;
 		case 2:
 			u4_puts(/*D_2EF1*/"\nBleck--Nasty!\n");
-			HurtChara(bp_02, 1);
+			HurtChara(chara, 1);
 		return;
 		case 3:
-			if(Party.chara[bp_02]._stat != 'P') {
+			if(Party.chara[chara]._stat != 'P') {
 				u4_puts(MsgHmmmNoEffect[0]);
 			} else {
-				Party.chara[bp_02]._stat = 'G';
+				Party.chara[chara]._stat = 'G';
 				u4_puts(/*D_2F01*/"\nHmm--Delicious!\n");
 			}
 		break;
 		case 4:
-			if(Party.chara[bp_02]._stat == 'P') {
+			if(Party.chara[chara]._stat == 'P') {
 				u4_puts(MsgHmmmNoEffect[0]);
 			} else {
-				Party.chara[bp_02]._stat = 'P';
+				Party.chara[chara]._stat = 'P';
 				u4_puts(/*D_2F13*/"\nArgh-Choke-Gasp!\n");
-				HurtChara(bp_02, 1);
+				HurtChara(chara, 1);
 			};
 		break;
 	}
 }
 
-/*found stone*/
+/*
+ * Search found an altar with a stone: gives this dungeon's stone once (Hythloth and
+ * the Abyss have none), with +5 honor and 200 experience to the first character.
+ */
 /*C_B93F*/FindStone()
 {
 	if(
-		Party._loc == 0x17 || Party._loc == 0x18 ||
-		TST_MSK(Party.mStones, Party._loc - 0x11)
+		Party._loc == LOC_HYTHLOTH || Party._loc == LOC_ABYSS ||
+		TST_MSK(Party.mStones, Party._loc - LOC_DUNGEONS)
 	) {
 		u4_puts(/*D_2F26*/"\nYou find Nothing!\n");
 		return;
 	}
-	SET_MSK(Party.mStones, Party._loc - 0x11);
+	SET_MSK(Party.mStones, Party._loc - LOC_DUNGEONS);
 	u4_puts(/*D_2F3A*/"\nYou find the ");
-	u4_puts(StoneColors[Party._loc - 0x11]);
+	u4_puts(StoneColors[Party._loc - LOC_DUNGEONS]);
 	u4_puts(/*D_2F49*/" stone!\n");
 	karma_inc(&(Party._honor), 5);
 	XP_inc(0, 200);
 }
 
-/*(S)earch [dungeon]*/
+/*
+ * (S)earch in a dungeon: the high nibble of the current tile tells what is here
+ * (0x70 magic ball, 0x90 fountain, 0xB0 altar with a stone).
+ */
 /*C_B9B2*/DNG_Search()
 {
 	u4_puts(/*D_2F52*/"Search...\n");

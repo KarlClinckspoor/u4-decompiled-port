@@ -6,6 +6,7 @@
 
 #include "u4.h"
 
+/*reagent bits in a recipe: reagent r is 0x80 >> r*/
 #define RG_ash        (0x80>>0)
 #define RG_ginseng    (0x80>>1)
 #define RG_garlic     (0x80>>2)
@@ -15,6 +16,7 @@
 #define RG_nightshade (0x80>>6)
 #define RG_mandrake   (0x80>>7)
 
+/*the reagents of each spell's mixture*/
 unsigned char /*D_277E*/SpellRecipes[] = {
 	/*A*/RG_ginseng|RG_garlic,
 	/*B*/RG_spiderSilk|RG_bloodMoss,
@@ -44,14 +46,22 @@ unsigned char /*D_277E*/SpellRecipes[] = {
 	/*Z*/RG_spiderSilk|RG_bloodMoss
 };
 
+/*
+ * (M)ix reagents: choose a spell, then add reagents one by one; Enter mixes them
+ * (a success if they are exactly the spell's recipe, the reagents are used up
+ * either way), Escape gives the reagents back and quits; the loop goes on with
+ * another spell until Escape.
+ * Note: choosing a reagent the party has none left of ends the mixture without
+ * giving back the reagents already added: they are lost (probable original bug).
+ */
 /*C_8C08*/CMD_Mix()
 {
-	register int si;
-	unsigned char loc_A[8];
-	int  loc_B, loc_C, loc_D;
-	char loc_E;
+	register int n;
+	unsigned char saved[8];
+	int  reagent, spellNo, cancel;
+	char mask;
 
-	loc_D = 0;
+	cancel = 0;
 	do {
 		Gra_ClearStatus();
 		ZtatsClearTitle();
@@ -59,52 +69,52 @@ unsigned char /*D_277E*/SpellRecipes[] = {
 		txt_Y = 23;
 		txt_X = 24;
 		u4_puts(/*D_270C*/"Mix Reagents\n");
-		if((loc_C = AskLetter(/*D_271A*/"For Spell:\x12\x12\b", 'A', 'Z')) < 0)
+		if((spellNo = AskLetter(/*D_271A*/"For Spell:\x12\x12\b", 'A', 'Z')) < 0)
 			break;
-		loc_C -= 'A';
-		u4_puts(Names[101 + loc_C]);
+		spellNo -= 'A';
+		u4_puts(Names[NAME_SPELLS + spellNo]);
 		Gra_CR();
 		Gra_ClearStatus();
 		ZtatsClearTitle();
-		for(si = 7; si >= 0; si --)
-			loc_A[si] = Party._reagents[si];
-		loc_E = 0;
+		for(n = 7; n >= 0; n --)
+			saved[n] = Party._reagents[n];
+		mask = 0;
 		while(1) {
 			ZtatsReagents();
 			txt_Y = 23;
 			txt_X = 24;
-			if((loc_B = AskLetter(/*D_2728*/"Reagent:\x12\x12\b", 'A', 'H')) == -2) {
-				for(si = 7; si >= 0; si --)
-					Party._reagents[si] = loc_A[si];
-				loc_D = 1;
+			if((reagent = AskLetter(/*D_2728*/"Reagent:\x12\x12\b", 'A', 'H')) == -2) {
+				for(n = 7; n >= 0; n --)
+					Party._reagents[n] = saved[n];
+				cancel = 1;
 				break;
 			}
-			if(loc_B == -1) {
-				if(loc_E == 0) {
+			if(reagent == -1) {
+				if(mask == 0) {
 					u4_puts(/*D_2734*/"\nNothing mixed!\n");
 				} else {
 					u4_puts(/*D_2745*/"\nYou mix the Reagents, and...\n");
-					loc_B = 0;
-					if(SpellRecipes[loc_C] == loc_E) {
+					reagent = 0;
+					if(SpellRecipes[spellNo] == mask) {
 						u4_puts(/*D_2764*/"Success!\n\n");
-						Party._mixtures[loc_C] ++;
-						if(Party._mixtures[loc_C] > 99)
-							Party._mixtures[loc_C] = 99;
+						Party._mixtures[spellNo] ++;
+						if(Party._mixtures[spellNo] > 99)
+							Party._mixtures[spellNo] = 99;
 					} else {
 						u4_puts(/*D_276F*/"It Fizzles!\n\n");
 					}
 				}
 				break;
 			}
-			loc_B -= 'A';
-			if(Party._reagents[loc_B] == 0) {
+			reagent -= 'A';
+			if(Party._reagents[reagent] == 0) {
 				w_NoneLeft();
 				break;
 			}
-			loc_E |= 0x80 >> loc_B;
-			Party._reagents[loc_B] --;
+			mask |= 0x80 >> reagent;
+			Party._reagents[reagent] --;
 		}
-	} while(loc_D == 0);
+	} while(cancel == 0);
 	Gra_ClearStatus();
 	ZtatsClearTitle();
 	dspl_Stats();

@@ -4,19 +4,23 @@
  * reverse-coded by Ergonomy Joe in 2012
  */
 
+/*
+ * All the names used by the game, in groups whose first index is given by the
+ * NAME_* constants of U4.H.
+ */
 char * /*D_1E98*/Names[] = {
 /*0 - null*/
 	/*D_19F2*/"",
-/*1 - sea creatures D_1E9A*/
+/*1 - NAME_CREATURES: sea creatures (by tile pair from TIL_PIRATE_W) D_1E9A*/
 	/*D_19F3*/"Pirate",
 	/*D_19FA*/"Pirate",
-	/*D_1901*/"Nixie",
-	/*D_1907*/"Squid",
+	/*D_1A01*/"Nixie",
+	/*D_1A07*/"Squid",
 	/*D_1A0D*/"Serpent",
 	/*D_1A15*/"Seahorse",
 	/*D_1A1E*/"Whirlpool",
 	/*D_1A28*/"Twister",
-/*9 - creatures D_1EAA*/
+/*9 - NAME_MONSTERS: monsters (by group of 4 tiles from TIL_RAT) D_1EAA*/
 	/*D_1A30*/"Rat",
 	/*D_1A34*/"Bat",
 	/*D_1A38*/"Spider",
@@ -28,7 +32,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1A5F*/"Reaper",
 	/*D_1A66*/"Insects",
 	/*D_1A6E*/"Gazer",
-	/*D_1A74*/"Phantom",
+	/*D_1A74*/"Phantom",/*20 - NAME_PHANTOM*/
 	/*D_1A7C*/"Orc",
 	/*D_1A80*/"Skeleton",
 	/*D_1A89*/"Rogue",
@@ -37,7 +41,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1A9C*/"Headless",
 	/*D_1AA5*/"Cyclops",
 	/*D_1AAD*/"Wisp",
-	/*D_1AB2*/"Mage",
+	/*D_1AB2*/"Mage",/*the evil mage*/
 	/*D_1AB7*/"Liche",
 	/*D_1ABD*/"Lava Lizard",
 	/*D_1AC9*/"Zorn",
@@ -45,7 +49,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1AD5*/"Hydra",
 	/*D_1ADB*/"Dragon",
 	/*D_1AE2*/"Balron",
-/*37 - weapons D_1EE2*/
+/*37 - NAME_WEAPONS: weapons (by WPN_*) D_1EE2*/
 	/*D_1AE9*/"Hands",
 	/*D_1AEF*/"Staff",
 	/*D_1AF5*/"Dagger",
@@ -62,7 +66,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1B48*/"Magic Bow",
 	/*D_1B52*/"Magic Wand",
 	/*D_1B5D*/"Mystic Sword",
-/*53 - armors D_1F02*/
+/*53 - NAME_ARMOURS: armours (by ARM_*) D_1F02*/
 	/*D_1B6A*/"Skin",
 	/*D_1B6F*/"Cloth",
 	/*D_1B75*/"Leather",
@@ -71,7 +75,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1B93*/"Magic Chain",
 	/*D_1B9F*/"Magic Plate",
 	/*D_1BAB*/"Mystic Robe",
-/*61 - weapons short codes D_1F12*/
+/*61 - NAME_WEAPON_CODES: weapons short codes (by WPN_*) D_1F12*/
 	/*D_1BB7*/"HND",
 	/*D_1BBB*/"STF",
 	/*D_1BBF*/"DAG",
@@ -88,7 +92,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1BEB*/"+BO",
 	/*D_1BEF*/"WND",
 	/*D_1BF3*/"^SW",
-/*77 - classes D_1F32*/
+/*77 - NAME_CLASSES: classes (by CLASS_*), then the townsfolk D_1F32*/
 	/*D_1BF7*/"Mage",
 	/*D_1BFC*/"Bard",
 	/*D_1C01*/"Fighter",
@@ -105,7 +109,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1C50*/"Child",
 	/*D_1C56*/"Bull",
 	/*D_1C5B*/"Lord British",
-/*96 - Reagents D_1F52*/
+/*93 - NAME_REAGENTS: reagents D_1F52*/
 	/*D_1C68*/"Sulfur Ash",
 	/*D_1C73*/"Ginseng",
 	/*D_1C7B*/"Garlic",
@@ -114,7 +118,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1C99*/"Black Pearl",
 	/*D_1CA5*/"Nightshade",
 	/*D_1CB0*/"Mandrake",
-/*101 - spells D_1F62*/
+/*101 - NAME_SPELLS: spells D_1F62*/
 	/*D_1CB9*/"Awaken",
 	/*D_1CC0*/"Blink",
 	/*D_1CC6*/"Cure",
@@ -141,8 +145,8 @@ char * /*D_1E98*/Names[] = {
 	/*D_1D5A*/"X-it",
 	/*D_1D5F*/"Y-up",
 	/*D_1D64*/"Z-down",
-/*127 - locations name D_1F96*/
-	/*D_1D6B*/"Britannia",
+/*127 - NAME_LOCATIONS: location names (by LOC_* - 1) D_1F96*/
+	/*D_1D6B*/"Britannia",/*Lord British's castle*/
 	/*D_1D75*/"The Lycaeum",
 	/*D_1D81*/"Empath Abbey",
 	/*D_1D8E*/"Serpents Hold",
@@ -166,7 +170,7 @@ char * /*D_1E98*/Names[] = {
 	/*D_1E20*/"Shame",
 	/*D_1E26*/"Hythloth",
 	/*D_1E2F*/"The Great Stygian Abyss!",
-/*151 - virtues D_1FC6*/
+/*151 - NAME_VIRTUES: virtues D_1FC6*/
 	/*D_1E48*/"Honesty",
 	/*D_1E50*/"Compassion",
 	/*D_1E5B*/"Valor",
@@ -175,6 +179,6 @@ char * /*D_1E98*/Names[] = {
 	/*D_1E73*/"Honor",
 	/*D_1E79*/"Spirituality",
 	/*D_1E86*/"Humility",
-/*159 - villager D_1FD6*/
+/*159 - NAME_VILLAGER D_1FD6*/
 	/*D_1E8F*/"Villager"
 };

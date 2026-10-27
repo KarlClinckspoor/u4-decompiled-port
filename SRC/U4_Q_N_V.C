@@ -9,13 +9,18 @@
 #include <string.h>
 #include <stdlib.h>
 
+/*
+ * (Q)uit & save: save the party, and the monsters outdoors, or the monsters
+ * and the map in a dungeon. Not possible in townes, castles or shrines.
+ * Despite the name, the game goes on.
+ */
 /*C_6F29*/CMD_Quit()
 {
 	u4_puts(/*D_21A2*/"Quit & Save...\n");
 	u4_putl(Party._moves, 1, '0');
 	u4_puts(/*D_21B2*/" moves\n");
 	if(Party._loc) {
-		if(Party._loc < 0x11 || Party._loc > 0x18) {
+		if(Party._loc < LOC_DUNGEONS || Party._loc > LOC_ABYSS) {
 			u4_puts(/*D_21BA*/"Not Here!\n");
 			return;
 		}
@@ -26,7 +31,7 @@
 		if(Save(/*D_21CF*/"MONSTERS.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 			exit(3);
 	}
-	if(Party._loc < 0x11 || Party._loc > 0x18)
+	if(Party._loc < LOC_DUNGEONS || Party._loc > LOC_ABYSS)
 		return;
 	if(Save(/*D_21DC*/"MONSTERS.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
@@ -36,49 +41,51 @@
 
 char /*D_21F4*/MsgMustLead[] = ", You must lead!\n";
 
-/*exchange two party members ?*/
-/*C_6FF9*/SwapCharas(bp06, bp04)
-struct tChara *bp06;
-struct tChara *bp04;
+/*Exchange the characters *a and *b.*/
+/*C_6FF9*/SwapCharas(a, b)
+struct tChara *a;
+struct tChara *b;
 {
-	struct tChara bp_28;
-	memcpy(&bp_28, bp06, sizeof(struct tChara));
-	memcpy(bp06, bp04, sizeof(struct tChara));
-	memcpy(bp04, &bp_28, sizeof(struct tChara));
+	struct tChara tmp;
+	memcpy(&tmp, a, sizeof(struct tChara));
+	memcpy(a, b, sizeof(struct tChara));
+	memcpy(b, &tmp, sizeof(struct tChara));
 }
 
+/*(N)ew order: exchange two party members; the Avatar (#1) must stay first.*/
 /*C_7034*/CMD_NewOrder()
 {
-	register struct tChara *loc_A, *loc_B;
-	struct tChara loc_E;/*not used*/
-	int loc_C, loc_D;
+	register struct tChara *pa, *pb;
+	struct tChara dummy;/*not used*/
+	int ia, ib;
 
 	u4_puts(/*D_2206*/"New Order!\n");
-	if((loc_C = AskChara(/*D_2212*/"Exchange #\x12\x12\b")) < 0)
+	if((ia = AskChara(/*D_2212*/"Exchange #\x12\x12\b")) < 0)
 		return;
-	loc_A = &(Party.chara[loc_C]);
-	if(loc_A == &(Party.chara[0])) {
+	pa = &(Party.chara[ia]);
+	if(pa == &(Party.chara[0])) {
 		u4_puts(Party.chara[0]._name);
 		u4_puts(MsgMustLead);
 		return;
 	}
-	if((loc_D = AskChara(/*D_2220*/"    with #\x12\x12\b")) < 0)
+	if((ib = AskChara(/*D_2220*/"    with #\x12\x12\b")) < 0)
 		return;
-	loc_B = &(Party.chara[loc_D]);
-	if(loc_B == &(Party.chara[0])) {
+	pb = &(Party.chara[ib]);
+	if(pb == &(Party.chara[0])) {
 		u4_puts(Party.chara[0]._name);
 		u4_puts(MsgMustLead);
 		return;
 	}
-	if(loc_A == loc_B) {
+	if(pa == pb) {
 		w_What();
 		return;
 	}
-	SwapCharas(loc_A, loc_B);
+	SwapCharas(pa, pb);
 	Gra_ClearStatus();
 	dspl_Stats();
 }
 
+/*(V)olume: toggle the sound effects.*/
 /*C_70AD*/CMD_Volume()
 {
 	u4_puts(/*D_222E*/"Volume O");

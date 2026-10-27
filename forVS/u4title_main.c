@@ -15,7 +15,7 @@ unsigned /*D_7082*/TwoDrives;
 unsigned equip_flags;
 struct tPSP *far_psp;
 void *pAnim;
-unsigned cursor_rate;
+unsigned cursor_delay;
 unsigned /*D_6E80*/MonstersShown;
 unsigned /*D_6E80*/MonstersShown;
 unsigned speed_info;

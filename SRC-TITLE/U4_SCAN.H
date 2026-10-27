@@ -4,7 +4,7 @@
 #define KBD_ESC    0x011b
 #define KBD_BS     0x0e08
 /*ctrl + backspace?*/
-#define KBD_0e7f   0x0e7f
+#define KBD_CTRL_BS   0x0e7f
 #define KBD_SPACE  0x3920
 #define KBD_ENTER  0x1c0d
 

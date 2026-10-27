@@ -6,7 +6,7 @@
 
 #include "u4.h"
 
-/*spells m.p. cost*/
+/*spells' magic points cost*/
 char /*D_208C*/SpellMPCost[] = {
 	 5,/*Awaken*/
 	15,/*Blink*/
@@ -38,32 +38,32 @@ char /*D_208C*/SpellMPCost[] = {
 
 static int /*D_8CCC*/CurSpell;/*current spell*/
 
-/*isUndead?*/
-/*C_636D*/IsUndead(bp04)
-int bp04;
+/*Is tile an undead monster (ghost, phantom, skeleton, liche)?*/
+/*C_636D*/IsUndead(tile)
+int tile;
 {
-	if(bp04 == TIL_GHOST || bp04 == TIL_PHANTOM || bp04 == TIL_SKELETON || bp04 == TIL_LICHE)
+	if(tile == TIL_GHOST || tile == TIL_PHANTOM || tile == TIL_SKELETON || tile == TIL_LICHE)
 		return 1;
 	return 0;
 }
 
+/*Print "Failed!".*/
 /*C_6399*/w_Failed()
 {
 	u4_puts(/*D_20A6*/"Failed!\n");
 	hit_tile = 0;
-	sound(8);
+	sound(SND_FAIL);
 }
 
-/*try "cast"*/
 /*
-	.consume m.p
-	.check 'N'egate
-*/
+ * Cast CurSpell: spend its magic points, with sound and flash. Returns 0
+ * (failed) when Negate is in effect, 1 otherwise.
+ */
 /*C_63B4*/SpellStart()
 {
 	Party.chara[activeChara]._MP -= SpellMPCost[CurSpell];
-	sound(10, SpellMPCost[CurSpell]);
-	Gra_InvertView(); sound(9, CurSpell+0x60); Gra_InvertView();
+	sound(SND_CAST, SpellMPCost[CurSpell]);
+	Gra_InvertView(); sound(SND_MAGIC, CurSpell+0x60); Gra_InvertView();
 	if(spell_effect == 'N') {
 		w_Failed();
 		return 0;
@@ -71,7 +71,7 @@ int bp04;
 	return 1;
 }
 
-/*assert outdoors only*/
+/*Returns 1 if outdoors, else fails and returns 0.*/
 /*C_6409*/SpellOutdoorsOnly()
 {
 	if(CurMode != MOD_OUTDOORS) {
@@ -82,7 +82,7 @@ int bp04;
 	return 1;
 }
 
-/*assert combat only*/
+/*Returns 1 if in combat, else fails and returns 0.*/
 /*C_6428*/SpellCombatOnly()
 {
 	if(CurMode < MOD_COMBAT) {
@@ -93,7 +93,7 @@ int bp04;
 	return 1;
 }
 
-/*assert dungeon only*/
+/*Returns 1 if in a dungeon, else fails and returns 0.*/
 /*C_6447*/SpellDungeonOnly()
 {
 	if(CurMode != MOD_DUNGEON) {
@@ -105,91 +105,101 @@ int bp04;
 }
  
 
-/*magic projectile ?*/
-/*C_6466*/SpellMissile(bp04)
-int bp04;
+/*
+ * Combat spell shooting a missile showing as tile in a direction, until it
+ * hits a foe or something that stops it. The damage depends on the tile: magic
+ * missile 16-63, iceball 32-255, fireball 24-127, kill (whirlpool tile) 232.
+ */
+/*C_6466*/SpellMissile(tile)
+int tile;
 {
-	register int loc_C, loc_D;
-	int loc_A, loc_B;
+	register int foe, points;
+	int dx, dy;
 
 	if(!SpellCombatOnly())
 		return;
-	AskDir(/*D_20DC*/"Dir: ", &loc_A, &loc_B);
-	if(!(loc_A|loc_B))
+	AskDir(/*D_20DC*/"Dir: ", &dx, &dy);
+	if(!(dx|dy))
 		return;
 	if(!SpellStart())
 		return;
-	hit_tile = bp04;
+	hit_tile = tile;
 	hit_x = Combat._charaX[activeChara];
 	hit_y = Combat._charaY[activeChara];
-	loc_C = -1;
+	foe = -1;
 	do {
-		if(!COM_CheckHitable(loc_A, loc_B))
+		if(!COM_MissileStep(dx, dy))
 			break;
 		DrawCombat();
-	} while((loc_C = COM_GetFighterId(hit_x, hit_y)) == -1);
-	if(loc_C == -1) {
+	} while((foe = COM_GetFighterId(hit_x, hit_y)) == -1);
+	if(foe == -1) {
 		w_Failed();
 		return;
 	}
-	sound(6);
+	sound(SND_HIT);
 	switch(hit_tile) {
-		case TIL_MISSILE: loc_D = U4_RND3(64) | 16; break;
-		case TIL_MAGIC_BOLT: loc_D = U4_RND3(224) | 32; break;
-		case TIL_HIT_FLASH: loc_D = U4_RND3(128) | 24; break;
-		default: loc_D = 224 | 8;
+		case TIL_MISSILE: points = U4_RND3(64) | 16; break;
+		case TIL_MAGIC_BOLT: points = U4_RND3(224) | 32; break;
+		case TIL_HIT_FLASH: points = U4_RND3(128) | 24; break;
+		default: points = 224 | 8;
 	}
 	hit_tile = 0;
-	COM_DoDamage(loc_C, activeChara, loc_D);
+	COM_DoDamage(foe, activeChara, points);
 }
 
 
+/*Awaken: wake up a sleeping party member.*/
 /*C_6558*/SPL_Awaken()
 {
-	register int si;
+	register int member;
 
-	si = AskChara(/*D_20E2*/"Who:\x12\x12\b");
-	if(si < 0)
+	member = AskChara(/*D_20E2*/"Who:\x12\x12\b");
+	if(member < 0)
 		return;
 	if(!SpellStart())
 		return;
-	if(Party.chara[si]._stat != 'S') {
+	if(Party.chara[member]._stat != 'S') {
 		w_Failed();
 		return;
 	}
-	Party.chara[si]._stat = 'G';
+	Party.chara[member]._stat = 'G';
 	if(CurMode >= MOD_COMBAT) {
-		CharaAnimTile[si] = Fighters._chtile[si] = CharaTile(si);
+		CharaAnimTile[member] = Fighters._chtile[member] = CharaTile(member);
 	}
 }
 
+/*
+ * Blink: outdoors, on foot or on horseback, jump in a direction to the
+ * farthest walkable square of the loaded map window. Not when both coordinates
+ * are 0xc0 or more (the Abyss' corner of the world).
+ */
 /*C_65AA*/SPL_Blink()
 {
-	int loc_A, loc_B;
-	unsigned char loc_C, loc_D;
+	int dx, dy;
+	unsigned char dest_x, dest_y;
 
 	if(Party._tile >= TIL_HORSE_W && Party._tile != TIL_BALLOON) {
 		if(!SpellOutdoorsOnly())
 			return;
-		AskDir(/*D_20EA*/"Dir: ", &loc_A, &loc_B);
-		if(!(loc_A|loc_B))
+		AskDir(/*D_20EA*/"Dir: ", &dx, &dy);
+		if(!(dx|dy))
 			return;
 		if(!SpellStart())
 			return;
 		if((Party._x & Party._y) < 0xc0) {
-			loc_C = WinPos.x;
-			loc_D = WinPos.y;
-			while(loc_C < 32 && loc_D < 32) {
-				loc_C += loc_A;
-				loc_D += loc_B;
+			dest_x = WinPos.x;
+			dest_y = WinPos.y;
+			while(dest_x < 32 && dest_y < 32) {
+				dest_x += dx;
+				dest_y += dy;
 			}
 			do {
-				loc_C -= loc_A;
-				loc_D -= loc_B;
-			} while((loc_C != WinPos.x || loc_D != WinPos.y) && !IsWalkable(Area._map.x32x32[loc_D][loc_C]));
-			if(WinPos.x != loc_C || WinPos.y != loc_D) {
-				Party._x += loc_C - WinPos.x;
-				Party._y += loc_D - WinPos.y;
+				dest_x -= dx;
+				dest_y -= dy;
+			} while((dest_x != WinPos.x || dest_y != WinPos.y) && !IsWalkable(Area._map.x32x32[dest_y][dest_x]));
+			if(WinPos.x != dest_x || WinPos.y != dest_y) {
+				Party._x += dest_x - WinPos.x;
+				Party._y += dest_y - WinPos.y;
 				LoadWorldWindow();
 				return;
 			}
@@ -198,119 +208,130 @@ int bp04;
 	w_Failed();
 }
 
+/*Cure: cure a poisoned party member.*/
 /*C_669B*/SPL_Cure()
 {
-	register int si;
+	register int member;
 
-	if((si = AskChara(/*D_20F0*/"Who:\x12\x12\b")) < 0)
+	if((member = AskChara(/*D_20F0*/"Who:\x12\x12\b")) < 0)
 		return;
 	if(!SpellStart())
 		return;
-	if(Party.chara[si]._stat != 'P') {
+	if(Party.chara[member]._stat != 'P') {
 		w_Failed();
 		return;
 	}
-	Party.chara[si]._stat = 'G';
+	Party.chara[member]._stat = 'G';
 }
 
+/*
+ * Dispel a field: in a dungeon, the one ahead; elsewhere, the one in the given
+ * direction, replaced by the tile under the caster (not while flying).
+ */
 /*C_66DA*/SPL_Dispel()
 {
-	int loc_A, loc_B;
-	unsigned char *loc_C;
+	int dx, dy;
+	unsigned char *p_field;
 
 	if(CurMode == MOD_DUNGEON) {
 		if(!SpellStart())
 			return;
-		loc_C = &(Area._map.x8x8x8[Party._z][DNG_Y_p(Party._y, Party._dir)][DNG_X_p(Party._x, Party._dir)]);
-		if((*loc_C & 0xf0) != 0xa0) {
+		p_field = &(Area._map.x8x8x8[Party._z][DNG_Y_p(Party._y, Party._dir)][DNG_X_p(Party._x, Party._dir)]);
+		if((*p_field & 0xf0) != 0xa0) {
 			w_Failed();
 			return;
 		}
-		*loc_C = 0;
+		*p_field = 0;
 		return;
 	}
 	if(CurMode <= MOD_BUILDING && Party._fly_light) {
 		w_Failed();
 		return;
 	}
-	AskDir(/*D_20F8*/"Dir: ", &loc_A, &loc_B);
-	if(!(loc_A|loc_B))
+	AskDir(/*D_20F8*/"Dir: ", &dx, &dy);
+	if(!(dx|dy))
 		return;
 	if(!SpellStart())
 		return;
 	if(CurMode >= MOD_COMBAT) {
-		if(Combat._charaY[activeChara] + loc_B >= 11 || Combat._charaX[activeChara] + loc_A >= 11) {
+		if(Combat._charaY[activeChara] + dy >= 11 || Combat._charaX[activeChara] + dx >= 11) {
 			w_Failed();
 			return;
 		}
-		loc_C = &(Combat_MAP(Combat._charaY[activeChara]+loc_B, Combat._charaX[activeChara]+loc_A));
-		if(*loc_C < TIL_POISON_FIELD || *loc_C > TIL_SLEEP_FIELD) {
+		p_field = &(Combat_MAP(Combat._charaY[activeChara]+dy, Combat._charaX[activeChara]+dx));
+		if(*p_field < TIL_POISON_FIELD || *p_field > TIL_SLEEP_FIELD) {
 			w_Failed();
 			return;
 		}
-		*loc_C = Combat_MAP(Combat._charaY[activeChara], Combat._charaX[activeChara]);
+		*p_field = Combat_MAP(Combat._charaY[activeChara], Combat._charaX[activeChara]);
 		return;
 	}
 	if(CurMode == MOD_OUTDOORS) {
-		loc_C = &(Area._map.x32x32[WinPos.y+loc_B][WinPos.x+loc_A]);
+		p_field = &(Area._map.x32x32[WinPos.y+dy][WinPos.x+dx]);
 	} else {
-		if(Party._y + loc_B >= 32 || Party._x + loc_A >= 32) {
+		if(Party._y + dy >= 32 || Party._x + dx >= 32) {
 			w_Failed();
 			return;
 		}
-		loc_C = &(Area._map.x32x32[Party._y + loc_B][Party._x + loc_A]);
+		p_field = &(Area._map.x32x32[Party._y + dy][Party._x + dx]);
 	}
-	if(*loc_C < TIL_POISON_FIELD || *loc_C > TIL_SLEEP_FIELD) {
+	if(*p_field < TIL_POISON_FIELD || *p_field > TIL_SLEEP_FIELD) {
 		w_Failed();
 		return;
 	}
-	*loc_C = tile_cur;
+	*p_field = tile_cur;
 }
 
+/*
+ * Energy field of the type asked (Poison, Lightning, Fire, Sleep): in a
+ * dungeon, ahead; in combat, on a walkable square in the given direction.
+ * Probable original bug: in a dungeon, when the square ahead is not empty it
+ * says "Failed!" but still replaces it with the field.
+ */
 /*C_6882*/SPL_Energy()
 {
-	unsigned char *loc_D;
-	int loc_B;
-	int loc_A, loc_C, loc_E;
+	unsigned char *p_square;
+	int typed;
+	int dx, dy, field;
 
 	u4_puts(/*D_20FE*/"Energy type? ");
-	loc_B = (unsigned char)u_kbread();
+	typed = (unsigned char)u_kbread();
 /*bad hack:I must force the redefinition of u4_islower
-int order to get the compiler to provide
+in order to get the compiler to provide
 the original bytecode*/
 #define u4_islower(c) ((c) >= (int)'a' && (c) <= (int)'z')
-	u4_toupper(loc_B);
-	switch(loc_B) {
-		case 'P'/*oison*/:    loc_E = TIL_POISON_FIELD; break;
-		case 'L'/*ightning*/: loc_E = TIL_ENERGY_FIELD; break;
-		case 'F'/*ire*/:      loc_E = TIL_FIRE_FIELD; break;
-		case 'S'/*leep*/:     loc_E = TIL_SLEEP_FIELD; break;
-		default: loc_E = -1;
+	u4_toupper(typed);
+	switch(typed) {
+		case 'P'/*oison*/:    field = TIL_POISON_FIELD; break;
+		case 'L'/*ightning*/: field = TIL_ENERGY_FIELD; break;
+		case 'F'/*ire*/:      field = TIL_FIRE_FIELD; break;
+		case 'S'/*leep*/:     field = TIL_SLEEP_FIELD; break;
+		default: field = -1;
 	}
-	if(loc_E == -1) {
+	if(field == -1) {
 		w_Failed();
 		return;
 	}
-	u4_putc(loc_B);
+	u4_putc(typed);
 	Gra_CR();
 	if(CurMode == MOD_DUNGEON) {
 		if(!SpellStart())
 			return;
-		loc_D = &(Area._map.x8x8x8[Party._z][DNG_Y_p(Party._y, Party._dir)][DNG_X_p(Party._x, Party._dir)]);
-		if(*loc_D)
+		p_square = &(Area._map.x8x8x8[Party._z][DNG_Y_p(Party._y, Party._dir)][DNG_X_p(Party._x, Party._dir)]);
+		if(*p_square)
 			w_Failed();
-		*loc_D = (loc_E&3) | 0xa0;
+		*p_square = (field&3) | 0xa0;
 		return;
 	}
 	if(CurMode >= MOD_COMBAT) {
-		AskDir(/*D_210C*/"Dir: ", &loc_A, &loc_C);
-		if(!(loc_A|loc_C))
+		AskDir(/*D_210C*/"Dir: ", &dx, &dy);
+		if(!(dx|dy))
 			return;
 		if(!SpellStart())
 			return;
-		if(Combat._charaY[activeChara] + loc_C < 11 && Combat._charaX[activeChara] + loc_A < 11) {
-			if(IsWalkable(*(loc_D = &(Combat_MAP(loc_C + Combat._charaY[activeChara], loc_A + Combat._charaX[activeChara]))))) {
-				*loc_D = loc_E;
+		if(Combat._charaY[activeChara] + dy < 11 && Combat._charaX[activeChara] + dx < 11) {
+			if(IsWalkable(*(p_square = &(Combat_MAP(dy + Combat._charaY[activeChara], dx + Combat._charaX[activeChara]))))) {
+				*p_square = field;
 				return;
 			}
 		}
@@ -318,13 +339,15 @@ the original bytecode*/
 	w_Failed();
 }
 
+/*Fireball: missile spell.*/
 /*C_69D7*/SPL_Fireball() {
 	SpellMissile(TIL_HIT_FLASH);
 }
 
+/*Gate: outdoors, not on a ship or the balloon, go to the moongate of a phase (1-8).*/
 /*C_69E5*/SPL_Gate()
 {
-	register int si;
+	register int phase;
 
 	if(Party._tile < TIL_HORSE_W || Party._tile == TIL_BALLOON) {
 		w_Failed();
@@ -332,37 +355,40 @@ the original bytecode*/
 	}
 	if(!SpellOutdoorsOnly())
 		return;
-	si = AskLetter(/*D_2112*/"To Phase:\x12\x12\b", '0', '8');
-	if(si < 0 || si == (int)'0')
+	phase = AskLetter(/*D_2112*/"To Phase:\x12\x12\b", '0', '8');
+	if(phase < 0 || phase == (int)'0')
 		return;
 	if(!SpellStart())
 		return;
-	si -= '1';
-	Party._x = MoongateX[si];
-	Party._y = MoongateY[si];
+	phase -= '1';
+	Party._x = MoongateX[phase];
+	Party._y = MoongateY[phase];
 	LoadWorldWindow();
 }
 
+/*Heal: give 75-99 hit points to a living party member.*/
 /*C_6A40*/SPL_Heal()
 {
-	register int si;
+	register int member;
 
-	if((si = AskChara(/*D_211F*/"Who?\x12\x12\b")) < 0)
+	if((member = AskChara(/*D_211F*/"Who?\x12\x12\b")) < 0)
 		return;
 	if(!SpellStart())
 		return;
-	if(!isCharaAlive(si)) {
+	if(!isCharaAlive(member)) {
 		w_Failed();
 		return;
 	}
-	HP_inc(si, U4_RND3(25) + 75);
+	HP_inc(member, U4_RND3(25) + 75);
 }
 
+/*Iceball: missile spell.*/
 /*C_6A82*/SPL_Iceball()
 {
 	SpellMissile(TIL_MAGIC_BOLT);
 }
 
+/*Jinx: for 10 turns, the foes may hit each other (see CheckJinx).*/
 /*C_6A90*/SPL_Jinx()
 {
 	if(!SpellStart())
@@ -371,11 +397,13 @@ the original bytecode*/
 	spell_turns = 10;
 }
 
+/*Kill: missile spell (shown with the whirlpool tile).*/
 /*C_6AA9*/SPL_Kill()
 {
 	SpellMissile(TIL_WHIRLPOOL);
 }
 
+/*Light: in a dungeon, 100 turns of light.*/
 /*C_6AB7*/SPL_Light()
 {
 	if(!SpellDungeonOnly())
@@ -387,11 +415,13 @@ the original bytecode*/
 		DNG_LookAround();
 }
 
+/*Magic missile: missile spell.*/
 /*C_6ADB*/SPL_MagicMisl()
 {
 	SpellMissile(TIL_MISSILE);
 }
   
+/*Negate: no magic for 10 turns.*/
 /*C_6AE9*/SPL_Negate()
 {
 	if(!SpellStart())
@@ -400,6 +430,10 @@ the original bytecode*/
 	spell_turns = 10;
 }
 
+/*
+ * Open a chest (not in the balloon); outside combat, its trap is always
+ * evaded, in combat the caster faces it.
+ */
 /*C_6B02*/SPL_Open()
 {
 	if(!SpellStart())
@@ -411,10 +445,11 @@ the original bytecode*/
 	if(CurMode >= MOD_COMBAT) {
 		COM_OpenChest();
 	} else {
-		OpenChest(-1);/*100% chance evasion*/
+		OpenChest(-1);/*no character: the trap is always evaded*/
 	}
 }
 
+/*Protection: for 10 turns, half of the foes' blows are parried.*/
 /*C_6B36*/SPL_Protection()
 {
 	if(!SpellStart())
@@ -423,6 +458,7 @@ the original bytecode*/
 	spell_turns = 10;
 }
 
+/*Quickness: for 10 turns (extra turns in combat, see COM_EndCharaTurn).*/
 /*C_6B4F*/SPL_Quickness()
 {
 	if(!SpellStart())
@@ -431,42 +467,49 @@ the original bytecode*/
 	spell_turns = 10;
 }
 
+/*Resurrect: bring a dead party member back to life (not in combat).*/
 /*C_6B68*/SPL_Resurrect()
 {
-	register int si;
+	register int member;
 
 	if(CurMode >= MOD_COMBAT) {
 		w_Failed();
 		return;
 	}
-	si = AskChara(/*D_2127*/"Who:\x12\x12\b");
-	if(si < 0)
+	member = AskChara(/*D_2127*/"Who:\x12\x12\b");
+	if(member < 0)
 		return;
 	if(!SpellStart())
 		return;
-	if(Party.chara[si]._stat != 'D') {
+	if(Party.chara[member]._stat != 'D') {
 		w_Failed();
 		return;
 	}
-	Party.chara[si]._stat = 'G';
+	Party.chara[member]._stat = 'G';
 }
 
+/*Sleep: in combat, put to sleep the foes (but undead and balrons) with less hit points than a random number.*/
 /*C_6BAE*/SPL_Sleep()
 {
-	register int si;
+	register int foe;
 
 	if(!SpellCombatOnly())
 		return;
 	if(!SpellStart())
 		return;
-	for(si = 15; si >= 0; si--)
-		if(Fighters._tile[si] && IsUndead(Fighters._tile[si]) == 0 && Fighters._tile[si] != TIL_BALRON && Fighters._HP[si] < u_rand_a())
-			Fighters._sleeping[si] = 1;
+	for(foe = 15; foe >= 0; foe--)
+		if(Fighters._tile[foe] && IsUndead(Fighters._tile[foe]) == 0 && Fighters._tile[foe] != TIL_BALRON && Fighters._HP[foe] < u_rand_a())
+			Fighters._sleeping[foe] = 1;
 }
 
+/*
+ * Tremor: in combat, each foe under 192 hit points is either killed (1 time
+ * out of 2), or set to 23 hit points (1 time out of 4: this can heal a weak
+ * one), or unharmed.
+ */
 /*C_6BF8*/SPL_Tremor()
 {
-	register int si;
+	register int foe;
 
 	if(!SpellCombatOnly())
 		return;
@@ -474,36 +517,38 @@ the original bytecode*/
 		return;
 	ShakeScreen();
 	hit_tile = TIL_HIT_FLASH;
-	for(si = 15; si >= 0; si --) {
-		if(Fighters._tile[si] != 0 && Fighters._HP[si] < 192) {
+	for(foe = 15; foe >= 0; foe --) {
+		if(Fighters._tile[foe] != 0 && Fighters._HP[foe] < 192) {
 			if(U4_RND1(1)) {
 				if(U4_RND1(1))
-					Fighters._HP[si] = 23;
+					Fighters._HP[foe] = 23;
 				continue;
 			}
-			hit_x = Combat._npcX[si];
-			hit_y = Combat._npcY[si];
+			hit_x = Combat._npcX[foe];
+			hit_y = Combat._npcY[foe];
 			DrawCombat();
-			sound(6);
-			COM_DoDamage(si, activeChara, 0xff);
+			sound(SND_HIT);
+			COM_DoDamage(foe, activeChara, 0xff);
 		}
 	}
 	hit_tile = 0;
 }
 
+/*Undead: in combat, 1 time out of 2 bring each undead foe down to 23 hit points.*/
 /*C_6C71*/SPL_Undead()
 {
-	register int si;
+	register int foe;
 
 	if(!SpellCombatOnly())
 		return;
 	if(!SpellStart())
 		return;
-	for(si = 15; si >= 0; si--)
-		if(IsUndead(Fighters._tile[si]) && U4_RND1(1) && Fighters._HP[si] > 23)
-			Fighters._HP[si] = 23;
+	for(foe = 15; foe >= 0; foe--)
+		if(IsUndead(Fighters._tile[foe]) && U4_RND1(1) && Fighters._HP[foe] > 23)
+			Fighters._HP[foe] = 23;
 }
 
+/*View: show the map.*/
 /*C_6CB2*/SPL_View()
 {
 	if(!SpellStart())
@@ -512,30 +557,32 @@ the original bytecode*/
 }
 
 
+/*Winds: outdoors, make the wind blow from the given direction.*/
 /*C_6CC3*/SPL_Winds()
 {
-	int bp_02, bp_04;
+	int dx, dy;
 
 	if(!SpellOutdoorsOnly())
 		return;
-	AskDir(/*D_212F*/"From Dir: ", &bp_02, &bp_04);
-	if(!(bp_02|bp_04))
+	AskDir(/*D_212F*/"From Dir: ", &dx, &dy);
+	if(!(dx|dy))
 		return;
 	if(!SpellStart())
 		return;
-	if(bp_02) {
-		if(bp_02 == 1)
+	if(dx) {
+		if(dx == 1)
 			WindDir = DIR_E;
 		else
 			WindDir = DIR_W;
 	} else {
-		if(bp_04 == 1)
+		if(dy == 1)
 			WindDir = DIR_S;
 		else
 			WindDir = DIR_N;
 	}
 }
 
+/*X-it: leave the dungeon.*/
 /*C_6D22*/SPL_X_it()
 {
 	if(!SpellDungeonOnly())
@@ -545,68 +592,77 @@ the original bytecode*/
 	Party._z = -1;
 }
 
+/*
+ * Y-up: in a dungeon (not the Abyss), go up a level to a random empty square
+ * (32 tries); from the first level, leave the dungeon.
+ */
 /*C_6D3D*/SPL_Y_up()
 {
-	int loc_A;
-	unsigned char loc_B, loc_C;
+	int tries;
+	unsigned char dest_x, dest_y;
 
 	if(!SpellDungeonOnly())
 		return;
 	if(!SpellStart())
 		return;
-	if(Party._loc == 0x18) {
+	if(Party._loc == LOC_ABYSS) {
 		w_Failed();
 		return;
 	}
 	if(--Party._z < 0)
 		return;
-	for(loc_A = 32; loc_A > 0; loc_A --) {
-		loc_B = U4_RND1(7);
-		loc_C = U4_RND1(7);
-		if(Area._map.x8x8x8[Party._z][loc_C][loc_B] == 0)
+	for(tries = 32; tries > 0; tries --) {
+		dest_x = U4_RND1(7);
+		dest_y = U4_RND1(7);
+		if(Area._map.x8x8x8[Party._z][dest_y][dest_x] == 0)
 			break;
 	}
-	if(loc_A == 0) {
+	if(tries == 0) {
 		Party._z ++;
 		w_Failed();
 		return;
 	}
-	Party._x = loc_B;
-	Party._y = loc_C;
+	Party._x = dest_x;
+	Party._y = dest_y;
 }
 
+/*
+ * Z-down: in a dungeon (not the Abyss, not from the last level), go down a
+ * level to a random empty square (32 tries).
+ */
 /*C_6DC1*/SPL_Z_down()
 {
-	int loc_A;
-	unsigned char loc_B, loc_C;
+	int tries;
+	unsigned char dest_x, dest_y;
 
 	if(!SpellDungeonOnly())
 		return;
 	if(!SpellStart())
 		return;
-	if(Party._loc  == 0x18 || Party._z == 7) {
+	if(Party._loc  == LOC_ABYSS || Party._z == 7) {
 		w_Failed();
 		return;
 	}
 	Party._z ++;
-	for(loc_A = 32; loc_A > 0; loc_A --) {
-		loc_B = U4_RND1(7);
-		loc_C = U4_RND1(7);
-		if(Area._map.x8x8x8[Party._z][loc_C][loc_B] == 0)
+	for(tries = 32; tries > 0; tries --) {
+		dest_x = U4_RND1(7);
+		dest_y = U4_RND1(7);
+		if(Area._map.x8x8x8[Party._z][dest_y][dest_x] == 0)
 			break;
 	}
-	if(loc_A == 0) {
+	if(tries == 0) {
 		Party._z --;
 		w_Failed();
 		return;
 	}
-	Party._x = loc_B;
-	Party._y = loc_C;
+	Party._x = dest_x;
+	Party._y = dest_y;
 }
 
 typedef spell_handler();
 typedef spell_handler *pSpell_handler;
 
+/*the spells, A to Z*/
 pSpell_handler /*D_216E*/SpellHandlers[] = {
 	SPL_Awaken,
 	SPL_Blink,
@@ -636,6 +692,10 @@ pSpell_handler /*D_216E*/SpellHandlers[] = {
 	SPL_Z_down
 };
 
+/*
+ * (C)ast: choose the caster (outside combat) and the spell. The mixture is
+ * used up even when the magic points are too low.
+ */
 /*C_6E4A*/CMD_Cast()
 {
 	u4_puts(/*D_213A*/"Cast Spell!\n");
@@ -660,7 +720,7 @@ pSpell_handler /*D_216E*/SpellHandlers[] = {
 	if(CurSpell < 0)
 		return;
 	CurSpell -= 'A';
-	u4_puts(Names[101 + CurSpell]); u4_puts(/*D_215C*/"!\n");
+	u4_puts(Names[NAME_SPELLS + CurSpell]); u4_puts(/*D_215C*/"!\n");
 	/*-- check mixture --*/
 	if(Party._mixtures[CurSpell] == 0) {
 		w_NoneLeft();

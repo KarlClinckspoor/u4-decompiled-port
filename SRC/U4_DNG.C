@@ -14,33 +14,37 @@ DNG_Klimb();
 DNG_Descend();
 DNG_EndOfTurn();*/
 
+/*
+ * The dungeon loop: read and run the commands until the party climbs out of the
+ * dungeon (Party._z < 0). Ctrl-S right after Alt-Z shows the karma (cheat).
+ */
 /*C_84D2*/DNG_main()
 {
-	register unsigned si;
-	int bp_04;
+	register unsigned cmd;
+	int prevCmd;
 
 	Redraw3D = 1;
 	u_kbflush();
-	bp_04 = 0;
+	prevCmd = 0;
 	do {
 		TileEffects();
 		u4_putc(0x10);
 		RefreshView();
 		if(CheckPartyAlive()) {
 			u_delay(25, 1);
-			si = u_kbhit()?u_kbread():KBD_SPACE;
-			if(u4_isupper((unsigned char)si))
-				si = (si & 0xff00) | u4_lower((unsigned char)si);
-			switch(si) {
+			cmd = u_kbhit()?u_kbread():KBD_SPACE;
+			if(u4_isupper((unsigned char)cmd))
+				cmd = (cmd & 0xff00) | u4_lower((unsigned char)cmd);
+			switch(cmd) {
 				case KBD_SPACE: w_Pass(); break;
 				case KBD_UP:
-				case 0x487e: DNG_Advance(); break;
+				case KBD_UP_: DNG_Advance(); break;
 				case KBD_LEFT:
-				case 0x4b7c: DNG_TurnLeft(); break;
+				case KBD_LEFT_: DNG_TurnLeft(); break;
 				case KBD_DOWN:
-				case 0x5060: DNG_Retreat(); break;
+				case KBD_DOWN_: DNG_Retreat(); break;
 				case KBD_RIGHT:
-				case 0xf400: DNG_TurnRight(); break;
+				case KBD_RIGHT_: DNG_TurnRight(); break;
 				case KBD_C: CMD_Cast(); break;
 				case KBD_D: DNG_Descend(); break;/*(D)escend [dungeon]*/
 				case KBD_G: CMD_Get(); break;
@@ -66,15 +70,16 @@ DNG_EndOfTurn();*/
 				case KBD_O:
 				case KBD_T:
 				case KBD_X:
-				case KBD_Y: w_NotHere(); sound(2); break;
+				case KBD_Y: w_NotHere(); sound(SND_BAD_COMMAND); break;
 				case KBD_CTRL_S:
-					if(bp_04 == KBD_ALT_Z) {
+					if(prevCmd == KBD_ALT_Z) {
 						CheatShowKarma();
 						break;
 					}
+					/*no break: a plain Ctrl-S is a bad command*/
 				default:
 					u4_puts(/*D_2626*/"Bad command\n");
-					sound(2);
+					sound(SND_BAD_COMMAND);
 					TurnDone = 0;
 			}
 			DNG_LookAround();
@@ -85,16 +90,23 @@ DNG_EndOfTurn();*/
 			DNG_EndOfTurn();
 		else
 			TurnDone = 1;
-		bp_04 = si;
+		prevCmd = cmd;
 	} while(Party._z >= 0);
 	LeaveTown();
 	dclose(File_DNG);
 	File_DNG = 0;
 }
 
+/*
+ * In a dungeon, a low nibble n != 0 in the map's tile means monster
+ * TIL_RAT + (n-1)*4 is on that square (except for the traps, fountains, fields,
+ * rooms and walls, whose low nibble means something else). If the party stands on
+ * one, remove it (from the map and from the NPC list) and fight it.
+ * Returns 1 if there was a combat.
+ */
 /*C_8743*/DNG_CheckEncounter()
 {
-	register int si;
+	register int npc;
 
 	if(
 		(tile_cur & 0x0f) == 0 ||
@@ -106,16 +118,16 @@ DNG_EndOfTurn();*/
 	) return 0;
 	CombatFoeTile = CombatFoe = TIL_RAT + (tile_cur & 0x0f) * 4 - 4;
 	Area._map.x8x8x8[Party._z][Party._y][Party._x] &= 0xf0;
-	for(si = 0x1f; si >= 0; si --) {
+	for(npc = 0x1f; npc >= 0; npc --) {
 		if(
-			Area._npc._var[si] == Party._z &&
-			Area._npc._x[si] == Party._x &&
-			Area._npc._y[si] == Party._y
+			Area._npc._var[npc] == Party._z &&
+			Area._npc._x[npc] == Party._x &&
+			Area._npc._y[npc] == Party._y
 		) {
-			Area._npc._var[si] =
-			Area._npc._tile[si] =
-			Area._npc._x[si] =
-			Area._npc._y[si] = 0;
+			Area._npc._var[npc] =
+			Area._npc._tile[npc] =
+			Area._npc._x[npc] =
+			Area._npc._y[npc] = 0;
 			break;
 		}
 	}
@@ -124,33 +136,39 @@ DNG_EndOfTurn();*/
 	return 1;
 }
 
+/*
+ * End of a turn in the dungeon: sleeping characters may wake up (1/8), poisoned
+ * ones lose 2 HP, food, magic points, the monsters move and appear, the torch
+ * burns, the spell effects end; then the encounter with a monster under the party,
+ * or the rooms the party walks into.
+ */
 /*C_87E2*/DNG_EndOfTurn()
 {
-	register int si;
-	register struct tChara *di;
+	register int chara;
+	register struct tChara *pChara;
 
 	CheckPartyAlive();
-	for(di = &(Party.chara[0]), si = 0; si < Party._members; di ++, si++) {
-		if(di->_stat == 'S' && U4_RND1(7) == 0) {
-			di->_stat = 'G';
-		} else if(di->_stat == 'P') {
-			hitChara(si, 2);
-			Gra_InvertStatusLine(si);
-			sound(6);
-			Gra_InvertStatusLine(si);
+	for(pChara = &(Party.chara[0]), chara = 0; chara < Party._members; pChara ++, chara++) {
+		if(pChara->_stat == 'S' && U4_RND1(7) == 0) {
+			pChara->_stat = 'G';
+		} else if(pChara->_stat == 'P') {
+			hitChara(chara, 2);
+			Gra_InvertStatusLine(chara);
+			sound(SND_HIT);
+			Gra_InvertStatusLine(chara);
 		}
 	}
 	if(food_dec(Party._members)) {
 		u4_puts(/*D_263A*/"\nStarving!!!\n");
-		for(si = 0; si < Party._members; si++) {
-			if(isCharaAlive(si))
-				hitChara(si, 2);
+		for(chara = 0; chara < Party._members; chara++) {
+			if(isCharaAlive(chara))
+				hitChara(chara, 2);
 		}
-		for(si = Party._members; --si >= 0; )
-			Gra_InvertStatusLine(si);
-		sound(6);
-		for(si = Party._members; --si >= 0; )
-			Gra_InvertStatusLine(si);
+		for(chara = Party._members; --chara >= 0; )
+			Gra_InvertStatusLine(chara);
+		sound(SND_HIT);
+		for(chara = Party._members; --chara >= 0; )
+			Gra_InvertStatusLine(chara);
 	}
 	MP_recover();
 	DNG_MoveMonsters();
@@ -174,23 +192,30 @@ DNG_EndOfTurn();*/
 	}
 }
 
-/*C_88E8*/DNG_CanEnter(bp06, bp04)
-unsigned char bp06;
-unsigned bp04;
+/*
+ * Can the party walk onto dungeon tile tile? Doors, secret doors and rooms
+ * (0xC0, 0xE0, 0xD0) only when moving forward (backward == 0); otherwise any tile
+ * below 0xC0 (not the walls) except the energy fields (0xA1).
+ */
+/*C_88E8*/DNG_CanEnter(tile, backward)
+unsigned char tile;
+unsigned backward;
 {
-	if(bp04 == 0) {
+	if(backward == 0) {
 		if(
-			(bp06 & 0xf0) == 0xc0 ||
-			(bp06 & 0xf0) == 0xe0 ||
-			(bp06 & 0xf0) == 0xd0
+			(tile & 0xf0) == 0xc0 ||
+			(tile & 0xf0) == 0xe0 ||
+			(tile & 0xf0) == 0xd0
 		) return 1;
 	}
-	if(bp06 != 0xa1 && bp06 < 0xc0)
+	if(tile != 0xa1 && tile < 0xc0)
 		return 1;
 	return 0;
 }
 
-/*Advance*/
+/*
+ * Up arrow: move one square forward.
+ */
 /*C_891E*/DNG_Advance()
 {
 	u4_puts(/*D_2654*/"Advance\n");
@@ -202,7 +227,9 @@ unsigned bp04;
 	Party._y = DNG_Y_p(Party._y, Party._dir);
 }
 
-/*Retreat*/
+/*
+ * Down arrow: move one square backward (facing the same way).
+ */
 /*C_895F*/DNG_Retreat()
 {
 	u4_puts(/*D_265D*/"Retreat\n");
@@ -214,7 +241,9 @@ unsigned bp04;
 	Party._y = DNG_Y_m(Party._y, Party._dir);
 }
 
-/*Turn Left*/
+/*
+ * Left arrow: turn left (does not count as a turn).
+ */
 /*C_899F*/DNG_TurnLeft()
 {
 	u4_puts(/*D_2666*/"Turn Left\n");
@@ -222,7 +251,9 @@ unsigned bp04;
 	TurnDone = 0;
 }
 
-/*Turn Right*/
+/*
+ * Right arrow: turn right (does not count as a turn).
+ */
 /*C_89BD*/DNG_TurnRight()
 {
 	u4_puts(/*D_2671*/"Turn Right\n");
@@ -230,7 +261,10 @@ unsigned bp04;
 	TurnDone = 0;
 }
 
-/*(K)limb [dungeon]*/
+/*
+ * (K)limb a ladder up (tile 0x10 or 0x30); climbing above level 1 leaves the
+ * dungeon (Party._z < 0 ends DNG_main).
+ */
 /*C_89DB*/DNG_Klimb()
 {
 	u4_puts(/*D_267D*/"Klimb ");
@@ -249,7 +283,9 @@ unsigned bp04;
 	}
 }
 
-/*(D)escend [dungeon]*/
+/*
+ * (D)escend a ladder down (tile 0x20 or 0x30).
+ */
 /*C_8A1F*/DNG_Descend()
 {
 	u4_puts(/*D_2693*/"Descend ");

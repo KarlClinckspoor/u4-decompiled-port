@@ -255,7 +255,7 @@ extern /*C_09A3*/w_Pass();
 extern /*C_09F8*/karma_inc(char *, int);
 extern /*C_0A17*/karma_dec(char *, int);
 extern /*C_0A58*/FindNpcAt(int, unsigned char, unsigned char);
-extern /*C_0A8B*/FindTownNpcAt(unsigned char, unsigned char);
+extern /*C_0A8B*/FindLocalNpcAt(unsigned char, unsigned char);
 extern /*C_0AB1*/SafeModulo(int, int);
 extern /*C_0ACF*/CharaTile(int);
 extern /*C_0AFE*/IsNonEvil(unsigned char);
@@ -360,7 +360,7 @@ extern /*C_5851*/SpawnMonsters();
 extern /*C_59D5*/COM_GetFighterId(unsigned char, unsigned char);
 extern /*C_5A6B*/COM_main();
 extern /*C_5DAB*/COM_DoDamage(int, int, unsigned char);
-extern /*C_5EA2*/COM_CheckHitable(unsigned char, unsigned char);
+extern /*C_5EA2*/COM_MissileStep(unsigned char, unsigned char);
 extern /*C_628F*/CMD_Attack();
 extern /*C_636D*/IsUndead(int);
 extern /*C_6E4A*/CMD_Cast();
@@ -377,7 +377,7 @@ extern /*C_73B8*/COM_GetChest();
 extern /*C_73C9*/CMD_Fire();
 extern /*C_755E*/CMD_Locate();
 extern /*C_7732**/CMD_Wear();
-extern /*C_7918*/MoveVortices();
+extern /*C_7918*/VortexContacts();
 extern /*C_7B89*/COM_North();
 extern /*C_7BAF*/COM_South();
 extern /*C_7BD5*/COM_East();
@@ -403,7 +403,7 @@ extern /*C_ADEF*/RenderSprites3D();
 extern /*C_AE41*/DNG_LookAround();
 extern /*C_B677*/DNG_Render();
 extern /*C_B9B2*/DNG_Search();
-extern /*C_B9EF*/ShowTownMap(unsigned);
+extern /*C_B9EF*/ShowAreaMap(unsigned);
 extern /*C_C403*/ShowMap();
 extern /*C_C41D*/CMD_Peer();
 /*u4_init*/
@@ -420,7 +420,7 @@ struct tPSP {
 };
 extern struct tPSP far *far_psp;/*D_0078*/
 
-extern unsigned /*D_0672*/cursor_rate;
+extern unsigned /*D_0672*/cursor_delay;
 extern char cdecl /*D_06A6*/SoundFlag;
 extern unsigned /*D_07F8*/TurnDone;
 extern U16 /*D_07FA*/*pKarmas[];

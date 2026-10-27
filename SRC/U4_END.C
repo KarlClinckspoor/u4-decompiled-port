@@ -8,6 +8,8 @@
 
 #include <string.h>
 
+/*the questions at the end of the Abyss: the 8 virtues (answers in
+  Names[NAME_VIRTUES + i]), then the 3 principles (PrincipleWords)*/
 char * /*D_0BDA*/EndQuestions[] = {
 	/*D_09BE*/"What dost thou possess if all may rely upon your every word?",
 	/*D_09FB*/"What quality compels one to share in the journeys of others?",
@@ -22,6 +24,9 @@ char * /*D_0BDA*/EndQuestions[] = {
 	/*D_0BB6*/"What turns not away from any peril?"
 };
 
+/*
+ * Wait a while, or until a key is pressed (the key is then read).
+ */
 /*C_2F7E*/WaitKeyOrTimeout()
 {
 	u_delay(15, 1);
@@ -29,19 +34,27 @@ char * /*D_0BDA*/EndQuestions[] = {
 		u_kbread();
 }
 
+/*where ExpelToSurface puts the party: 0-10 near the town or castle of the
+  virtue or principle of the failed question, 11 near Lord British's castle
+  (the last question), 12 the entrance of the Abyss*/
 unsigned char /*D_0BF0*/ExpelX[] = {0xE7,0x53,0x23,0x3B,0x9E,0x69,0x17,0xBA,0xD8,0x1D,0x91,0x59,0xE9};
 unsigned char /*D_0BFE*/ExpelY[] = {0x88,0x69,0xDD,0x2C,0x15,0xB7,0x81,0xAC,0x6A,0x30,0xF3,0x6A,0xE9};
 
+/*the party's size before EndGame (where the Avatar is alone)*/
 static unsigned /*D_8CCA*/SavedPartySize;
 
-/*return to surface*/
-/*C_2F9D*/ExpelToSurface(bp04)
-unsigned bp04;
+/*
+ * Failure at the end of the game: the party is put back together on the
+ * world map at the place number place (see ExpelX). Does not return:
+ * jumps back to the main loop.
+ */
+/*C_2F9D*/ExpelToSurface(place)
+unsigned place;
 {
 	u_delay(5, 0);
 	Gra_CR();
-	Party._x = ExpelX[bp04];
-	Party._y = ExpelY[bp04];
+	Party._x = ExpelX[place];
+	Party._y = ExpelY[place];
 	Party._members = SavedPartySize;
 	Party._loc = 0;
 	CurMode = MOD_OUTDOORS;
@@ -57,14 +70,19 @@ unsigned bp04;
 	longjmp(GameLoopJmp, -1);
 }
 
-/*passage is not granted*/
+/*
+ * Refused at the door of the Codex chamber: back to the entrance of the Abyss.
+ */
 /*C_3010*/PassageDenied()
 {
 	u4_puts(/*D_0C0B*/"\nPassage is not granted.\n");
 	ExpelToSurface(12);
 }
 
-/*Victory !*/
+/*
+ * The end: the Codex is revealed and the final texts are shown. The game
+ * then hangs forever (the player has to reboot).
+ */
 /*C_3025*/Victory()
 {
 	u_delay(2, 0);
@@ -74,7 +92,7 @@ unsigned bp04;
 	ShakeScreen();
 	u_delay(3, 0);
 	dfree(pShapes);
-	Gra_RevealCodex();/*infinity symbol*/
+	Gra_RevealCodex();/*the infinity symbol*/
 	u_delay(3, 0);
 	u4_puts(/*D_0C25*/"\n\nThe boundless knowledge of the Codex of Ultimate Wisdom is revealed unto thee.");
 	WaitKeyOrTimeout();
@@ -104,50 +122,56 @@ unsigned bp04;
 	while(1);
 }
 
-/*C_310F*/AskThrice(bp06, bp04)
-char *bp06;
-char *bp04;
+/*
+ * Ask the question up to 3 times. Returns 1 if the reply matches answer
+ * (case ignored), 0 after 3 wrong replies.
+ */
+/*C_310F*/AskThrice(question, answer)
+char *question;
+char *answer;
 {
-	char bp_10[16];
+	char reply[16];
 
-	u4_puts(bp06);
+	u4_puts(question);
 	Gra_CR();
 	Gra_CR();
-	u4_gets(bp_10, 15);
+	u4_gets(reply, 15);
 	Gra_CR();
-	if(strnicmp(bp_10, bp04, 15) != 0) {
+	if(strnicmp(reply, answer, 15) != 0) {
 		u_delay(1, 0);
 		u4_puts(/*D_10C6*/"\nThy thoughts are not pure.\nI ask again.\n");
 		u_delay(2, 0);
 
-		u4_puts(bp06);
+		u4_puts(question);
 		Gra_CR();
 		Gra_CR();
-		u4_gets(bp_10, 15);
+		u4_gets(reply, 15);
 		Gra_CR();
-		if(strnicmp(bp_10, bp04, 15) != 0) {
+		if(strnicmp(reply, answer, 15) != 0) {
 			u_delay(1, 0);
 			u4_puts(/*D_10F0*/"\nThy thoughts are not pure.\nI ask again.\n");
 			u_delay(2, 0);
 
-			u4_puts(bp06);
+			u4_puts(question);
 			Gra_CR();
 			Gra_CR();
-			u4_gets(bp_10, 15);
+			u4_gets(reply, 15);
 			Gra_CR();
-			if(strnicmp(bp_10, bp04, 15) != 0)
+			if(strnicmp(reply, answer, 15) != 0)
 				return 0;
 		}
 	}
 	return 1;
 }
 
+/*the answers to the 3 last questions, and the names of their pictures*/
 char * /*D_161A*/PrincipleWords[] = {
 	/*D_111A*/"truth",
 	/*D_1120*/"love",
 	/*D_1125*/"courage"
 };
 
+/*the names of the pictures shown after each virtue's question*/
 char * /*D_1620*/VirtuePictures[] = {
 	/*D_112D*/"honesty",
 	/*D_1135*/"compassn",
@@ -159,11 +183,18 @@ char * /*D_1620*/VirtuePictures[] = {
 	/*D_1162*/"humility"
 };
 
-/*last phase of game ?*/
+/*
+ * The end of the game, in the Codex chamber at the bottom of the Abyss (after
+ * using the black stone, see USE_Stones). The Avatar, alone, needs the
+ * Three Part Key, the Word of Passage, a party of 8 and all the virtues
+ * achieved; then must answer the 11 questions of the virtues and principles
+ * and the last one (infinity). Any failure expels the party to the surface
+ * (ExpelToSurface); success ends the game (Victory).
+ */
 /*C_31F4*/EndGame()
 {
-	int bp_02;
-	char bp_12[16];
+	int i;
+	char answer[16];
 
 	SavedPartySize = Party._members;
 	Party._members = 1;
@@ -192,8 +223,8 @@ char * /*D_1620*/VirtuePictures[] = {
 		u_delay(8, 0);
 		PassageDenied();
 	}
-	for(bp_02 = 7; bp_02 >= 0; bp_02 --) {
-		if(*(pKarmas[bp_02])) {
+	for(i = 7; i >= 0; i --) {
+		if(*(pKarmas[i])) {
 			u4_puts(/*D_1298*/"\nThou art not ready.\n");
 			PassageDenied();
 		}
@@ -201,21 +232,21 @@ char * /*D_1620*/VirtuePictures[] = {
 	u4_puts(/*D_12AE*/"\nPassage is granted.\n");
 	u_delay(5, 0);
 	Gra_ClearView();
-	for(bp_02 = 0; bp_02 < 11; bp_02 ++) {
-		char bp_26[20];
+	for(i = 0; i < 11; i ++) {
+		char picture[20];
 
 		u_delay(2, 0);
 		u4_puts(/*D_12C4*/"\n\nThe voice asks:\n\n");
 		u_delay(2, 0);
-		if(!AskThrice(EndQuestions[bp_02], (bp_02<=7)?Names[151 + bp_02]:PrincipleWords[bp_02-8])) {
+		if(!AskThrice(EndQuestions[i], (i<=7)?Names[NAME_VIRTUES + i]:PrincipleWords[i-8])) {
 			u_delay(1, 0);
 			u4_puts(/*D_12D8*/"\nThy quest is not yet complete.\n");
-			ExpelToSurface(bp_02);
+			ExpelToSurface(i);
 		}
-		strcpy(bp_26, (bp_02 >= 8)?PrincipleWords[bp_02-8]:VirtuePictures[bp_02]);
-		strcat(bp_26, (GraphicsType == 1)?/*D_12F9*/".pic":/*D_12FE*/".ega");
-		Gra_LoadPicture(bp_26, 0, 0);
-		if(bp_02 == 7) {
+		strcpy(picture, (i >= 8)?PrincipleWords[i-8]:VirtuePictures[i]);
+		strcat(picture, (GraphicsType == 1)?/*D_12F9*/".pic":/*D_12FE*/".ega");
+		Gra_LoadPicture(picture, 0, 0);
+		if(i == 7) {
 			u_delay(3, 0);
 			u4_puts(/*D_1303*/"\nThou art well versed in the virtues of the Avatar.\n");
 			u_delay(5, 0);
@@ -228,21 +259,21 @@ char * /*D_1620*/VirtuePictures[] = {
 	u4_puts(/*D_1360*/"\nAbove the din, the voice asks:\n\nIf all eight virtues of the Avatar combine into and are derived from the Three Principles of Truth, Love and Courage...");
 	WaitKeyOrTimeout();
 	u4_puts(/*D_13F9*/"\n\nThen what is the one thing which encompasses and is the whole of all undeniable Truth, unending Love, and unyielding Courage?\n\n");
-	u4_gets(bp_12, 15);
+	u4_gets(answer, 15);
 	Gra_CR();
-	if(strnicmp(bp_12, /*D_147B*/"infinity", 16) != 0) {
+	if(strnicmp(answer, /*D_147B*/"infinity", 16) != 0) {
 		u4_puts(/*D_1484*/"\nThy thoughts are not pure.\nI ask again.\n");
 		u_delay(3, 0);
 		u4_puts(/*D_14AE*/"\n\nWhat is the one thing which encompasses and is the whole of all undeniable Truth, unending Love, and unyielding Courage?\n\n");
-		u4_gets(bp_12, 15);
+		u4_gets(answer, 15);
 		Gra_CR();
-		if(strnicmp(bp_12, /*D_152B*/"infinity", 16) != 0) {
+		if(strnicmp(answer, /*D_152B*/"infinity", 16) != 0) {
 			u4_puts(/*D_1534*/"\nThy thoughts are not pure.\nI ask again.\n");
 			u_delay(3, 0);
 			u4_puts(/*D_155E*/"\n\nWhat is the one thing which encompasses and is the whole of all undeniable Truth, unending Love, and unyielding Courage?\n\n");
-			u4_gets(bp_12, 15);
+			u4_gets(answer, 15);
 			Gra_CR();
-			if(strnicmp(bp_12, /*D_15DB*/"infinity", 16) != 0) {
+			if(strnicmp(answer, /*D_15DB*/"infinity", 16) != 0) {
 				u_delay(1, 0);
 				u4_puts(/*D_15E4*/"\nThou dost not know the true nature of the Universe.\n");
 				ExpelToSurface(11);

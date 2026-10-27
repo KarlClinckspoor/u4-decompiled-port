@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-/*---- mantras*/
+/*mantra of each shrine (in the order of the virtues)*/
 char * /*D_8322*/Mantras[] = {
 	/*D_7B62*/"ahm",
 	/*D_7B66*/"mu",
@@ -20,7 +20,7 @@ char * /*D_8322*/Mantras[] = {
 	/*D_7B79*/"om",
 	/*D_7B7C*/"lum"
 };
-/*---- visions*/
+/*visions given by each shrine, for 1, 2 or 3 cycles of meditation*/
 char * /*D_8332*/ShrineVisions[][3] = {
 	{
 		/*D_7B80*/"Take not the gold of others found in towns and castles for yours it is not!\n",
@@ -56,7 +56,8 @@ char * /*D_8332*/ShrineVisions[][3] = {
 		/*D_8271*/"If thou dost seek the Black Stone, search ye at the Time and Place of the Gate on the darkest of all nights!\n"
 	}
 };
-/*---- visions 2*/
+/*picture shown for each virtue when partial Avatarhood is reached; the 8 runes
+  together spell I.N.F.I.N.I.T.Y*/
 char * /*D_8362*/VisionRunes[] = {
 	/*D_82DF*/"rune_1",/*I*/
 	/*D_82E6*/"rune_2",/*N*/
@@ -68,30 +69,40 @@ char * /*D_8362*/VisionRunes[] = {
 	/*D_8310*/"rune_4" /*Y*/
 };
 
-/*display avatarhood vision I.N.F.I.N.I.T.Y*/
-/*C_E6DF*/ShowVision(bp04)
-int bp04;
+/*
+ * Show the rune picture of virtue #virtue (the vision of partial Avatarhood), in its
+ * ".pic" (CGA) or ".ega" version.
+ */
+/*C_E6DF*/ShowVision(virtue)
+int virtue;
 {
-	char bp_14[20];
+	char fname[20];
 
 	CurMode = MOD_VISION;
-	strcpy(bp_14, VisionRunes[bp04]);
-	strcat(bp_14, (GraphicsType == 1)?/*D_8317*/".pic":/*D_831C*/".ega");
+	strcpy(fname, VisionRunes[virtue]);
+	strcat(fname, (GraphicsType == 1)?/*D_8317*/".pic":/*D_831C*/".ega");
 	Gra_ClearView();
-	Gra_LoadPicture(bp_14, 0, 0);
+	Gra_LoadPicture(fname, 0, 0);
 }
 
-/*enter a shrine*/
+/*
+ * Enter a shrine (needs its rune) and meditate: ask the virtue and the number of cycles
+ * (1-3, at most one meditation per 100 moves), then the mantra once per cycle. A wrong
+ * virtue or mantra ends it (the mantra costs 3 spirituality). Otherwise gives
+ * 3 spirituality per cycle and a hint, or, after 3 cycles with the virtue at 99,
+ * partial Avatarhood (the virtue drops to 0) and the rune vision.
+ * Always ends back outdoors.
+ */
 /*C_E72C*/EnterShrine()
 {
-	int loc_A, loc_B, loc_C;
-	char loc_D[16];
-	int loc_E;
+	int virtue, round, step;
+	char answer[16];
+	int cycleTotal;
 
-	loc_A = Party._loc - 0x19;/*shrine "number"*/
-	if(!TST_MSK(Party.mRunes, loc_A)) {
+	virtue = Party._loc - LOC_SHRINES;/*the shrine's virtue*/
+	if(!TST_MSK(Party.mRunes, virtue)) {
 		u4_puts(/*D_8372*/"\nThou dost not bear the rune of entry!  A strange force keeps you out!\n");
-C_E755:
+leave:
 		CurMode = MOD_OUTDOORS;
 		Party._loc = 0;
 		return;
@@ -100,60 +111,60 @@ C_E755:
 		exit(3);
 	CurMode = MOD_SHRINE;
 	u4_puts(/*D_83C5*/"\nYou enter the ancient shrine and sit before the altar...\nUpon what virtue dost thou meditate?\n");
-	u4_gets(loc_D, 15);
+	u4_gets(answer, 15);
 	Gra_CR();
 	u4_puts(/*D_8425*/"\nFor how many\n");
-	loc_E = AskLetter(/*D_8434*/"Cycles (0-3)?\x12\x12\b", '0', '3');
-	if(loc_E < 0) {
-		goto C_E755;
+	cycleTotal = AskLetter(/*D_8434*/"Cycles (0-3)?\x12\x12\b", '0', '3');
+	if(cycleTotal < 0) {
+		goto leave;
 	}
-	loc_E -= '0';
-	if(loc_E == 0 || strnicmp(loc_D, Names[151 + loc_A], 16)) {
+	cycleTotal -= '0';
+	if(cycleTotal == 0 || strnicmp(answer, Names[NAME_VIRTUES + virtue], 16)) {
 		u4_puts(/*D_8445*/"\nThou art unable to focus thy thoughts on this subject!\n");
-		goto C_E755;
+		goto leave;
 	}
 	if(Party._moves / 100 == Party._lastMeditate) {
 		u4_puts(/*D_847E*/"\nThy mind is still weary from thy last Meditation!\n");
-		goto C_E755;
+		goto leave;
 	}
 	Party._lastMeditate = Party._moves / 100;
 	u4_puts(/*D_84B2*/"Begin Meditation\n");
-	for(loc_B = 0; loc_B < loc_E; loc_B ++) {
-		for(loc_C = 0; loc_C < 0x10; loc_C ++) {
+	for(round = 0; round < cycleTotal; round ++) {
+		for(step = 0; step < 0x10; step ++) {
 			u_delay(1, 0);
 			u4_putc('.');
 		}
 		u_kbflush();
 		u4_puts(/*D_84C4*/"\nMantra: ");
-		u4_gets(loc_D, 15);
+		u4_gets(answer, 15);
 		Gra_CR();
-		if(strnicmp(loc_D, Mantras[loc_A], 0x10)) {
+		if(strnicmp(answer, Mantras[virtue], 0x10)) {
 			u4_puts(/*D_84CE*/"\nThou art not able to focus thy thoughts with that Mantra!\n");
 			karma_dec(&(Party._spiri), 3);
-			goto C_E755;
+			goto leave;
 		}
 	}
-	if(loc_E != 3 || *(pKarmas[loc_A]) != 99) {
+	if(cycleTotal != 3 || *(pKarmas[virtue]) != 99) {
 		u4_puts(/*D_850A*/"\nThy thoughts are pure. Thou art granted a vision!\n");
-		karma_inc(&(Party._spiri), loc_E * 3);
+		karma_inc(&(Party._spiri), cycleTotal * 3);
 		u_kbflush();
 		u_kbread();
 		Gra_CR();
-		u4_puts(ShrineVisions[loc_A][loc_E - 1]);
+		u4_puts(ShrineVisions[virtue][cycleTotal - 1]);
 	} else {
 		u4_puts(/*D_853E*/"\nThou hast achieved partial Avatarhood in the Virtue of\n");
-		u4_puts(Names[151 + loc_A]);
-		Gra_InvertView(); sound(9, 0xff); Gra_InvertView();
+		u4_puts(Names[NAME_VIRTUES + virtue]);
+		Gra_InvertView(); sound(SND_MAGIC, 0xff); Gra_InvertView();
 		Gra_CR();
-		*(pKarmas[loc_A]) = 0;
+		*(pKarmas[virtue]) = 0;
 		dspl_Stats();
 		u_kbflush();
 		u_kbread();
 		u4_puts(/*D_8577*/"\n\nThou art granted a vision!\n");
-		ShowVision(loc_A);
+		ShowVision(virtue);
 		u_kbflush();
 	}
 	u_kbread();
 	Gra_CR();
-	goto C_E755;
+	goto leave;
 }

@@ -8,322 +8,370 @@
 
 char /*D_1FD8*/MsgAttackedBy[] = "\nAttacked by ";
 
-/*can npc move?*/
-/*C_4E94*/NpcCanMoveTo(bp0a, bp08, bp06, bp04)
-unsigned bp0a;
-unsigned char bp08;/*new x*/
-unsigned char bp06;/*new y*/
-unsigned char bp04;
+/*
+ * Can npc move to (x, y), whose map tile is tile? Never onto slow terrain,
+ * nor (except whirlpools and twisters) onto another npc (chests excepted) or
+ * the party; 1 time out of 4 not back to its previous square (pirate ships
+ * excepted). Then by kind: pirate ships sail on water, sea monsters swim up to
+ * the shallows, flyers go on water or land, zorns and ghosts go anywhere but
+ * water and energy fields, the others walk.
+ */
+/*C_4E94*/NpcCanMoveTo(npc, x, y, tile)
+unsigned npc;
+unsigned char x;
+unsigned char y;
+unsigned char tile;
 {
-	register int si, di;
+	register int other, npc_tile;
 
 	if(CurMode == MOD_BUILDING)
-		if(bp08 >= 32 || bp06 >= 32)
+		if(x >= 32 || y >= 32)
 			return 0;
-	di = Area._npc._tile[bp0a];
-	if(IsSlowTerrain(bp04))
+	npc_tile = Area._npc._tile[npc];
+	if(IsSlowTerrain(tile))
 		return 0;
-	if(di != TIL_WHIRLPOOL && di != TIL_TWISTER) {
-		for(si = 31; si >= 0; si --) {
+	if(npc_tile != TIL_WHIRLPOOL && npc_tile != TIL_TWISTER) {
+		for(other = 31; other >= 0; other --) {
 			if(
-				Area._npc._tile[si] &&
-				Area._npc._x[si] == bp08 &&
-				Area._npc._y[si] == bp06 &&
-				Area._npc._tile[si] != TIL_CHEST
+				Area._npc._tile[other] &&
+				Area._npc._x[other] == x &&
+				Area._npc._y[other] == y &&
+				Area._npc._tile[other] != TIL_CHEST
 			) return 0;
 		}
-		if(Party._x == bp08 && Party._y == bp06)
+		if(Party._x == x && Party._y == y)
 			return 0;
 	}
 	if(
-		di != TIL_PIRATE_W &&
-		bp08 == Area._npc._old_x[bp0a] &&
-		bp06 == Area._npc._old_y[bp0a] &&
+		npc_tile != TIL_PIRATE_W &&
+		x == Area._npc._old_x[npc] &&
+		y == Area._npc._old_y[npc] &&
 		U4_RND1(3) == 0
 	) return 0;
-	if(di < TIL_PIRATE_W)
-		return IsWalkable(bp04);
-	if(di < TIL_TWISTER)
-		return (di == TIL_PIRATE_W)?(bp04 <= TIL_WATER):(bp04 <= TIL_SHALLOWS);
-	if(di == TIL_TWISTER || di == TIL_BAT || di == TIL_INSECTS || di == TIL_DAEMON || di == TIL_DRAGON || di == TIL_BALRON)
-		return (bp04 <= TIL_SHALLOWS) || IsWalkable(bp04);
-	if(di == TIL_ZORN || di == TIL_GHOST)
-		return (bp04 >= TIL_SWAMP) && (bp04 != TIL_ENERGY_FIELD);
-	return IsWalkable(bp04);
+	if(npc_tile < TIL_PIRATE_W)
+		return IsWalkable(tile);
+	if(npc_tile < TIL_TWISTER)
+		return (npc_tile == TIL_PIRATE_W)?(tile <= TIL_WATER):(tile <= TIL_SHALLOWS);
+	if(npc_tile == TIL_TWISTER || npc_tile == TIL_BAT || npc_tile == TIL_INSECTS || npc_tile == TIL_DAEMON || npc_tile == TIL_DRAGON || npc_tile == TIL_BALRON)
+		return (tile <= TIL_SHALLOWS) || IsWalkable(tile);
+	if(npc_tile == TIL_ZORN || npc_tile == TIL_GHOST)
+		return (tile >= TIL_SWAMP) && (tile != TIL_ENERGY_FIELD);
+	return IsWalkable(tile);
 }
 
-/*C_4FBE*/u4_abs(bp04)
-int bp04;
+/*Absolute value of value.*/
+/*C_4FBE*/u4_abs(value)
+int value;
 {
-	return (bp04 < 0)?-bp04:bp04;
+	return (value < 0)?-value:value;
 }
 
-/*test parameter's sign
-<  0 -> -1
-== 0 ->  0
->  0 ->  1*/
-/*C_4FD7*/u4_sign(bp04)
-int bp04;
+/*Sign of value: -1, 0 or 1.*/
+/*C_4FD7*/u4_sign(value)
+int value;
 {
-	return (bp04 < 0)?-1:(bp04 > 0)?1:0;
+	return (value < 0)?-1:(value > 0)?1:0;
 }
 
-/*C_4FF8*/NpcMoveInTown(si/*bp08*/, bp06, bp04)
-register int si;
-unsigned char bp06;
-unsigned char bp04;
+/*
+ * Move npc to (x, y) in a towne, remembering its previous square.
+ * Probable original bug: the bounds check uses || where && was meant, so it
+ * only refuses squares off the map on both axes.
+ */
+/*C_4FF8*/NpcMoveInTown(npc, x, y)
+register int npc;
+unsigned char x;
+unsigned char y;
 {
-	if((unsigned)bp06 < 32 || (unsigned)bp04 < 32) {
-		Area._npc._old_x[si] = Area._npc._x[si];
-		Area._npc._x[si] = bp06;
-		Area._npc._old_y[si] = Area._npc._y[si];
-		Area._npc._y[si] = bp04;
+	if((unsigned)x < 32 || (unsigned)y < 32) {
+		Area._npc._old_x[npc] = Area._npc._x[npc];
+		Area._npc._x[npc] = x;
+		Area._npc._old_y[npc] = Area._npc._y[npc];
+		Area._npc._y[npc] = y;
 	}
 }
 
-/*C_5036*/NpcMoveTo(si/*bp08*/, bp06, bp04)
-register int si;
-unsigned char bp06;
-unsigned char bp04;
+/*Move npc to (x, y), remembering its previous square.*/
+/*C_5036*/NpcMoveTo(npc, x, y)
+register int npc;
+unsigned char x;
+unsigned char y;
 {
-	Area._npc._old_x[si] = Area._npc._x[si];
-	Area._npc._x[si] = bp06;
-	Area._npc._old_y[si] = Area._npc._y[si];
-	Area._npc._y[si] = bp04;
+	Area._npc._old_x[npc] = Area._npc._x[npc];
+	Area._npc._x[npc] = x;
+	Area._npc._old_y[npc] = Area._npc._y[npc];
+	Area._npc._y[npc] = y;
 }
 
-/*NPC attempts move[MOD_OUTDOORS]*/
-/*C_5062*/NpcStepOutdoors(bp0a, bp08, bp06, bp04)
-int bp0a;
-int bp08;
-int bp06;
-int bp04;
+/*
+ * Outdoors, try to move npc one square in direction (dx, dy), along one axis
+ * only: the horizontal step first half of the time, then the vertical one,
+ * then the horizontal one. If no step is possible or the destination is out of
+ * the loaded map window, retry in a random direction, up to tries more times.
+ * Note: the first random retry never gets a negative dy (the (char) cast is
+ * on the sign instead of the random number), so it is biased southward.
+ */
+/*C_5062*/NpcStepOutdoors(npc, dx, dy, tries)
+int npc;
+int dx;
+int dy;
+int tries;
 {
-	unsigned char loc_A, loc_B;
-	unsigned char loc_C, loc_D;
+	unsigned char map_col, cur_col;
+	unsigned char map_row, cur_row;
 
-	loc_B = Area._npc._x[bp0a]; loc_A = (bp08 + loc_B) - (WinBlock.x << 4);
-	loc_D = Area._npc._y[bp0a]; loc_C = (bp06 + loc_D) - (WinBlock.y << 4);
-	if(loc_A  > 31 || loc_C > 31) {
-		if(bp04 >= 0)
-			NpcStepOutdoors(bp0a, u4_sign((char)u_rand_a()), (char)u4_sign(u_rand_a()), bp04 - 1);
+	cur_col = Area._npc._x[npc]; map_col = (dx + cur_col) - (WinBlock.x << 4);
+	cur_row = Area._npc._y[npc]; map_row = (dy + cur_row) - (WinBlock.y << 4);
+	if(map_col  > 31 || map_row > 31) {
+		if(tries >= 0)
+			NpcStepOutdoors(npc, u4_sign((char)u_rand_a()), (char)u4_sign(u_rand_a()), tries - 1);
 		return;
 	}
-	if(U4_RND1(1) && bp08 && NpcCanMoveTo(bp0a, loc_B + bp08, loc_D, Area._map.x32x32[loc_C-bp06][loc_A])) {
-		NpcMoveTo(bp0a, loc_B + bp08, loc_D);
+	if(U4_RND1(1) && dx && NpcCanMoveTo(npc, cur_col + dx, cur_row, Area._map.x32x32[map_row-dy][map_col])) {
+		NpcMoveTo(npc, cur_col + dx, cur_row);
 		return;
 	}
-	if(bp06 && NpcCanMoveTo(bp0a, loc_B, loc_D + bp06, Area._map.x32x32[loc_C][loc_A - bp08])) {
-		NpcMoveTo(bp0a, loc_B, loc_D + bp06);
+	if(dy && NpcCanMoveTo(npc, cur_col, cur_row + dy, Area._map.x32x32[map_row][map_col - dx])) {
+		NpcMoveTo(npc, cur_col, cur_row + dy);
 		return;
 	}
-	if(NpcCanMoveTo(bp0a, loc_B + bp08, loc_D, Area._map.x32x32[loc_C - bp06][loc_A])) {
-		NpcMoveTo(bp0a, loc_B + bp08, loc_D);
+	if(NpcCanMoveTo(npc, cur_col + dx, cur_row, Area._map.x32x32[map_row - dy][map_col])) {
+		NpcMoveTo(npc, cur_col + dx, cur_row);
 		return;
 	}
-	if(bp04 >= 0)
-		NpcStepOutdoors(bp0a, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), bp04 - 1);
+	if(tries >= 0)
+		NpcStepOutdoors(npc, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), tries - 1);
 }
 
-/*NPC attempts move[MOD_BUILDING]*/
-/*C_51A7*/NpcStepInTown(bp0a, bp08, bp06, bp04)
-int bp0a;
-int bp08;
-int bp06;
-int bp04;/*# of tries*/
+/*
+ * In a towne, try to move npc one square in direction (dx, dy), along one
+ * axis only: half of the time the horizontal step, else the vertical one,
+ * else (dy == 0) the horizontal one. When that last one fails, retry in a
+ * random direction, up to tries more times (not for _var 0x80 npcs).
+ */
+/*C_51A7*/NpcStepInTown(npc, dx, dy, tries)
+int npc;
+int dx;
+int dy;
+int tries;
 {
-	unsigned bp_02, bp_04;
+	unsigned npc_x, npc_y;
 
-	bp_02 = Area._npc._x[bp0a];
-	bp_04 = Area._npc._y[bp0a];
+	npc_x = Area._npc._x[npc];
+	npc_y = Area._npc._y[npc];
 	/*Area._map.x32x32 is accessed without any out-of-bounds control.
 Fortunately, there is some control in NpcCanMoveTo so any faultly-accessed
 value will be discarded anyway.
 Though, there seem to be a problem with 64-bit builds.
-An exception is raised when (bp08+bp_02) or (bp06+bp_04) are negative.
+An exception is raised when (dx+npc_x) or (dy+npc_y) are negative.
 Masking the sums should fix the problem:
-	Area._map.x32x32[bp_04][(bp08+bp_02)&0x1f]
-	Area._map.x32x32[(bp06+bp_04)&0x1f][bp_02]
+	Area._map.x32x32[npc_y][(dx+npc_x)&0x1f]
+	Area._map.x32x32[(dy+npc_y)&0x1f][npc_x]
 (issue raised by @plaidpants)*/
-	if(U4_RND1(1) && bp08) {
-		if(NpcCanMoveTo(bp0a, bp08+bp_02, bp_04, Area._map.x32x32[bp_04][bp08+bp_02]))
-			NpcMoveInTown(bp0a, bp08+bp_02, bp_04);
+	if(U4_RND1(1) && dx) {
+		if(NpcCanMoveTo(npc, dx+npc_x, npc_y, Area._map.x32x32[npc_y][dx+npc_x]))
+			NpcMoveInTown(npc, dx+npc_x, npc_y);
 		return;
 	}
-	if(bp06) {
-		if(NpcCanMoveTo(bp0a, bp_02, bp06+bp_04, Area._map.x32x32[bp06+bp_04][bp_02]))
-			NpcMoveInTown(bp0a, bp_02, bp06+bp_04);
+	if(dy) {
+		if(NpcCanMoveTo(npc, npc_x, dy+npc_y, Area._map.x32x32[dy+npc_y][npc_x]))
+			NpcMoveInTown(npc, npc_x, dy+npc_y);
 		return;
 	}
-	if(NpcCanMoveTo(bp0a, bp08+bp_02, bp_04, Area._map.x32x32[bp_04][bp08+bp_02])) {
-		NpcMoveInTown(bp0a, bp08+bp_02, bp_04);
+	if(NpcCanMoveTo(npc, dx+npc_x, npc_y, Area._map.x32x32[npc_y][dx+npc_x])) {
+		NpcMoveInTown(npc, dx+npc_x, npc_y);
 		return;
 	}
-	if(Area._npc._var[bp0a] != 0x80 && bp04 >= 0)
-		NpcStepInTown(bp0a, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), bp04 - 1);
+	if(Area._npc._var[npc] != 0x80 && tries >= 0)
+		NpcStepInTown(npc, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), tries - 1);
 }
 
-/*move NPCs[MOD_BUILDING]*/
+/*
+ * Move the towne's npcs according to their _var: 0 stays, positive wanders at
+ * random (half of the time), negative follows the party, and 0xff attacks
+ * when next to it.
+ */
 /*C_5293*/MoveTownNpcs()
 {
-	int bp_02, bp_04;
+	int dx, dy;
 
-	{register int si; for(si = 31; si >= 0; si --) {
-		if(Area._npc._tile[si] && Area._npc._var[si]) {
-			if((char)Area._npc._var[si] >= 0) {
+	{register int npc; for(npc = 31; npc >= 0; npc --) {
+		if(Area._npc._tile[npc] && Area._npc._var[npc]) {
+			if((char)Area._npc._var[npc] >= 0) {
 				/*random mode*/
 				if(U4_RND1(1))
-					NpcStepInTown(si, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), 2);
+					NpcStepInTown(npc, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), 2);
 			} else {
 				/*following mode*/
-				bp_02 = u4_sign((char)(Party._x - Area._npc._x[si]));
-				bp_04 = u4_sign((char)(Party._y - Area._npc._y[si]));
-				if(u4_abs((char)(Party._x - Area._npc._x[si])) + u4_abs((char)(Party._y - Area._npc._y[si])) >= 2)
-					NpcStepInTown(si, bp_02, bp_04, 2);
-				else if(Area._npc._var[si] == 0xff) {
+				dx = u4_sign((char)(Party._x - Area._npc._x[npc]));
+				dy = u4_sign((char)(Party._y - Area._npc._y[npc]));
+				if(u4_abs((char)(Party._x - Area._npc._x[npc])) + u4_abs((char)(Party._y - Area._npc._y[npc])) >= 2)
+					NpcStepInTown(npc, dx, dy, 2);
+				else if(Area._npc._var[npc] == 0xff) {
 					/*agressive mode*/
 					/*-- attacked by --*/
 					RefreshView();
-					u4_puts(MsgAttackedBy); u4_puts(CreatureName(Area._npc._tile[si]));
+					u4_puts(MsgAttackedBy); u4_puts(CreatureName(Area._npc._tile[npc]));
 					Gra_CR();
-					StartCombat(si);
+					StartCombat(npc);
 				}
 			}
 		}
 	}}
 }
 
-/*creature/party distance ?*/
-/*C_535B*/NpcDistance(bp0c, bp0a, bp08, bp06, bp04)
-int bp0c;/*index*/
-int *bp0a;/*x sign*/
-int *bp08;/*y sign*/
-int *bp06;/*x distance*/
-int *bp04;/*y distance*/
+/*
+ * Vector from npc to the party: *dist_x, *dist_y and their signs *dx, *dy.
+ * Returns the distance |dist_x| + |dist_y|.
+ */
+/*C_535B*/NpcDistance(npc, dx, dy, dist_x, dist_y)
+int npc;
+int *dx;
+int *dy;
+int *dist_x;
+int *dist_y;
 {
-	*bp04 = (char)(Party._y - Area._npc._y[bp0c]);
-	*bp08 = u4_sign(*bp04);
-	*bp06 = (char)(Party._x - Area._npc._x[bp0c]);
-	*bp0a = u4_sign(*bp06);
-	return u4_abs(*bp06) + u4_abs(*bp04);
+	*dist_y = (char)(Party._y - Area._npc._y[npc]);
+	*dy = u4_sign(*dist_y);
+	*dist_x = (char)(Party._x - Area._npc._x[npc]);
+	*dx = u4_sign(*dist_x);
+	return u4_abs(*dist_x) + u4_abs(*dist_y);
 }
 
-/*C_53AF*/ShipSail(si/*bp08*/, bp06, bp04)
-register int si;
-unsigned char bp06;
-unsigned char bp04;
+/*
+ * Pirate ship npc sails to (x, y) if it can and the wind allows its heading;
+ * if it cannot go there, it turns at random.
+ */
+/*C_53AF*/ShipSail(npc, x, y)
+register int npc;
+unsigned char x;
+unsigned char y;
 {
-	if(NpcCanMoveTo(si, bp06, bp04, Area._map.x32x32[bp04-WinBlock.y*16][bp06-WinBlock.x*16])) {
-		if(WindAllows(Area._npc._gtile[si] & 3)) {
-			Area._npc._old_x[si] = Area._npc._x[si];
-			Area._npc._x[si] = bp06;
-			Area._npc._old_y[si] = Area._npc._y[si];
-			Area._npc._y[si] = bp04;
+	if(NpcCanMoveTo(npc, x, y, Area._map.x32x32[y-WinBlock.y*16][x-WinBlock.x*16])) {
+		if(WindAllows(Area._npc._gtile[npc] & 3)) {
+			Area._npc._old_x[npc] = Area._npc._x[npc];
+			Area._npc._x[npc] = x;
+			Area._npc._old_y[npc] = Area._npc._y[npc];
+			Area._npc._y[npc] = y;
 		}
 	} else {
-		Area._npc._gtile[si] = ((u4_sign((char)u_rand_a()) + Area._npc._gtile[si]) & 3) | TIL_PIRATE_W;
+		Area._npc._gtile[npc] = ((u4_sign((char)u_rand_a()) + Area._npc._gtile[npc]) & 3) | TIL_PIRATE_W;
 	}
 }
 
-/*C_5443*/ShipSteer(si/*bp04*/)
-register int si;
+/*
+ * Pirate ship npc: when farther than 5 squares (or 1 time out of 4), turn to
+ * face the party along the longer axis; otherwise sail one square ahead.
+ */
+/*C_5443*/ShipSteer(npc)
+register int npc;
 {
-	int loc_A, loc_B, loc_C, loc_D;
+	int dx, dy, dist_x, dist_y;
 
-	if(NpcDistance(si, &loc_A, &loc_B, &loc_C, &loc_D) > 5 || U4_RND1(3) == 0) {
-		if(u4_abs(loc_C) < u4_abs(loc_D)) {
-			if(loc_D >= 0)
-				Area._npc._gtile[si] = TIL_PIRATE_S;
+	if(NpcDistance(npc, &dx, &dy, &dist_x, &dist_y) > 5 || U4_RND1(3) == 0) {
+		if(u4_abs(dist_x) < u4_abs(dist_y)) {
+			if(dist_y >= 0)
+				Area._npc._gtile[npc] = TIL_PIRATE_S;
 			else
-				Area._npc._gtile[si] = TIL_PIRATE_N;
+				Area._npc._gtile[npc] = TIL_PIRATE_N;
 		} else {
-			if(loc_C >= 0)
-				Area._npc._gtile[si] = TIL_PIRATE_E;
+			if(dist_x >= 0)
+				Area._npc._gtile[npc] = TIL_PIRATE_E;
 			else
-				Area._npc._gtile[si] = TIL_PIRATE_W;
+				Area._npc._gtile[npc] = TIL_PIRATE_W;
 		}
-	} else if(Area._npc._gtile[si] == TIL_PIRATE_W) {
-		ShipSail(si, Area._npc._x[si] - 1, Area._npc._y[si]);
-	} else if(Area._npc._gtile[si] == TIL_PIRATE_N) {
-		ShipSail(si, Area._npc._x[si], Area._npc._y[si] - 1);
-	} else if(Area._npc._gtile[si] == TIL_PIRATE_E) {
-		ShipSail(si, Area._npc._x[si]+1, Area._npc._y[si]);
+	} else if(Area._npc._gtile[npc] == TIL_PIRATE_W) {
+		ShipSail(npc, Area._npc._x[npc] - 1, Area._npc._y[npc]);
+	} else if(Area._npc._gtile[npc] == TIL_PIRATE_N) {
+		ShipSail(npc, Area._npc._x[npc], Area._npc._y[npc] - 1);
+	} else if(Area._npc._gtile[npc] == TIL_PIRATE_E) {
+		ShipSail(npc, Area._npc._x[npc]+1, Area._npc._y[npc]);
 	} else {
-		ShipSail(si, Area._npc._x[si], Area._npc._y[si]+1);
+		ShipSail(npc, Area._npc._x[npc], Area._npc._y[npc]+1);
 	}
 }
 
-/*C_5500*/ShipMove(si/*bp08*/, bp06, bp04)
-register int si;
-int bp06;
-int bp04;
+/*
+ * Pirate ship npc: sail in direction (dx, dy) if it is heading that way,
+ * else steer.
+ */
+/*C_5500*/ShipMove(npc, dx, dy)
+register int npc;
+int dx;
+int dy;
 {
-	if(Area._npc._gtile[si] == TIL_PIRATE_W) {
-		if(bp06 < 0) {
-			ShipSail(si, Area._npc._x[si]+bp06, Area._npc._y[si]);
+	if(Area._npc._gtile[npc] == TIL_PIRATE_W) {
+		if(dx < 0) {
+			ShipSail(npc, Area._npc._x[npc]+dx, Area._npc._y[npc]);
 			return;
 		}
-	} else if(Area._npc._gtile[si] == TIL_PIRATE_N) {
-		if(bp04 < 0) {
-			ShipSail(si, Area._npc._x[si], Area._npc._y[si]+bp04);
+	} else if(Area._npc._gtile[npc] == TIL_PIRATE_N) {
+		if(dy < 0) {
+			ShipSail(npc, Area._npc._x[npc], Area._npc._y[npc]+dy);
 			return;
 		}
-	} else if(Area._npc._gtile[si] == TIL_PIRATE_E) {
-		if(bp06 > 0) {
-			ShipSail(si, Area._npc._x[si]+bp06, Area._npc._y[si]);
+	} else if(Area._npc._gtile[npc] == TIL_PIRATE_E) {
+		if(dx > 0) {
+			ShipSail(npc, Area._npc._x[npc]+dx, Area._npc._y[npc]);
 			return;
 		}
 	} else {
-		if(bp04 > 0) {
-			ShipSail(si, Area._npc._x[si], Area._npc._y[si]+bp04);
+		if(dy > 0) {
+			ShipSail(npc, Area._npc._x[npc], Area._npc._y[npc]+dy);
 			return;
 		}
 	}
-	ShipSteer(si);
+	ShipSteer(npc);
 }
 
-/*C_5569*/NpcShoot(bp0a, bp08, bp06, bp04)
-int bp0a;
-unsigned char bp08;
-unsigned char bp06;
-unsigned char bp04;
+/*
+ * npc shoots a missile showing as tile in direction (dx, dy), up to 3
+ * squares, through any terrain. Returns 1 if it reaches the party. Another npc
+ * on the way stops it, and is destroyed if it is #8-#31, else 1 time out of 4.
+ */
+/*C_5569*/NpcShotHitsParty(npc, dx, dy, tile)
+int npc;
+unsigned char dx;
+unsigned char dy;
+unsigned char tile;
 {
-	unsigned char loc_E, loc_A;
-	int loc_D, loc_C, loc_B;
+	unsigned char x, y;
+	int old_tile, step, victim;
 
-	loc_E = Area._npc._x[bp0a] + bp08;
-	loc_A = Area._npc._y[bp0a] + bp06;
-	sound(3);
-	for(loc_C = 1; loc_C <= 3; loc_E += bp08, loc_A += bp06, loc_C++) {
-		if(Party._x == loc_E && Party._y == loc_A)
+	x = Area._npc._x[npc] + dx;
+	y = Area._npc._y[npc] + dy;
+	sound(SND_SHOOT);
+	for(step = 1; step <= 3; x += dx, y += dy, step++) {
+		if(Party._x == x && Party._y == y)
 			return 1;
-		if((loc_B = FindNpcAt(31, loc_E, loc_A)) != -1) {
-			sound(6);
-			if(loc_B >= 8 || U4_RND1(3) == 0) {
-				Area._npc._tile[loc_B] = Area._npc._gtile[loc_B] = 0;
+		if((victim = FindNpcAt(31, x, y)) != -1) {
+			sound(SND_HIT);
+			if(victim >= 8 || U4_RND1(3) == 0) {
+				Area._npc._tile[victim] = Area._npc._gtile[victim] = 0;
 			}
 			return 0;
 		}
 		{
-			register unsigned char *si;
+			register unsigned char *p_square;
 
-			si = &(Area._map.x32x32[loc_A - (WinBlock.y*16)][loc_E - (WinBlock.x*16)]);
-			loc_D = *si;
-			*si = bp04;
+			p_square = &(Area._map.x32x32[y - (WinBlock.y*16)][x - (WinBlock.x*16)]);
+			old_tile = *p_square;
+			*p_square = tile;
 			RefreshView();
-			*si = loc_D;
+			*p_square = old_tile;
 		}
 	}
 	return 0;
 }
 
-/*C_564B*/NpcFireAtParty(bp0a, bp08, bp06, bp04)
-int bp0a;
-int bp08;
-int bp06;
-int bp04;
+/*npc shoots tile in direction (dx, dy); if the party is reached, everybody is hurt.*/
+/*C_564B*/NpcFireAtParty(npc, dx, dy, tile)
+int npc;
+int dx;
+int dy;
+int tile;
 {
-	if(NpcShoot(bp0a, bp08, bp06, bp04) == 0) {
+	if(NpcShotHitsParty(npc, dx, dy, tile) == 0) {
 		hit_tile = 0;
 		return;
 	}
@@ -336,81 +384,92 @@ int bp04;
 	RefreshView();
 }
 
-/*C_568F*/ShipAttack(bp08, bp06, bp04)
-int bp08;
-int bp06;
-int bp04;
+/*
+ * Pirate ship npc near the party (whose direction is (dx, dy)): fires a
+ * broadside when the party is straight abeam, else moves.
+ */
+/*C_568F*/ShipAttack(npc, dx, dy)
+int npc;
+int dx;
+int dy;
 {
-	if(Area._npc._gtile[bp08] == TIL_PIRATE_W || Area._npc._gtile[bp08] == TIL_PIRATE_E)
-		if(bp06)
-			ShipMove(bp08, bp06, bp04);
+	if(Area._npc._gtile[npc] == TIL_PIRATE_W || Area._npc._gtile[npc] == TIL_PIRATE_E)
+		if(dx)
+			ShipMove(npc, dx, dy);
 		else
-			NpcFireAtParty(bp08, bp06, bp04, TIL_MISSILE);
+			NpcFireAtParty(npc, dx, dy, TIL_MISSILE);
 	else
-		if(bp04)
-			ShipMove(bp08, bp06, bp04);
+		if(dy)
+			ShipMove(npc, dx, dy);
 		else
-			NpcFireAtParty(bp08, bp06, bp04, TIL_MISSILE);
+			NpcFireAtParty(npc, dx, dy, TIL_MISSILE);
 }
 
-/*C_56D3*/NpcOffWindow(bp04)
-int bp04;
+/*Is npc outside the loaded 32x32 map window?*/
+/*C_56D3*/NpcOffWindow(npc)
+int npc;
 {
 	return
-		(Area._npc._x[bp04] - WinBlock.x*16) >= 32 ||
-		(Area._npc._y[bp04] - WinBlock.y*16) >= 32
+		(Area._npc._x[npc] - WinBlock.x*16) >= 32 ||
+		(Area._npc._y[npc] - WinBlock.y*16) >= 32
 	;
 }
 
-/*move NPCs[MOD_OUTDOORS]*/
+/*
+ * Move the outdoor monsters (npcs #0-#7; those out of the map window vanish).
+ * One next to the party attacks; pirate ships within 3 squares fight, else
+ * chase; serpents, lava lizards, hydras, dragons and balrons within 4 squares
+ * shoot fire half of the time; whirlpools, twisters and (3 times out of 4)
+ * non-evil monsters wander, the others come towards the party.
+ */
 /*C_5712*/MoveWorldNpcs()
 {
-	int loc_A, loc_B, loc_C, loc_D;
-	register int loc_F;
+	int dx, dy, dist_x, dist_y;
+	register int monster;
 
-	loc_F = 7; do {
-		int loc_G;
-		register int loc_H;
+	monster = 7; do {
+		int dist;
+		register int npc_tile;
 
-		loc_H = Area._npc._tile[loc_F];
-		if(loc_H == 0)
+		npc_tile = Area._npc._tile[monster];
+		if(npc_tile == 0)
 			continue;
 		/*is out of range?*/
-		if(NpcOffWindow(loc_F)) {
-			Area._npc._tile[loc_F] = Area._npc._gtile[loc_F] = 0;
+		if(NpcOffWindow(monster)) {
+			Area._npc._tile[monster] = Area._npc._gtile[monster] = 0;
 			continue;
 		}
 		/* */
-		if(loc_H != TIL_WHIRLPOOL && loc_H != TIL_TWISTER) {
-			loc_G = NpcDistance(loc_F, &loc_A, &loc_B, &loc_C, &loc_D);
-			if(loc_G < 2) {
+		if(npc_tile != TIL_WHIRLPOOL && npc_tile != TIL_TWISTER) {
+			dist = NpcDistance(monster, &dx, &dy, &dist_x, &dist_y);
+			if(dist < 2) {
 				/*-- attacked by --*/
 				RefreshView();
-				u4_puts(MsgAttackedBy); u4_puts(CreatureName(loc_H));
+				u4_puts(MsgAttackedBy); u4_puts(CreatureName(npc_tile));
 				Gra_CR();
-				StartCombat(loc_F);
+				StartCombat(monster);
 				continue;
 			}
 		}
-		if(loc_H == TIL_PIRATE_W) {
-			if(loc_G < 4)
-				ShipAttack(loc_F, loc_A, loc_B);
+		if(npc_tile == TIL_PIRATE_W) {
+			if(dist < 4)
+				ShipAttack(monster, dx, dy);
 			else
-				ShipMove(loc_F, loc_A, loc_B);
+				ShipMove(monster, dx, dy);
 			continue;
 		}
-		if(loc_H == TIL_SERPENT || loc_H == TIL_LAVA_LIZARD || loc_H >= TIL_HYDRA) {
-			if(u4_abs(loc_C) < 5 && u4_abs(loc_D) < 5 && U4_RND1(1))
-				NpcFireAtParty(loc_F, loc_A, loc_B, TIL_HIT_FLASH);
+		if(npc_tile == TIL_SERPENT || npc_tile == TIL_LAVA_LIZARD || npc_tile >= TIL_HYDRA) {
+			if(u4_abs(dist_x) < 5 && u4_abs(dist_y) < 5 && U4_RND1(1))
+				NpcFireAtParty(monster, dx, dy, TIL_HIT_FLASH);
 		}
-		if(loc_H == TIL_WHIRLPOOL || loc_H == TIL_TWISTER || (IsNonEvil(loc_H) && U4_RND1(3)))
-			NpcStepOutdoors(loc_F, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), 1);
+		if(npc_tile == TIL_WHIRLPOOL || npc_tile == TIL_TWISTER || (IsNonEvil(npc_tile) && U4_RND1(3)))
+			NpcStepOutdoors(monster, u4_sign((char)u_rand_a()), u4_sign((char)u_rand_a()), 1);
 		else
-			NpcStepOutdoors(loc_F, loc_A, loc_B, 2);
-	} while(--loc_F >= 0);
+			NpcStepOutdoors(monster, dx, dy, 2);
+	} while(--monster >= 0);
 }
 
-/*move npc?*/
+/*Move the npcs (in a towne or outdoors).*/
 /*C_5834*/MoveNpcs()
 {
 	if(CurMode == MOD_BUILDING)
@@ -419,46 +478,52 @@ int bp04;
 		MoveWorldNpcs();
 }
 
-/*spawn creatures?*/
+/*
+ * Outdoors, 1 time out of 16: in each free slot of npcs #0-#3, try to put a
+ * monster on a random square of the map window at least 6 squares away from
+ * the party on both axes. At sea (1 time out of 8), a sea creature (pirate
+ * ships twice as likely); on grass, scrub, forest or hills, a land monster
+ * from the orc up to the balron depending on the number of moves.
+ */
 /*C_5851*/SpawnMonsters()
 {
-	register int si;
-	register unsigned char *loc_B;
-	unsigned char loc_C, loc_A;
+	register int npc;
+	register unsigned char *ptile;
+	unsigned char pos_y, pos_x;
 
 	if(CurMode != MOD_OUTDOORS || U4_RND1(15))
 		return;
-	for(si = 3; si >= 0; si--) {
-		if(Area._npc._tile[si] != 0)
+	for(npc = 3; npc >= 0; npc--) {
+		if(Area._npc._tile[npc] != 0)
 			continue;
-		loc_A = U4_RND1(31);
-		loc_C = U4_RND1(31);
-		loc_B = &(Area._map.x32x32[loc_C][loc_A]);
-		if(u4_abs(loc_A - WinPos.x) >= 6 && u4_abs(loc_C - WinPos.y) >= 6) {
-			if(*loc_B < TIL_SHALLOWS) {/*at sea*/
+		pos_x = U4_RND1(31);
+		pos_y = U4_RND1(31);
+		ptile = &(Area._map.x32x32[pos_y][pos_x]);
+		if(u4_abs(pos_x - WinPos.x) >= 6 && u4_abs(pos_y - WinPos.y) >= 6) {
+			if(*ptile < TIL_SHALLOWS) {/*at sea*/
 				if(U4_RND1(7) == 0) {
-					Area._npc._x[si] = loc_A + WinBlock.x*16;
-					Area._npc._y[si] = loc_C + WinBlock.y*16;
-					Area._npc._tile[si] = Area._npc._gtile[si] = (unsigned char)TIL_PIRATE_W + (U4_RND1(7) * 2);
-					if(Area._npc._gtile[si] == TIL_PIRATE_E)
-						Area._npc._tile[si] = Area._npc._gtile[si] = TIL_PIRATE_W;
+					Area._npc._x[npc] = pos_x + WinBlock.x*16;
+					Area._npc._y[npc] = pos_y + WinBlock.y*16;
+					Area._npc._tile[npc] = Area._npc._gtile[npc] = (unsigned char)TIL_PIRATE_W + (U4_RND1(7) * 2);
+					if(Area._npc._gtile[npc] == TIL_PIRATE_E)
+						Area._npc._tile[npc] = Area._npc._gtile[npc] = TIL_PIRATE_W;
 				}
-			} else if(*loc_B >= TIL_GRASS && *loc_B < TIL_MOUNTAINS) {/*on earth*/
-				unsigned bp_0a;
+			} else if(*ptile >= TIL_GRASS && *ptile < TIL_MOUNTAINS) {/*on earth*/
+				unsigned level_mask;
 
-				Area._npc._x[si] = loc_A + WinBlock.x*16;
-				Area._npc._y[si] = loc_C + WinBlock.y*16;
+				Area._npc._x[npc] = pos_x + WinBlock.x*16;
+				Area._npc._y[npc] = pos_y + WinBlock.y*16;
 				if(Party._moves > 100000L)
-					bp_0a = 15;
+					level_mask = 15;
 				else if(Party._moves < 10000L)
-					bp_0a = 3;
+					level_mask = 3;
 				else if(Party._moves < 20000L)
-					bp_0a = 7;
+					level_mask = 7;
 				else if (Party._moves >= 30000L)
-					bp_0a = 15;
+					level_mask = 15;
 				else
-					bp_0a = 7;
-/*
+					level_mask = 7;
+/*the original code of the expression below:
 :599A E8D4BD    CALL	u_rand_a
 :599D 8946F4    MOV	[BP-0Ch],AX
 :59A0 E8CEBD    CALL	u_rand_a
@@ -470,9 +535,9 @@ int bp04;
 :59AF 80C1C0    ADD	CL,0C0h
 :59B2 888C428B  MOV	__8B42[SI],CL
 :59B6 888CA28B  MOV	__8B42[SI+60h],CL*/
-				Area._npc._tile[si] =
-				Area._npc._gtile[si] =
-					U4_RND1(U4_RND1(bp_0a)) * 4 + TIL_ORC;
+				Area._npc._tile[npc] =
+				Area._npc._gtile[npc] =
+					U4_RND1(U4_RND1(level_mask)) * 4 + TIL_ORC;
 			}
 		}
 	}

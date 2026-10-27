@@ -14,6 +14,19 @@
 #include <string.h>
 
 /*====---- _BSS ----====*/
+/*As in TITLE_0.C, the statics keep placeholder names: Microsoft C 4.00 lays out a
+ module's uninitialised statics in the order of its symbol table, which depends on the
+ names, so renaming them would move them. The readable names are the macros below.
+ They hold the new character being created:
+   PlayerDrive      drive of the PLAYER disk (1 = A:)
+   lastVirtue       the virtue chosen in the last dilemma (0 = Honesty .. 7 = Humility),
+                    which decides the class, the start position and the party leader
+   M_or_F           'M' or 'F'
+   tmp_str/dex/int  strength, dexterity, intelligence being built
+   pPicture         the current intro picture
+   curQuestionIndex number of dilemmas answered (0..7)
+   player_name      the name typed
+   tmp_karma        the 8 karma values being built*/
 /*D_6938*/static unsigned static_A;
 /*D_693A*/static int static_B;
 /*D_693C*/static int static_C;
@@ -468,124 +481,146 @@ moment, the spinning subsides, and you\n\
 open your eyes to..."
 };
 
-/*C_261D*/u4_puts(bp04)
-char *bp04;
+/*
+ * Print a string at the text cursor; '\n' goes to the start of the next line.
+ */
+/*C_261D*/u4_puts(str)
+char *str;
 {
-	char bp_02;
+	char c;
 
-	while(bp_02 = *bp04) {
-		if(bp_02 == '\n') {
+	while(c = *str) {
+		if(c == '\n') {
 			txt_Y ++;
 			txt_X = 0;
 		} else {
-			u4_putc(*bp04);
+			u4_putc(*str);
 		}
-		bp04 ++;
+		str ++;
 	}
 }
 
-/*text input?*/
-/*C_2656*/u4_gets(si/*bp06*/, bp04)
-register char *si;
-unsigned bp04;
+/*
+ * Read a line of text into buf (at most size - 1 characters, printable ASCII only) until
+ * Enter; Backspace, Ctrl+Backspace and Left erase. Leading and trailing spaces are then
+ * removed (key is reused as an index for that).
+ * Probable original bug: when the line is empty or only spaces, the final loop decrements
+ * len past 0 and reads (and clears while it finds spaces) the bytes before buf.
+ */
+/*C_2656*/u4_gets(buf, size)
+register char *buf;
+unsigned size;
 {
-	register unsigned di;
-	unsigned bp_04;
+	register unsigned len;
+	unsigned key;
 
-	di = 0;
+	len = 0;
 	do {
-		bp_04 = u_kbread();
-		switch(bp_04) {
-			case KBD_BS: case KBD_0e7f: case KBD_LEFT:
-				if(di == 0) {
+		key = u_kbread();
+		switch(key) {
+			case KBD_BS: case KBD_CTRL_BS: case KBD_LEFT:
+				if(len == 0) {
 					sound_1();
 				} else {
 					u4_putc(8);
-					di--;
-					si[di] = ' ';
+					len--;
+					buf[len] = ' ';
 				}
 			break;
 			default:
-				bp_04 &= 0x00ff;
-				if(bp04 - 1 == di || bp_04 < 0x20 || bp_04 >= 0x80) {
+				key &= 0x00ff;
+				if(size - 1 == len || key < 0x20 || key >= 0x80) {
 					sound_1();
 				} else {
-					si[di] = bp_04;
-					u4_putc(bp_04);
-					di ++;
+					buf[len] = key;
+					u4_putc(key);
+					len ++;
 				}
 			break;
 			case KBD_ENTER:
-				si[di] = 0;
+				buf[len] = 0;
 			break;
 		}
-	} while(bp_04 != KBD_ENTER);
-	bp_04 = 0;
-	while(si[bp_04++] == ' ');
-	if(si[--bp_04]) {
-		di = 0;
-		while(si[bp_04])
-			si[di++] = si[bp_04++];
+	} while(key != KBD_ENTER);
+	key = 0;
+	while(buf[key++] == ' ');
+	if(buf[--key]) {
+		len = 0;
+		while(buf[key])
+			buf[len++] = buf[key++];
 	} else {
-		di = bp_04;
+		len = key;
 	}
 	do
-		si[di] = 0;
-	while(si[--di] == ' ');
+		buf[len] = 0;
+	while(buf[--len] == ' ');
 }
 
-/*C_271D*/ShowTextPage(bp04)
-char *bp04;
+/*
+ * Clear the text area, print text at its top line and wait for a key.
+ */
+/*C_271D*/ShowTextPage(text)
+char *text;
 {
 	Gra_ClearText();
 	txt_X = 0;
 	txt_Y = 19;
-	u4_puts(bp04);
+	u4_puts(text);
 	u_kbread();
 }
 
-/*moongate animation #1*/
+/*
+ * Intro: the moongate rises from the ground in front of the tree (busy-wait delays).
+ */
 /*C_273E*/MoongateRises()
 {
-	int bp_02, bp_04;
+	int step, delay;
 
-	for(bp_02 = 1; bp_02 <= 23; bp_02++) {
-		Gra_Blit(3,      bp_02, 0, 152, pPicture, 92 - bp_02, -1, 9);
-		Gra_Blit(3, 24 - bp_02, 9,  68, pPicture, 68,         -1, 9);
-		for(bp_04 = 1; bp_04 <= 10000; bp_04 ++);
+	for(step = 1; step <= 23; step++) {
+		Gra_Blit(3,      step, 0, 152, pPicture, 92 - step, -1, 9);
+		Gra_Blit(3, 24 - step, 9,  68, pPicture, 68,         -1, 9);
+		for(delay = 1; delay <= 10000; delay ++);
 	}
 	Gra_Blit(3, 24, 0, 152, pPicture, 68, -1, 9);
 }
 
-/*moongate animation #2*/
+/*
+ * Intro: the moongate sinks back into the ground.
+ */
 /*C_27E0*/MoongateSinks()
 {
-	int bp_02, bp_04;
+	int step, delay;
 
-	for(bp_02 = 1; bp_02 <= 23; bp_02 ++) {
-		Gra_Blit(3,      bp_02, 3, 152, pPicture,         68, -1, 9);
-		Gra_Blit(3, 24 - bp_02, 0, 152, pPicture, bp_02 + 68, -1, 9);
-		for(bp_04 = 1; bp_04 <= 10000; bp_04 ++);
+	for(step = 1; step <= 23; step ++) {
+		Gra_Blit(3,      step, 3, 152, pPicture,         68, -1, 9);
+		Gra_Blit(3, 24 - step, 0, 152, pPicture, step + 68, -1, 9);
+		for(delay = 1; delay <= 10000; delay ++);
 	}
 	Gra_Blit(3, 24, 3, 152, pPicture, 68, -1, 9);
 }
 
+/*
+ * The story told before the gypsy's reading: text pages 0x1d to 0x34 (STR) under the
+ * matching pictures (tree, moongate, portal, fair outside and inside, wagon, gypsy,
+ * abacus), one page per key press. Pictures are loaded one page ahead and shown with
+ * the page that needs them.
+ */
 /*C_2883*/Introduction()
 {
-	unsigned bp_02;
+	unsigned page;
 
 	if((pPicture = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
 		exit(0x5e);
-	bp_02 = 0x1d;
+	page = 0x1d;
 	Gra_LoadPicture((GraphicsType == 1)?/*D_2F6C*/"tree.pic":/*D_2F75*/"tree.ega", pPicture);
 	Gra_ClearScreen();
 	Gra_Blit(40, 152, 0, 0, pPicture, 0, -1, 0);
-	while(bp_02 != 0x35) {
+	while(page != 0x35) {
 		Gra_ClearText();
 		txt_X = 0;
 		txt_Y = 19;
-		u4_puts(STR(bp_02++));
-		switch(bp_02 - 1) {
+		u4_puts(STR(page++));
+		switch(page - 1) {
 			case 0x20:
 				MoongateRises();/*moongate animation #1*/
 			break;
@@ -626,15 +661,19 @@ char *bp04;
 	}
 }
 
+/*screen row of the abacus's bead rows, one per question*/
 int /*D_3012*/AbacusRowY[] = {0x18,0x28,0x36,0x44,0x52,0x62,0x70};
 
-/*draw abacus beas*/
-/*C_2B2A*/DrawBead(bp08, bp06, bp04)
-unsigned bp08;/*0:chosen, 1:discarded ?*/
-unsigned bp06;/*virtue index*/
-unsigned bp04;/*line*/
+/*
+ * Draw a bead on the gypsy's abacus: in the column of the virtue, on the row of the
+ * question, with a different bead picture for the chosen and the discarded virtue.
+ */
+/*C_2B2A*/DrawBead(discarded, virtue, row)
+unsigned discarded;/*0: chosen virtue, 1: discarded virtue*/
+unsigned virtue;/*virtue index 0..7*/
+unsigned row;/*question index 0..6*/
 {
-	Gra_Blit(1, 12, (bp08 == 0)?1:3, 187, pPicture, AbacusRowY[bp04], -1, bp06 + 16);
+	Gra_Blit(1, 12, (discarded == 0)?1:3, 187, pPicture, AbacusRowY[row], -1, virtue + 16);
 }
 
 char * /*D_307E*/CardPictures[] = {
@@ -649,27 +688,33 @@ char * /*D_307E*/CardPictures[] = {
 	/*D_3072*/"SPIRHUM.PIC"
 };
 
-/*draw virtue card*/
-/*C_2B6D*/DrawCard(bp06, bp04)
-unsigned bp06;/*virtue index*/
-unsigned bp04;/*left or right*/
+/*
+ * Draw the card of a virtue on the table, on the left (side 0) or right (side 1). Each
+ * picture holds two cards side by side (HONCOM = Honesty and Compassion, ...), so the
+ * card is the left or right half of picture virtue / 2; the CGA pictures come after
+ * the EGA ones in CardPictures.
+ */
+/*C_2B6D*/DrawCard(virtue, side)
+unsigned virtue;/*virtue index 0..7*/
+unsigned side;/*0: left, 1: right*/
 {
-	void far *bp_04;
+	void far *pic;
 
-	bp06 += ((GraphicsType == 1)?1:0) * 8;
-	if((bp_04 = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
+	virtue += ((GraphicsType == 1)?1:0) * 8;
+	if((pic = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
 		exit(0x5d);
-	Gra_LoadPicture(CardPictures[bp06/2], bp_04);
-	Gra_Blit(12, 124, ((bp06&1) == 0)?1:27, 12, bp_04, 12, -1, (bp04 == 0)?1:27);
-	_ffree(bp_04);
+	Gra_LoadPicture(CardPictures[virtue/2], pic);
+	Gra_Blit(12, 124, ((virtue&1) == 0)?1:27, 12, pic, 12, -1, (side == 0)?1:27);
+	_ffree(pic);
 }
 
-/*characterisics increments by virtue*/
+/*attribute bonus given by each virtue when chosen*/
 unsigned char /*D_30B2*/VirtueStr[] = {0, 0, 3, 0, 1, 1, 1, 0};/*str*/
 unsigned char /*D_30BA*/VirtueDex[] = {0, 3, 0, 1, 1, 0, 1, 0};/*dex*/
 unsigned char /*D_30C2*/VirtueInt[] = {3, 0, 0, 1, 0, 1, 1, 0};/*int*/
 
-/*dilemmas text indexes*/
+/*text index of the dilemmas: STR(DilemmaBase[a] + b) is the dilemma between
+ virtues a < b (the comment at the start of each line is the value)*/
 unsigned char /*D_30CA*/DilemmaBase[] = {
 	/*0x00*/0x01 - 1,/*Honesty vs {Compassion|...|Humility}*/
 	/*0x06*/0x08 - 2,/*Compassion vs {Valor|...|Humility}*/
@@ -680,36 +725,45 @@ unsigned char /*D_30CA*/DilemmaBase[] = {
 	/*0x15*/0x1c - 7 /*Spirituality vs Humility*/
 };
 
+/*
+ * The gypsy's reading: 7 dilemmas between two virtues, a tournament. The 8 virtues are
+ * paired at random for 4 questions, then the 4 winners for 2 questions, then the last 2.
+ * flags[virtue]: 0 still in this round, 1 already chosen in this round, 0xff discarded.
+ * chosen/discarded: the two virtues drawn, the lower one first (it is answer A); they are
+ * swapped if B is answered. Each chosen virtue gets 5 karma, its attribute bonus and a
+ * bead; the last one chosen (lastVirtue) decides the class. n is a loop index, a swap
+ * temporary and the key read.
+ */
 /*C_2C12*/GypsyReading()
 {
-	int loc_A;
-	unsigned char loc_B, loc_C;
-	unsigned char loc_D[8];
+	int n;
+	unsigned char chosen, discarded;
+	unsigned char flags[8];
 
 	tmp_str = tmp_int = tmp_dex = 15;
 	curQuestionIndex = 0;
-	for(loc_A = 7; loc_A >= 0; loc_A--) {
-		loc_D[loc_A] = 0;
-		tmp_karma[loc_A] = 50;
+	for(n = 7; n >= 0; n--) {
+		flags[n] = 0;
+		tmp_karma[n] = 50;
 	}
 	do {
 		if(curQuestionIndex == 4 || curQuestionIndex == 6) {
-			for(loc_A = 7; loc_A >= 0; loc_A --)
-				if(loc_D[loc_A] < 0x80)
-					loc_D[loc_A] = 0;
+			for(n = 7; n >= 0; n --)
+				if(flags[n] < 0x80)
+					flags[n] = 0;
 		}
 		Gra_ClearText();
 		txt_X = 0;
 		txt_Y = 19;
 		do
-			loc_B = u_rand_a() & 7;
-		while(loc_D[loc_B&0xff]);
+			chosen = u_rand_a() & 7;
+		while(flags[chosen&0xff]);
 		do
-			loc_C = u_rand_a() & 7;
-		while(loc_D[loc_C&0xff] || loc_C == loc_B);
-		if(loc_C < loc_B) {
-			/*swap(loc_B,loc_C);*/
-			loc_A = loc_B; loc_B = loc_C; loc_C = loc_A;
+			discarded = u_rand_a() & 7;
+		while(flags[discarded&0xff] || discarded == chosen);
+		if(discarded < chosen) {
+			/*swap(chosen,discarded);*/
+			n = chosen; chosen = discarded; discarded = n;
 		}
 		if(curQuestionIndex == 0)
 			u4_puts(/*D_2F4E*/STR(0x35));
@@ -718,43 +772,44 @@ unsigned char /*D_30CA*/DilemmaBase[] = {
 		else
 			u4_puts(/*D_2F50*/STR(0x36));
 		u4_puts(/*D_2F54*/STR(0x38));
-		DrawCard(loc_B, 0);
-		u4_puts(STR(0x39 + loc_B));
+		DrawCard(chosen, 0);
+		u4_puts(STR(0x39 + chosen));
 		u4_puts(/*D_308E*/" and ");
-		DrawCard(loc_C, 1);
-		u4_puts(STR(0x39 + loc_C));
+		DrawCard(discarded, 1);
+		u4_puts(STR(0x39 + discarded));
 		u4_puts(/*D_3094*/".  She says\n\"Consider this:\"");
 		u_kbflush();
 		u_kbread();
 		Gra_ClearText();
 		txt_X = 0;
 		txt_Y = 19;
-		u4_puts(STR(DilemmaBase[loc_B] + loc_C));
+		u4_puts(STR(DilemmaBase[chosen] + discarded));
 		do {
-			loc_A = u_kbread();
-			if(u4_isupper((unsigned char)loc_A))
-				loc_A += 'a' - 'A';
-		} while(loc_A != KBD_A && loc_A != KBD_B);
-		if(loc_A == KBD_B) {
-			/*swap(loc_B,loc_C);*/
-			loc_A = loc_B; loc_B = loc_C; loc_C = loc_A;
+			n = u_kbread();
+			if(u4_isupper((unsigned char)n))
+				n += 'a' - 'A';
+		} while(n != KBD_A && n != KBD_B);
+		if(n == KBD_B) {
+			/*swap(chosen,discarded);*/
+			n = chosen; chosen = discarded; discarded = n;
 		}
 		/*chosen virtue*/
-		lastVirtue = loc_B;
-		loc_D[lastVirtue] = 1;
+		lastVirtue = chosen;
+		flags[lastVirtue] = 1;
 		tmp_karma[lastVirtue] += 5;
 		tmp_str += VirtueStr[lastVirtue];
 		tmp_dex += VirtueDex[lastVirtue];
 		tmp_int += VirtueInt[lastVirtue];
 		DrawBead(0, lastVirtue, curQuestionIndex);
 		/*discarded virtue*/
-		loc_D[loc_C] = 0xff;
-		DrawBead(1, loc_C, curQuestionIndex);
+		flags[discarded] = 0xff;
+		DrawBead(1, discarded, curQuestionIndex);
 	} while(++curQuestionIndex != 7);
 	ShowTextPage(/*D_2F68*/STR(0x42));
 	ShowTextPage(/*D_2F6A*/STR(0x43));
 }
 
+/*start position on the world map for each virtue (by the town of that virtue)*/
 unsigned char /*D_30DC*/StartX[] = {0xE7,0x53,0x23,0x3B,0x9E,0x69,0x17,0xBA};
 unsigned char /*D_30E4*/StartY[] = {0x88,0x69,0xDD,0x2C,0x15,0xB7,0x81,0xAB};
 
@@ -769,51 +824,61 @@ unsigned /*D_30EC*/*pKarmas[] = {
 	&(Party._humil)
 };
 
+/*
+ * Build the new party from PARTY.NEW: the start position and karmas, the character of
+ * the chosen class (lastVirtue) swapped into the first slot and given the player's name,
+ * attributes and sex; one member only, and the NPC table of the world map is cleared.
+ */
 /*C_2E04*/CreateParty()
 {
-	int loc_A;
-	struct tChara loc_B;
+	int idx;
+	struct tChara temp;
 
 	if(Load(/*D_30D1*/"PARTY.NEW", sizeof(struct tParty), &Party) == -1)
 		exit(3);
 	Party._x = StartX[lastVirtue];
 	Party._y = StartY[lastVirtue];
 	Party._members = 1;
-	for(loc_A = 7; loc_A >= 0; loc_A --)
-		*(pKarmas[loc_A]) = tmp_karma[loc_A];
+	for(idx = 7; idx >= 0; idx --)
+		*(pKarmas[idx]) = tmp_karma[idx];
 	/*-- swap(&(Party.chara[lastVirtue]), &(Party.chara[0])) --*/
-	memcpy(&loc_B, &(Party.chara[lastVirtue]), sizeof(struct tChara));
+	memcpy(&temp, &(Party.chara[lastVirtue]), sizeof(struct tChara));
 	memcpy(&(Party.chara[lastVirtue]), &(Party.chara[0]), sizeof(struct tChara));
-	memcpy(&(Party.chara[0]), &loc_B, sizeof(struct tChara));
+	memcpy(&(Party.chara[0]), &temp, sizeof(struct tChara));
 	/*-- --*/
 	strcpy(Party.chara[0]._name, player_name);
 	Party.chara[0]._str = tmp_str;
 	Party.chara[0]._int = tmp_int;
 	Party.chara[0]._dex = tmp_dex;
 	Party.chara[0]._sex = (M_or_F == 'M')?0x0b:0x0c;
-	for(loc_A = 31; loc_A >= 0; loc_A --) {
-		Area._npc._gtile[loc_A] =
-		Area._npc._x[loc_A] =
-		Area._npc._y[loc_A] =
-		Area._npc._tile[loc_A] =
-		Area._npc._old_x[loc_A] =
-		Area._npc._old_y[loc_A] =
-		Area._npc._var[loc_A] =
-		Area._npc._tlkidx[loc_A] = 0;
+	for(idx = 31; idx >= 0; idx --) {
+		Area._npc._gtile[idx] =
+		Area._npc._x[idx] =
+		Area._npc._y[idx] =
+		Area._npc._tile[idx] =
+		Area._npc._old_x[idx] =
+		Area._npc._old_y[idx] =
+		Area._npc._var[idx] =
+		Area._npc._tlkidx[idx] = 0;
 	}
 }
 
-/*confirmFileInDrive?*/
-/*C_2F07*/AskForDisk(bp06, bp04)/*%%% hacked %%%*/
-char *bp06;
-char *bp04;
+/*
+ * Ask for a disk: show prompt, "and", "press drive letter", then wait until a drive
+ * letter is pressed that selects a drive holding the file fname (B: only with two
+ * drives). Beeps and waits again otherwise.
+ * Probable original bug: 'P' gives drive 0 ('P' & 0xf), which never matches.
+ */
+/*C_2F07*/AskForDisk(prompt, fname)/*%%% hacked %%%*/
+char *prompt;
+char *fname;
 {
-	int bp_02;
+	int key;
 
 	Gra_ClearScreen();
 	txt_Y = 10;
-	txt_X = (40 - (unsigned)strlen(bp06)) / 2;
-	u4_puts(bp06);
+	txt_X = (40 - (unsigned)strlen(prompt)) / 2;
+	u4_puts(prompt);
 	txt_Y ++;
 	txt_X = 18;
 	u4_puts(/*D_30FC*/"and");
@@ -822,41 +887,53 @@ char *bp04;
 	u4_puts(/*D_3100*/"press drive letter");
 	while(!u_kbhit());
 	do {
-		bp_02 = u_kbread() & 0xff;
-		u4_toupper(bp_02);
-		if(bp_02 != 'B' || TwoDrives != 0) {
-			if(bp_02 >= 'A' && bp_02 <= 'P') {
-				bp_02 &= 0xf;
-				u_setdrive(bp_02);
+		key = u_kbread() & 0xff;
+		u4_toupper(key);
+		if(key != 'B' || TwoDrives != 0) {
+			if(key >= 'A' && key <= 'P') {
+				key &= 0xf;
+				u_setdrive(key);
 			}
 		}
-		if((u_getdrive() & 0xff) == bp_02 && u_fexist(bp04))
+		if((u_getdrive() & 0xff) == key && u_fexist(fname))
 			return;
 		sound_1();
 		while(!u_kbhit());
 	} while(1);
 }
 
-/*prepare player disk?*/
+/*
+ * Ask for the PLAYER disk (the one holding WORLD.MAP) and write PARTY.SAV and
+ * MONSTERS.SAV on it. If it went into the program's drive, ask for the PROGRAM disk
+ * again (AVATAR.EXE), otherwise go back to the program's drive.
+ */
 /*C_2FB8*/WritePlayerDisk()
 {
-	unsigned bp_02;
+	unsigned programDrive;
 
-	bp_02 = u_getdrive() & 0xff;
+	programDrive = u_getdrive() & 0xff;
 	AskForDisk(/*D_311D*/"Insert PLAYER disk", /*D_3113*/"WORLD.MAP");
 	PlayerDrive = u_getdrive() & 0xff;
 	if(Save(/*D_3130*/"PARTY.SAV", sizeof(struct tParty), &Party) == -1)
 		exit(3);
 	if(Save(/*D_313A*/"MONSTERS.SAV", sizeof(struct tNPC), &(Area._npc)) == -1)
 		exit(3);
-	if(PlayerDrive == bp_02)
+	if(PlayerDrive == programDrive)
 		AskForDisk(/*D_3152*/"Re-Insert PROGRAM disk", /*D_3147*/"AVATAR.EXE");
 	else
-		u_setdrive(bp_02);
+		u_setdrive(programDrive);
 }
 
 extern /*C_0B1E*/PutsAt(int, int, char *);
 
+/*
+ * "Initiate New Game": ask the name and the sex, then run the introduction, the gypsy's
+ * reading, create the party and write it on the PLAYER disk, and exit to DOS with the
+ * player drive's letter as the exit code. An empty name or Escape returns to the title
+ * screen instead (the caller redraws it, the animations having been freed).
+ * Probable original bug: M_or_F holds only the character code (& 0xff), so the
+ * KBD_ENTER and KBD_SPACE (scan code + character) tests never match.
+ */
 /*C_3030*/NewGame()
 {
 	Gra_ClearMenu();
@@ -889,10 +966,10 @@ extern /*C_0B1E*/PutsAt(int, int, char *);
 	_ffree(pShapes);
 	MonstersShown = 0;
 
-	Introduction();/*introduction*/
-	GypsyReading();/*gipsy*/
-	CreateParty();/*prepare party structure*/
-	WritePlayerDisk();/*prepare player disk?*/
+	Introduction();
+	GypsyReading();
+	CreateParty();
+	WritePlayerDisk();
 	_ffree(pPicture);
 	/*-- clean & return to dos --*/
 	_ffree(pCharset);

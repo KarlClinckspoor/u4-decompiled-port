@@ -9,24 +9,30 @@
 #include <string.h>
 #include <stdlib.h>
 
+/*empty functions, never called*/
 /*C_C445*/Unused1() {}
 /*C_C44A*/Unused2() {}
 /*C_C44F*/Unused3() {}
 
+/*nonzero if the machine has (or the command line says) two floppy drives*/
 static int /*D_9138*/TwoDrives;
 
-/*confirmFileInDrive?*/
-/*C_C454*/AskForDisk(bp06, bp04)
-char *bp06;
-char *bp04;
+/*
+ * Make sure file fname can be found in the current drive; if not, show message
+ * ("Insert ... disk") and wait until the player presses the letter of a drive that
+ * has it (B only when there are two drives; other keys beep).
+ */
+/*C_C454*/AskForDisk(message, fname)
+char *message;
+char *fname;
 {
-	int bp_02;
+	int key;
 
-	if(!u_fexist(bp04)) {
+	if(!u_fexist(fname)) {
 		CurMode = MOD_VISION;
 		txt_Y = 10;
-		txt_X = (unsigned int)(40 - strlen(bp06)) >> 1;
-		u4_puts(bp06);
+		txt_X = (unsigned int)(40 - strlen(message)) >> 1;
+		u4_puts(message);
 		txt_Y ++;
 		txt_X = 18;
 		u4_puts(/*D_3024*/"and");
@@ -35,33 +41,43 @@ char *bp04;
 		u4_puts(/*D_3028*/"press drive letter");
 		while(!u_kbhit());
 		do {
-			bp_02 = (unsigned char)u_kbread();
-			u4_toupper(bp_02);
-			if(bp_02 != 'B' || TwoDrives != 0) {
-				if(bp_02 >= 'A' && bp_02 <= 'P') {
-					bp_02 &= 0xf;
-					u_setdrive(bp_02);
+			key = (unsigned char)u_kbread();
+			u4_toupper(key);
+			if(key != 'B' || TwoDrives != 0) {
+				if(key >= 'A' && key <= 'P') {
+					key &= 0xf;/*drive number: A = 1 ... O = 15, P = 0*/
+					u_setdrive(key);
 				}
 			}
-			if(u_getdrive() == bp_02 && u_fexist(bp04))
+			if(u_getdrive() == key && u_fexist(fname))
 				return;
-			sound(1);
+			sound(SND_BEEP);
 			while(!u_kbhit());
 		} while(1);
 	}
 }
 
+/*the command line tail in the PSP: its length, then " C 1"-like arguments*/
 #define NPARAM (far_psp->_80[0])
 #define PARAM0 (far_psp->_80[2])
 #define PARAM1 (far_psp->_80[4])
 
+/*
+ * Game start-up. The command line (written by TITLE.EXE) gives the graphics type
+ * (C=CGA, E=EGA, T=Tandy, else autodetect) and the drives (0 = one drive, 1 = two,
+ * A-P = the drive holding the player disk). Allocates and loads the charset and
+ * shapes, loads the graphics driver, asks for the player disk, loads PARTY.SAV
+ * (back to the title program if no party was formed), MONSTERS.SAV and opens
+ * WORLD.MAP, then initializes the game state and draws the screen.
+ * GraphicsType: 1 CGA, 2 EGA, 3 Tandy, -1 none found.
+ */
 /*C_C51C*/GameInit()
 {
-	int bp_02, bp_04;
+	int programDrive, copyCheck;
 
 	u4_toupper(PARAM1);
 	u4_toupper(PARAM0);
-	/*set drive number*/
+	/*number of floppy drives: BIOS equipment word bits 6-7 = drives - 1*/
 	if(NPARAM < 4) {
 		TwoDrives = ((equip_flags & 0xc0) >> 6)?1:0;
 		PARAM1 = TwoDrives + '0';
@@ -72,7 +88,7 @@ char *bp04;
 	} else {
 		TwoDrives = ((equip_flags & 0xc0) >> 6)?1:0;
 	}
-	/*set graphic type*/
+	/*graphics type*/
 	if(NPARAM < 2) {
 		GraphicsType = low_gra();
 	} else if(PARAM0 == 'C') {
@@ -95,7 +111,7 @@ char *bp04;
 		if(Load(/*D_3053*/"SHAPES.CGA", 0x4000, pShapes) == -1)
 			exit(3);
 	}
-	bp_02 = u_getdrive();
+	programDrive = u_getdrive();
 	switch(GraphicsType) {
 		case 1:
 			dfree(patch_tandy);
@@ -115,7 +131,7 @@ char *bp04;
 			exit(2);
 		break;
 	}
-	bp_04 = u_diskcheck();/*piracy check function ?*/
+	copyCheck = u_diskcheck();/*copy protection check? result unused*/
 	Gra_Init(&pShapes, &pCharset, exit);
 	if(GraphicsType == 2)
 		InterleaveCharset();
@@ -148,13 +164,13 @@ char *bp04;
 		txt_Y = 8;
 		txt_X = 12;
 		u4_puts(/*D_30F0*/"No party formed!");
-		sound(8);
+		sound(SND_FAIL);
 		u_delay(3, 0);
 		u_kbflush();
-		if(bp_02 == u_getdrive()) {
+		if(programDrive == u_getdrive()) {
 			AskForDisk(/*D_310B*/"Re-Insert PROGRAM Disk", /*D_3010*/"TITLE.EXE");
 		} else {
-			u_setdrive(bp_02);
+			u_setdrive(programDrive);
 			AskForDisk(/*D_312C*/"Insert PROGRAM disk", /*D_3122*/"TITLE.EXE");
 		}
 		low_clean();

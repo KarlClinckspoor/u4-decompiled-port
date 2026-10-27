@@ -6,68 +6,80 @@
 
 #include "u4.h"
 
-/*C_93A5*/DNG_MonsterCanMove(bp08, bp06, bp04)
-unsigned char bp08;
-unsigned char bp06;
-int bp04;
+/*
+ * Can dungeon monster npc move to (x, y) on the party's level? The square must hold
+ * no monster, and not be a trap or fountain (0x80-0x9F), a field, a room or a wall;
+ * going back to its previous square is allowed only one time in 8.
+ */
+/*C_93A5*/DNG_MonsterCanMove(x, y, npc)
+unsigned char x;
+unsigned char y;
+int npc;
 {
-	unsigned char bp_02;
+	unsigned char tile;
 
-	bp_02 = Area._map.x8x8x8[Party._z][bp06][bp08];
-	if((bp_02 & 0x0f) == 0) {
+	tile = Area._map.x8x8x8[Party._z][y][x];
+	if((tile & 0x0f) == 0) {
 		if(
-			(bp_02 & 0xe0) != 0x80 &&
-			(bp_02 & 0xf0) != 0xa0 &&
-			(bp_02 & 0xf0) != 0xd0 &&
-			(bp_02 & 0xf0) != 0xf0
+			(tile & 0xe0) != 0x80 &&
+			(tile & 0xf0) != 0xa0 &&
+			(tile & 0xf0) != 0xd0 &&
+			(tile & 0xf0) != 0xf0
 		) {
-			if(U4_RND1(7) == 0 || Area._npc._old_x[bp04] != bp08 || Area._npc._old_y[bp04] != bp06)
+			if(U4_RND1(7) == 0 || Area._npc._old_x[npc] != x || Area._npc._old_y[npc] != y)
 				return 1;
 		}
 	}
 	return 0;
 }
 
+/*
+ * Move the monsters of the party's level in the dungeon, at random (they do not
+ * chase the party), except the reapers, the mimics and a monster on the party's
+ * square. Each one makes up to 8 tries with a random direction (incH, incV: -1, 0
+ * or 1), horizontally (1 time in 2), vertically, then horizontally. The monster's
+ * number is kept in the low nibble of the map's tile.
+ */
 /*C_9414*/DNG_MoveMonsters()
 {
-	int loc_A, loc_B, loc_C, loc_D;
-	unsigned char loc_E, loc_F;
+	int incH, npc, incV, retry;
+	unsigned char toX, toY;
 	
-	for(loc_B = 31; loc_B >= 0; loc_B --) {/*end:C_95A1*/
+	for(npc = 31; npc >= 0; npc --) {
 		if(
-			Area._npc._tile[loc_B] != 0 &&
-			Area._npc._var[loc_B] == Party._z &&
-			Area._npc._tile[loc_B] != TIL_REAPER &&
-			Area._npc._tile[loc_B] != TIL_MIMIC
+			Area._npc._tile[npc] != 0 &&
+			Area._npc._var[npc] == Party._z &&
+			Area._npc._tile[npc] != TIL_REAPER &&
+			Area._npc._tile[npc] != TIL_MIMIC
 		) {
-			if(Party._x != Area._npc._x[loc_B] || Party._y != Area._npc._y[loc_B]) {
-				for(loc_D = 7; loc_D >= 0; loc_D --) {/*end:C_94CB*/
-					loc_A = u4_sign((char)u_rand_a());
-					loc_C = u4_sign((char)u_rand_a());
-					if(U4_RND1(1) && loc_A != 0) {
-						loc_E = (Area._npc._x[loc_B] + loc_A) & 7;
-						loc_F = Area._npc._y[loc_B];
-						if(DNG_MonsterCanMove(loc_E, loc_F, loc_B))
+			if(Party._x != Area._npc._x[npc] || Party._y != Area._npc._y[npc]) {
+				for(retry = 7; retry >= 0; retry --) {
+					incH = u4_sign((char)u_rand_a());
+					incV = u4_sign((char)u_rand_a());
+					if(U4_RND1(1) && incH != 0) {
+						toX = (Area._npc._x[npc] + incH) & 7;
+						toY = Area._npc._y[npc];
+						if(DNG_MonsterCanMove(toX, toY, npc))
 							break;
 					}
-					if(loc_C) {
-						loc_E = Area._npc._x[loc_B];
-						loc_F = (Area._npc._y[loc_B] + loc_C) & 7;
-						if(DNG_MonsterCanMove(loc_E, loc_F, loc_B))
+					if(incV) {
+						toX = Area._npc._x[npc];
+						toY = (Area._npc._y[npc] + incV) & 7;
+						if(DNG_MonsterCanMove(toX, toY, npc))
 							break;
 					}
-					loc_E = (Area._npc._x[loc_B] + loc_A) & 7;
-					loc_F = Area._npc._y[loc_B];
-					if(DNG_MonsterCanMove(loc_E, loc_F, loc_B))
+					toX = (Area._npc._x[npc] + incH) & 7;
+					toY = Area._npc._y[npc];
+					if(DNG_MonsterCanMove(toX, toY, npc))
 						break;
 				}
-				if(loc_D != -1) {
-					Area._map.x8x8x8[Party._z][loc_F][loc_E] |= (Area._npc._tile[loc_B] - TIL_RAT) / 4 + 1;
-					Area._map.x8x8x8[Party._z][Area._npc._y[loc_B]][Area._npc._x[loc_B]] &= 0xf0;
-					Area._npc._old_x[loc_B] = Area._npc._x[loc_B];
-					Area._npc._old_y[loc_B] = Area._npc._y[loc_B];
-					Area._npc._x[loc_B] = loc_E;
-					Area._npc._y[loc_B] = loc_F;
+				if(retry != -1) {
+					Area._map.x8x8x8[Party._z][toY][toX] |= (Area._npc._tile[npc] - TIL_RAT) / 4 + 1;
+					Area._map.x8x8x8[Party._z][Area._npc._y[npc]][Area._npc._x[npc]] &= 0xf0;
+					Area._npc._old_x[npc] = Area._npc._x[npc];
+					Area._npc._old_y[npc] = Area._npc._y[npc];
+					Area._npc._x[npc] = toX;
+					Area._npc._y[npc] = toY;
 				}
 			}
 		}
@@ -75,26 +87,33 @@ int bp04;
 	RefreshView();
 }
 
+/*
+ * Maybe create monsters on the party's level of the dungeon: level z uses NPC
+ * slots 4z and 4z+1. A monster appears in a free slot at a random empty corridor
+ * square that is in neither the party's row nor its column (&&: probably meant
+ * "not on the party's square"); it is one of the 4 monsters from TIL_RAT + 4z on
+ * (no mimics).
+ */
 /*C_95AA*/DNG_SpawnMonsters()
 {
-	int loc_A;
-	unsigned char loc_B, loc_C, loc_D;
+	int npc;
+	unsigned char spawnCol, monster, spawnRow;
 
-	for(loc_A = Party._z * 4 + 1; loc_A >= 0; loc_A --) {
-		if((loc_A >> 2) < Party._z)
+	for(npc = Party._z * 4 + 1; npc >= 0; npc --) {
+		if((npc >> 2) < Party._z)
 			break;
-		if(Area._npc._tile[loc_A] == 0) {
-			loc_B = U4_RND1(7);
-			loc_D = U4_RND1(7);
-			if(Party._x != loc_B && Party._y != loc_D) {
-				if(Area._map.x8x8x8[Party._z][loc_D][loc_B] == 0) {
-					loc_C = (U4_RND1(3) + Party._z) * 4 + TIL_RAT;
-					if(loc_C != TIL_MIMIC) {
-						Area._npc._tile[loc_A] = loc_C;
-						Area._npc._x[loc_A] = Area._npc._old_x[loc_A] = loc_B;
-						Area._npc._y[loc_A] = Area._npc._old_y[loc_A] = loc_D;
-						Area._npc._var[loc_A] = Party._z;
-						Area._map.x8x8x8[Party._z][loc_D][loc_B] = ((loc_C - 0x90) >> 2) + 1;
+		if(Area._npc._tile[npc] == 0) {
+			spawnCol = U4_RND1(7);
+			spawnRow = U4_RND1(7);
+			if(Party._x != spawnCol && Party._y != spawnRow) {
+				if(Area._map.x8x8x8[Party._z][spawnRow][spawnCol] == 0) {
+					monster = (U4_RND1(3) + Party._z) * 4 + TIL_RAT;
+					if(monster != TIL_MIMIC) {
+						Area._npc._tile[npc] = monster;
+						Area._npc._x[npc] = Area._npc._old_x[npc] = spawnCol;
+						Area._npc._y[npc] = Area._npc._old_y[npc] = spawnRow;
+						Area._npc._var[npc] = Party._z;
+						Area._map.x8x8x8[Party._z][spawnRow][spawnCol] = ((monster - TIL_RAT) >> 2) + 1;
 					}
 				}
 			}
@@ -102,36 +121,46 @@ int bp04;
 	}
 }
 
+/*
+ * The living character at (hit_x, hit_y) on the combat map, or -1.
+ */
 /*C_9683*/CharaAtHit()
 {
-	register int si;
+	register int chara;
 
-	for(si = Party._members; --si >= 0;  ) {
-		if(isCharaAlive(si) && hit_x == Combat._charaX[si] && hit_y == Combat._charaY[si])
-			return si;
+	for(chara = Party._members; --chara >= 0;  ) {
+		if(isCharaAlive(chara) && hit_x == Combat._charaX[chara] && hit_y == Combat._charaY[chara])
+			return chara;
 	}
 	return -1;
 }
 
-/*C_96B9*/FoeHitsChara(bp06, bp04)
-int bp06;
-int bp04;
+/*
+ * Foe foe hits character chara: damage from 0 to a quarter of the foe's base HP,
+ * then oddly "converted" as if it were BCD: (d >> 4) * 10 + d % 10 (probably a
+ * leftover of a BCD version; with d % 16 it would have been a real conversion).
+ * A killed character raises Sacrifice.
+ * Returns 1 if the character was killed.
+ */
+/*C_96B9*/FoeHitsChara(chara, foe)
+int chara;
+int foe;
 {
-	unsigned bp_02;
+	unsigned damage;
 
-	Gra_InvertStatusLine(bp06);
+	Gra_InvertStatusLine(chara);
 	DrawCombat();
-	sound(7);
+	sound(SND_HURT);
 	hit_tile = 0;
 	DrawCombat();
-	bp_02 = U4_RND4(MonsterMaxHP[MonsterIndex((unsigned char)Fighters._tile[bp04])] >> 2);
-	bp_02 = (bp_02 >> 4) * 10 + (bp_02 % 10);
-	Gra_InvertStatusLine(bp06);
-	if(hitChara(bp06, bp_02) == 0) {
+	damage = U4_RND4(MonsterMaxHP[MonsterIndex((unsigned char)Fighters._tile[foe])] >> 2);
+	damage = (damage >> 4) * 10 + (damage % 10);
+	Gra_InvertStatusLine(chara);
+	if(hitChara(chara, damage) == 0) {
 		dspl_Stats();
 		return 0;
 	}
-	u4_puts(Party.chara[bp06]._name);
+	u4_puts(Party.chara[chara]._name);
 	u4_puts(/*D_29CA*/" is Killed!\n");
 	karma_inc(&(Party._sacri), 1);
 	dspl_Stats();
@@ -140,134 +169,154 @@ int bp04;
 	return 1;
 }
 
-/*C_9764*/CharaStruck(bp04)
-int bp04;
+/*
+ * Character chara is struck without damage (a missile with a special effect).
+ */
+/*C_9764*/CharaStruck(chara)
+int chara;
 {
-	Gra_InvertStatusLine(bp04);
+	Gra_InvertStatusLine(chara);
 	DrawCombat();
-	sound(7);
-	Gra_InvertStatusLine(bp04);
+	sound(SND_HURT);
+	Gra_InvertStatusLine(chara);
 	hit_tile = 0;
 }
 
-/*monster projectile?*/
-/*C_978C*/FoeShoot(bp0a, bp08, bp06, bp04)
-unsigned char bp0a;/*type*/
-int bp08;/*monster id*/
-int bp06;
-int bp04;
+/*
+ * Foe foe shoots missile (a tile, see FoeMissile) in direction (dx, dy): the missile
+ * flies until it hits a character or an obstacle. A missed lava ball leaves lava
+ * where it stops. The poison and sleep missiles fail one time in 2 or on
+ * characters not in good health; the others hurt.
+ */
+/*C_978C*/FoeShoot(missile, foe, dx, dy)
+unsigned char missile;
+int foe;
+int dx;
+int dy;
 {
-	register int si;
+	register int chara;
 
-	hit_tile = bp0a;
-	hit_x = Combat._npcX[bp08];
-	hit_y = Combat._npcY[bp08];
-	sound(3);
-	si = -1;
+	hit_tile = missile;
+	hit_x = Combat._npcX[foe];
+	hit_y = Combat._npcY[foe];
+	sound(SND_SHOOT);
+	chara = -1;
 	do {
-		if(COM_CheckHitable(bp06, bp04) == 0)
+		if(COM_MissileStep(dx, dy) == 0)
 			break;
 		DrawCombat();
-	} while((si = CharaAtHit()) == -1);
-	if(si == -1) {
+	} while((chara = CharaAtHit()) == -1);
+	if(chara == -1) {
 		if(hit_tile == TIL_LAVA)
 			Combat_MAP(hit_y, hit_x) = TIL_LAVA;
 		hit_tile = 0;
 		return;
 	}
 	Gra_CR();
-	u4_puts(Party.chara[si]._name);
+	u4_puts(Party.chara[chara]._name);
 	u4_putc(' ');
 	switch(hit_tile) {
 		case TIL_POISON_FIELD:
 			u4_puts(/*D_29D7*/"Poisoned!\n");
-			CharaStruck(si);
-			if(U4_RND1(1) || Party.chara[si]._stat != 'G')
+			CharaStruck(chara);
+			if(U4_RND1(1) || Party.chara[chara]._stat != 'G')
 				u4_puts(/*D_29E2*/"Failed.\n");
 			else
-				Party.chara[si]._stat = 'P';
+				Party.chara[chara]._stat = 'P';
 		break;
 		case TIL_ENERGY_FIELD:
 			u4_puts(/*D_29EB*/"Electrified!\n");
-			FoeHitsChara(si, bp08);
+			FoeHitsChara(chara, foe);
 		break;
 		case TIL_FIRE_FIELD:
 			u4_puts(/*D_29F9*/"Fiery Hit!\n");
-			FoeHitsChara(si, bp08);
+			FoeHitsChara(chara, foe);
 		break;
 		case TIL_SLEEP_FIELD:
 			u4_puts(/*D_2A05*/"Slept!\n");
-			CharaStruck(si);
-			if(U4_RND1(1) || Party.chara[si]._stat != 'G')
+			CharaStruck(chara);
+			if(U4_RND1(1) || Party.chara[chara]._stat != 'G')
 				u4_puts(/*D_2A0D*/"Failed.\n");
 			else {
-				Party.chara[si]._stat = 'S';
-				Fighters._chtile[si] = TIL_SLEEPING;
+				Party.chara[chara]._stat = 'S';
+				Fighters._chtile[chara] = TIL_SLEEPING;
 			}
 		break;
 		case TIL_LAVA:
 			u4_puts(/*D_2A16*/"Lava Hit!\n");
-			FoeHitsChara(si, bp08);
+			FoeHitsChara(chara, foe);
 		break;
 		case TIL_MAGIC_BOLT:
 			u4_puts(/*D_2A21*/"Magical Hit!\n");
-			FoeHitsChara(si, bp08);
+			FoeHitsChara(chara, foe);
 		break;
 		default:
 			u4_puts(/*D_2A2F*/"Hit!\n");
-			FoeHitsChara(si, bp08);
+			FoeHitsChara(chara, foe);
 	}
 	hit_tile = 0;
 	dspl_Stats();
 }
 
-/*C_98E4*/FoeCanMoveTo(bp08, bp06, bp04)
-unsigned char bp08;
-unsigned char bp06;
-int bp04;
+/*
+ * Can foe foe move to (x, y) on the combat map? Not on slow terrain; off the map
+ * only when fleeing (HP < 24); back to its previous square only 1 time in 4; not
+ * onto another foe or a character. Then it depends on the foe: humans walk, the
+ * sea monsters (but the twister) swim, the flying ones (insects, twister, bat,
+ * daemon, dragon, balron) go over water and walkable tiles, ghosts and zorns go
+ * anywhere but water and energy fields.
+ * Note: the map is read before checking that (x, y) is on it.
+ */
+/*C_98E4*/FoeCanMoveTo(x, y, foe)
+unsigned char x;
+unsigned char y;
+int foe;
 {
-	unsigned char bp_02;
-	int bp_04;
+	unsigned char tile;
+	int i;
 
-	bp_02 = Combat_MAP(bp06, bp08);
-	if(IsSlowTerrain(bp_02))
+	tile = Combat_MAP(y, x);
+	if(IsSlowTerrain(tile))
 		return 0;
-	if(bp08 >= 11 || bp06 >= 11)
-		return ((unsigned char)Fighters._HP[bp04] < 24);
-	if(Fighters._x[bp04] == bp08 && Fighters._y[bp04] == bp06 && U4_RND1(3))
+	if(x >= 11 || y >= 11)
+		return ((unsigned char)Fighters._HP[foe] < 24);
+	if(Fighters._x[foe] == x && Fighters._y[foe] == y && U4_RND1(3))
 		return 0;
 
-	for(bp_04 = 15; bp_04 >= 0; bp_04 --)
-		if(Fighters._tile[bp_04] && Combat._npcX[bp_04] == bp08 && Combat._npcY[bp_04] == bp06)
+	for(i = 15; i >= 0; i --)
+		if(Fighters._tile[i] && Combat._npcX[i] == x && Combat._npcY[i] == y)
 			return 0;
-	for(bp_04 = 7; bp_04 >= 0; bp_04 --)
-		if(Fighters._chtile[bp_04] && Combat._charaX[bp_04] == bp08 && Combat._charaY[bp_04] == bp06)
+	for(i = 7; i >= 0; i --)
+		if(Fighters._chtile[i] && Combat._charaX[i] == x && Combat._charaY[i] == y)
 			return 0;
 
-	if((unsigned char)Fighters._tile[bp04] < 0x80)
-		return IsWalkable(Combat_MAP(bp06, bp08));
-	if((unsigned char)Fighters._tile[bp04] < 0x8e)
-		return (bp_02 < 3);
-	switch((unsigned char)Fighters._gtile[bp04]) {
+	if((unsigned char)Fighters._tile[foe] < 0x80)
+		return IsWalkable(Combat_MAP(y, x));
+	if((unsigned char)Fighters._tile[foe] < TIL_TWISTER)
+		return (tile < TIL_SWAMP);
+	switch((unsigned char)Fighters._gtile[foe]) {
 		case TIL_INSECTS:
 		case TIL_TWISTER:
 		case TIL_BAT:
 		case TIL_DAEMON:
 		case TIL_DRAGON:
 		case TIL_BALRON:
-			return (bp_02 < 3) || IsWalkable(bp_02);
+			return (tile < TIL_SWAMP) || IsWalkable(tile);
 		case TIL_GHOST:
 		case TIL_ZORN:
-			return (bp_02 >= 3) && (bp_02 != 0x45);
+			return (tile >= TIL_SWAMP) && (tile != TIL_ENERGY_FIELD);
 		default:
-			return IsWalkable(bp_02);
+			return IsWalkable(tile);
 	}
 }
 
-unsigned char /*C_9A41*/FoeMissile(bp04)
-unsigned char bp04;
+/*
+ * The missile (tile) a foe of tile tile can shoot, 0 for none.
+ */
+unsigned char /*C_9A41*/FoeMissile(tile)
+unsigned char tile;
 {
-	switch(bp04) {
+	switch(tile) {
 		case TIL_MAGE:
 		case TIL_LORD_BRITISH:
 		case TIL_SEAHORSE:
@@ -303,21 +352,25 @@ unsigned char bp04;
 	}
 }
 
-/*C_9B03*/CheckJinx(_x, _y)
-unsigned char _x;
-unsigned char _y;
+/*
+ * Under the Jinx spell, a foe moving onto another foe at (x, y) hits it instead
+ * (0-63 damage). Returns 1 if that happened.
+ */
+/*C_9B03*/CheckJinx(x, y)
+unsigned char x;
+unsigned char y;
 {
-	int bp_02;
+	int victim;
 
 	if(spell_effect == 'J') {
-		if((bp_02 = COM_GetFighterId(_x, _y)) != -1) {
+		if((victim = COM_GetFighterId(x, y)) != -1) {
 			hit_tile = TIL_HIT_FLASH;
-			hit_x = _x;
-			hit_y = _y;
+			hit_x = x;
+			hit_y = y;
 			DrawCombat();
 			hit_tile = 0;
-			sound(6);
-			COM_DoDamage(bp_02, -1, U4_RND1(0x3f));
+			sound(SND_HIT);
+			COM_DoDamage(victim, -1, U4_RND1(0x3f));
 			DrawCombat();
 			return 1;
 		}
@@ -325,85 +378,109 @@ unsigned char _y;
 	return 0;
 }
 
-/*steal food*/
+/*
+ * A gremlin steals 25 food (2500 hundredths).
+ */
 /*C_9B6B*/StealFood()
 {
 	Party._food = u4_max(Party._food - 2500, 0L);
 	dspl_Stats();
-	sound(8);
+	sound(SND_FAIL);
 }
 
-/*steal gold*/
+/*
+ * A rogue steals 0-63 gold, one time in 4.
+ */
 /*C_9BA6*/StealGold()
 {
-	register int si;
+	register int amount;
 
 	if(U4_RND1(3) == 0) {
-		si = U4_RND1(0x3f);
-		Party._gold = u4_max(Party._gold - si, 0);
+		amount = U4_RND1(0x3f);
+		Party._gold = u4_max(Party._gold - amount, 0);
 		dspl_Stats();
-		sound(8);
+		sound(SND_FAIL);
 	}
 }
 
-/*contact attack?*/
-/*C_9BE5*/FoeMelee(bp06, bp04)
-int bp06;
-int bp04;
+/*
+ * Foe foe attacks the adjacent character chara. It misses one time in 2 under the
+ * Protection spell, or if the armour wins (ArmorDefense >= random 0-255).
+ * Returns 1 if the character was hit and survived, else 0 (the result is unused).
+ */
+/*C_9BE5*/FoeMelee(foe, chara)
+int foe;
+int chara;
 {
-	hit_x = Combat._charaX[bp04];
-	hit_y = Combat._charaY[bp04];
+	hit_x = Combat._charaX[chara];
+	hit_y = Combat._charaY[chara];
 	hit_tile = TIL_MISSILE;
 	DrawCombat();
-	sound(5);
+	sound(SND_FOE_ATTACK);
 	hit_tile = 0;
-	if((spell_effect == 'P' && U4_RND1(1)) || ArmorDefense[Party.chara[bp04]._armor] >= u_rand_a()) {
+	if((spell_effect == 'P' && U4_RND1(1)) || ArmorDefense[Party.chara[chara]._armor] >= u_rand_a()) {
 		DrawCombat();
-	} else if(FoeHitsChara(bp04, bp06) == 0) {
+	} else if(FoeHitsChara(chara, foe) == 0) {
 		return 1;
 	}
 	return 0;
 }
 
-/*C_9C56*/FoeFlees(bp04)
-int bp04;
+/*
+ * Foe foe leaves the combat map; letting a non-evil foe flee raises Compassion and
+ * Justice.
+ */
+/*C_9C56*/FoeFlees(foe)
+int foe;
 {
 	Gra_CR();
-	u4_puts(CreatureName((unsigned char)Fighters._tile[bp04]));
+	u4_puts(CreatureName((unsigned char)Fighters._tile[foe]));
 	u4_puts(/*D_2A35*/" Flees!\n");
-	if(IsNonEvil((unsigned char)Fighters._tile[bp04])) {
+	if(IsNonEvil((unsigned char)Fighters._tile[foe])) {
 		karma_inc(&(Party._compa), 1);
 		karma_inc(&(Party._justi), 1);
 	}
-	sound(8);
-	Fighters._tile[bp04] = Fighters._HP[bp04] = 0;
+	sound(SND_FAIL);
+	Fighters._tile[foe] = Fighters._HP[foe] = 0;
 }
 
-/*move enemies during fight*/
-/*C_9CBC*/FoeAct(bp08, bp06, bp04)
-int bp08;/*monster id*/
-int bp06;/*chara id*/
-int bp04;
+/*
+ * The turn of foe foe, whose nearest character is chara, dist squares away:
+ * - a mimic looks like a chest while the characters are 5 or more squares away
+ *   (and then does not shoot);
+ * - 1 time in 4 it shoots its missile if it has one (no magic bolt under Negate);
+ * - 1 time in 4 a balron or reaper casts sleep on the party (not under Negate):
+ *   each character in good health falls asleep 1 time in 2;
+ * - with less than 24 HP it flees, else it moves toward chara, or attacks him when
+ *   adjacent (gremlins and rogues steal first); mimics and reapers never move.
+ *   It tries twice (on the second try in a random direction): horizontally
+ *   (1 time in 2), vertically, horizontally. Moving off the map is fleeing; a
+ *   fleeing foe that cannot move but is adjacent attacks.
+ */
+/*C_9CBC*/FoeAct(foe, chara, dist)
+int foe;
+int chara;
+int dist;
 {
-	int loc_A, loc_B, loc_C;
-	unsigned char loc_D, loc_E;
+	int incH, attempts, incV;
+	unsigned char toX, toY;
 
-	loc_A = u4_sign((unsigned char)Combat._charaX[bp06] - (unsigned char)Combat._npcX[bp08]);
-	loc_C = u4_sign((unsigned char)Combat._charaY[bp06] - (unsigned char)Combat._npcY[bp08]);
+	incH = u4_sign((unsigned char)Combat._charaX[chara] - (unsigned char)Combat._npcX[foe]);
+	incV = u4_sign((unsigned char)Combat._charaY[chara] - (unsigned char)Combat._npcY[foe]);
 	/*Mimic*/
-	if((unsigned char)Fighters._tile[bp08] == TIL_MIMIC) {
-		Fighters._gtile[bp08] = TIL_CHEST;
-		if(bp04 >= 5)
+	if((unsigned char)Fighters._tile[foe] == TIL_MIMIC) {
+		Fighters._gtile[foe] = TIL_CHEST;
+		if(dist >= 5)
 			goto C_9D51;
-		Fighters._gtile[bp08] = TIL_MIMIC;
+		Fighters._gtile[foe] = TIL_MIMIC;
 	}
 	/*attempt projectile*/
 	if(U4_RND1(3) == 0) {
-		int bp_0c;
+		int missile;
 
-		if((bp_0c = FoeMissile((unsigned char)Fighters._tile[bp08])) != 0) {
-			if(bp_0c != TIL_MAGIC_BOLT || spell_effect != 'N') {
-				FoeShoot(bp_0c, bp08, loc_A, loc_C);
+		if((missile = FoeMissile((unsigned char)Fighters._tile[foe])) != 0) {
+			if(missile != TIL_MAGIC_BOLT || spell_effect != 'N') {
+				FoeShoot(missile, foe, incH, incV);
 				RefreshView();
 				return;
 			}
@@ -413,14 +490,15 @@ int bp04;
 C_9D51:
 	/*balron or reaper*/
 	if(U4_RND1(3) == 0) {
-		if((unsigned char)Fighters._tile[bp08] == TIL_BALRON || (unsigned char)Fighters._tile[bp08] == TIL_REAPER) {
+		if((unsigned char)Fighters._tile[foe] == TIL_BALRON || (unsigned char)Fighters._tile[foe] == TIL_REAPER) {
 			if(spell_effect != 'N') {
 				RefreshView();
-				Gra_InvertView(); sound(9, 0x80); Gra_InvertView();
-				for(loc_B = Party._members - 1; loc_B >= 0; loc_B --) {
-					if(Fighters._chtile[loc_B] != 0 && Party.chara[loc_B]._stat == 'G' && U4_RND1(1)) {
-						Party.chara[loc_B]._stat = 'S';
-						Fighters._chtile[loc_B] = TIL_SLEEPING;
+				Gra_InvertView(); sound(SND_MAGIC, 0x80); Gra_InvertView();
+				/*attempts is just a character index here*/
+				for(attempts = Party._members - 1; attempts >= 0; attempts --) {
+					if(Fighters._chtile[attempts] != 0 && Party.chara[attempts]._stat == 'G' && U4_RND1(1)) {
+						Party.chara[attempts]._stat = 'S';
+						Fighters._chtile[attempts] = TIL_SLEEPING;
 					}
 				}
 				dspl_Stats();
@@ -429,125 +507,134 @@ C_9D51:
 		}
 	}
 	/* */
-	if((unsigned char)Fighters._HP[bp08] < 24) {
-		loc_A = -loc_A;
-		loc_C = -loc_C;
+	if((unsigned char)Fighters._HP[foe] < 24) {
+		incH = -incH;
+		incV = -incV;
 C_9DE5:
-		if((unsigned char)Fighters._tile[bp08] == TIL_MIMIC || (unsigned char)Fighters._tile[bp08] == TIL_REAPER)
+		if((unsigned char)Fighters._tile[foe] == TIL_MIMIC || (unsigned char)Fighters._tile[foe] == TIL_REAPER)
 			return;
-	} else if(bp04 >= 2) {
+	} else if(dist >= 2) {
 		goto C_9DE5;
 	} else {
 		/*contact?*/
-		switch((unsigned char)Fighters._tile[bp08]) {
+		switch((unsigned char)Fighters._tile[foe]) {
 			case TIL_GREMLIN: StealFood(); break;
 			case TIL_ROGUE: StealGold(); break;
 		}
-		FoeMelee(bp08, bp06);/*contact attack?*/
+		FoeMelee(foe, chara);
 		return;
 	}
 	/* */
-	for(loc_B = 2; loc_B > 0; loc_B --) {
-		if(U4_RND1(1) && loc_A != 0) {
-			loc_D = (unsigned char)Combat._npcX[bp08] + loc_A;
-			loc_E = (unsigned char)Combat._npcY[bp08];
-			if(CheckJinx(loc_D, loc_E))
+	for(attempts = 2; attempts > 0; attempts --) {
+		if(U4_RND1(1) && incH != 0) {
+			toX = (unsigned char)Combat._npcX[foe] + incH;
+			toY = (unsigned char)Combat._npcY[foe];
+			if(CheckJinx(toX, toY))
 				return;
-			if(FoeCanMoveTo(loc_D, loc_E, bp08))
+			if(FoeCanMoveTo(toX, toY, foe))
 				break;
 		}
-		if(loc_C != 0) {
-			loc_D = (unsigned char)Combat._npcX[bp08];
-			loc_E = (unsigned char)Combat._npcY[bp08] + loc_C;
-			if(CheckJinx(loc_D, loc_E))
+		if(incV != 0) {
+			toX = (unsigned char)Combat._npcX[foe];
+			toY = (unsigned char)Combat._npcY[foe] + incV;
+			if(CheckJinx(toX, toY))
 				return;
-			if(FoeCanMoveTo(loc_D, loc_E, bp08))
+			if(FoeCanMoveTo(toX, toY, foe))
 				break;
 		}
-		if(loc_A != 0) {
-			loc_D = (unsigned char)Combat._npcX[bp08] + loc_A;
-			loc_E = (unsigned char)Combat._npcY[bp08];
-			if(CheckJinx(loc_D, loc_E))
+		if(incH != 0) {
+			toX = (unsigned char)Combat._npcX[foe] + incH;
+			toY = (unsigned char)Combat._npcY[foe];
+			if(CheckJinx(toX, toY))
 				return;
-			if(FoeCanMoveTo(loc_D, loc_E, bp08))
+			if(FoeCanMoveTo(toX, toY, foe))
 				break;
 		}
-		loc_A = u4_sign((char)u_rand_a());
-		loc_C = u4_sign((char)u_rand_a());
+		incH = u4_sign((char)u_rand_a());
+		incV = u4_sign((char)u_rand_a());
 	}
-	if(loc_B != 0) {
-		Fighters._x[bp08] = Combat._npcX[bp08];
-		Fighters._y[bp08] = Combat._npcY[bp08];
-		Combat._npcX[bp08] = loc_D;
-		Combat._npcY[bp08] = loc_E;
-		if(loc_D >= 11 || loc_E >= 11) {
-			FoeFlees(bp08);/*... Flees*/
+	if(attempts != 0) {
+		Fighters._x[foe] = Combat._npcX[foe];
+		Fighters._y[foe] = Combat._npcY[foe];
+		Combat._npcX[foe] = toX;
+		Combat._npcY[foe] = toY;
+		if(toX >= 11 || toY >= 11) {
+			FoeFlees(foe);
 			return;
 		}
 		DrawCombat();
 		return;
 	}
-	if(bp04 < 2)
-		FoeMelee(bp08, bp06);/*contact attack?*/
+	if(dist < 2)
+		FoeMelee(foe, chara);
 }
 
-/*combat ai*/
+/*
+ * The foes' turn in combat. Each awake foe (a sleeping one wakes up 1 time in 8)
+ * acts against its nearest character (zorns also negate magic for 2 turns, wisps
+ * teleport 1 time in 8). Then the field under each foe acts: fire field and lava
+ * (except for lava lizards, daemons, hydras, dragons and balrons) and poison field
+ * do 0-127 damage, a sleep field puts to sleep a living foe that fails a check
+ * against its HP. Then the end of the turn: magic points, moves, spell effects
+ * (7: none).
+ */
 /*C_9F7B*/COM_FoesTurn()
 {
-	int loc_A, loc_B, loc_C, loc_F;
-	unsigned char loc_D, loc_E;
+	int foeId, chara, nearest, bestDist;
+	unsigned char posX, posY;
 
 	RefreshView();
 
-	for(loc_A = 15; loc_A >= 0; loc_A --) {
-		if(Fighters._tile[loc_A]) {
-			if((unsigned char)Fighters._sleeping[loc_A] == 0 || U4_RND1(7) == 0) {
-				Fighters._sleeping[loc_A] = 0;
-				if((unsigned char)Fighters._tile[loc_A] == TIL_ZORN) {
+	for(foeId = 15; foeId >= 0; foeId --) {
+		if(Fighters._tile[foeId]) {
+			if((unsigned char)Fighters._sleeping[foeId] == 0 || U4_RND1(7) == 0) {
+				Fighters._sleeping[foeId] = 0;
+				if((unsigned char)Fighters._tile[foeId] == TIL_ZORN) {
 					spell_effect = 'N';
 					spell_turns = 2;
 					dspl_Stats();
-				} else if((unsigned char)Fighters._tile[loc_A] == TIL_WISP && U4_RND1(7) == 0) {
+				} else if((unsigned char)Fighters._tile[foeId] == TIL_WISP && U4_RND1(7) == 0) {
 					do {
-						loc_D = U4_RND3(11);
-						loc_E = U4_RND3(11);
-					} while(!FoeCanMoveTo(loc_D, loc_E, loc_A));
-					Combat._npcX[loc_A] = loc_D;
-					Combat._npcY[loc_A] = loc_E;
+						posX = U4_RND3(11);
+						posY = U4_RND3(11);
+					} while(!FoeCanMoveTo(posX, posY, foeId));
+					Combat._npcX[foeId] = posX;
+					Combat._npcY[foeId] = posY;
 				}
-				loc_D = Combat._npcX[loc_A];
-				loc_E = Combat._npcY[loc_A];
-				loc_F = 99;
-				loc_C = -1;
-				for(loc_B = Party._members - 1; loc_B >= 0; loc_B --) {
-					if(isCharaAlive(loc_B) && Fighters._chtile[loc_B]) {
-						register int si;
+				posX = Combat._npcX[foeId];
+				posY = Combat._npcY[foeId];
+				bestDist = 99;
+				nearest = -1;
+				for(chara = Party._members - 1; chara >= 0; chara --) {
+					if(isCharaAlive(chara) && Fighters._chtile[chara]) {
+						register int dist;/*Manhattan distance*/
 
-						si =
-							u4_abs((unsigned char)Combat._charaX[loc_B] - loc_D) +
-							u4_abs((unsigned char)Combat._charaY[loc_B] - loc_E)
+						dist =
+							u4_abs((unsigned char)Combat._charaX[chara] - posX) +
+							u4_abs((unsigned char)Combat._charaY[chara] - posY)
 						;
-						if(loc_F > si) {
-							loc_F = si;
-							loc_C = loc_B;
+						if(bestDist > dist) {
+							bestDist = dist;
+							nearest = chara;
 						}
 					}
 				}
-				if(loc_C != -1)
-					FoeAct(loc_A, loc_C, loc_F);
+				if(nearest != -1)
+					FoeAct(foeId, nearest, bestDist);
 			}
-			switch(Combat_MAP((unsigned char)Combat._npcY[loc_A], (unsigned char)Combat._npcX[loc_A])) {
+			switch(Combat_MAP((unsigned char)Combat._npcY[foeId], (unsigned char)Combat._npcX[foeId])) {
 				case TIL_FIRE_FIELD: case TIL_LAVA:
-					if((unsigned char)Fighters._tile[loc_A] == TIL_LAVA_LIZARD || (unsigned char)Fighters._tile[loc_A] >= TIL_DAEMON)
+					if((unsigned char)Fighters._tile[foeId] == TIL_LAVA_LIZARD || (unsigned char)Fighters._tile[foeId] >= TIL_DAEMON)
 						break;
+					/*no break*/
 				case TIL_POISON_FIELD:
-					sound(6);
-					COM_DoDamage(loc_A, -1, U4_RND1(0x7f));
+					sound(SND_HIT);
+					COM_DoDamage(foeId, -1, U4_RND1(0x7f));
 				break;
 				case TIL_SLEEP_FIELD:
-					if(IsUndead((unsigned char)Fighters._tile[loc_A]) == 0 && (unsigned char)Fighters._HP[loc_A] >= u_rand_a()) {
-						Fighters._sleeping[loc_A] = 1;
-						sound(6);
+					if(IsUndead((unsigned char)Fighters._tile[foeId]) == 0 && (unsigned char)Fighters._HP[foeId] >= u_rand_a()) {
+						Fighters._sleeping[foeId] = 1;
+						sound(SND_HIT);
 					}
 				break;
 			}

@@ -8,6 +8,8 @@
 
 #include <string.h>
 
+/*words Lord British answers to (only the first 4 letters count), "" ends the list.
+  0-2 are handled apart, the others are answered with LBAnswers[index - 3]*/
 char * /*D_6FF0*/LBKeywords[28] = {
 	/*D_639A*/"bye",
 	/*D_639E*/"help",
@@ -66,7 +68,10 @@ char * /*D_7028*/LBAnswers[24] = {
 	/*D_6F6C*/"\nHe says:\nThe Eight\nVirtues of the\nAvatar are:\nHonesty,\nCompassion,\nValor,\nJustice,\nSacrifice,\nHonor,\nSpirituality,\nand Humility!\n"
 };
 
-/*10 seconds delay*/
+/*
+ * Pause between pages of Lord British's speech: wait up to 10 seconds or until a key
+ * is pressed (the key is eaten).
+ */
 /*C_E1FC*/LB_Pause() {
 	u_kbflush();
 	u_delay(10, 1);
@@ -74,7 +79,10 @@ char * /*D_7028*/LBAnswers[24] = {
 		u_kbread();
 }
 
-/*when asked 'help'*/
+/*
+ * Answer to "help": a hint chosen by how far the game has gone (moves, party size,
+ * runes, partial Avatarhoods, stones, Bell/Book/Candle, the three-part key).
+ */
 /*C_E21E*/LB_Help() {
 	u4_puts(/*D_7058*/"He says: ");
 	if(Party._moves < 1000) {
@@ -92,6 +100,8 @@ char * /*D_7028*/LBAnswers[24] = {
 		u4_puts(/*D_72FB*/"\nWithin the Shrines thou shalt learn of the deeds which show thy inner virtue or vice!\n"); LB_Pause();
 		u4_puts(/*D_7353*/"\nChoose thy path wisely for all thy deeds of good and evil are remembered and can return to hinder thee!\n");
 	} else
+	/*meant as "no partial Avatarhood yet" (no virtue at 0); but the virtues are combined
+	  with a bitwise & and not &&, so it also fails when they merely share no bit*/
 	if(
 		Party._hones & Party._compa &
 		Party._valor & Party._justi &
@@ -106,6 +116,7 @@ char * /*D_7028*/LBAnswers[24] = {
 		u4_puts(/*D_74EA*/"Go ye now into the depths of the dungeons. Therein recover the 8 colored stones from the altar pedestals in the halls of the dungeons.\n"); LB_Pause();
 		u4_puts(/*D_7572*/"\nFind the uses of these stones for they can help thee in the Abyss!\n");
 	} else
+	/*not yet Avatar in all eight virtues*/
 	if(
 		Party._hones | Party._compa |
 		Party._valor | Party._justi |
@@ -127,107 +138,129 @@ char * /*D_7028*/LBAnswers[24] = {
 	}
 }
 
-/*looks for the parameter in Lord British's keywords
- (4 char is enough)
- not found => -1
- else => index of the keywords*/
-/*C_E37E*/LB_FindKeyword(bp04)
-char *bp04;
+/*
+ * Look for word in LBKeywords (only the first 4 letters are compared, ignoring case).
+ * Returns its index, or -1 if not found.
+ */
+/*C_E37E*/LB_FindKeyword(word)
+char *word;
 {
-	int bp_02;
+	int kw;
 
-	for(bp_02 = 0; LBKeywords[bp_02][0]; bp_02++) {
-		if(strnicmp(bp04, LBKeywords[bp_02], 4) == 0)
+	for(kw = 0; LBKeywords[kw][0]; kw++) {
+		if(strnicmp(word, LBKeywords[kw], 4) == 0)
 			break;
 	}
-	if(LBKeywords[bp_02][0] == 0)
+	if(LBKeywords[kw][0] == 0)
 		return -1;
-	return bp_02;
+	return kw;
 }
 
-/*C_E3D2*/LB_Speak(bp04)
-register char *bp04;
+/*
+ * Print one of Lord British's answers, pausing after every 13 lines.
+ */
+/*C_E3D2*/LB_Speak(text)
+register char *text;
 {
-	register int di;
+	register int lines;
 
-	di = 0;
-	while(*bp04) {
-		if(*bp04 == '\n') {
-			if(di++ == 12) {
+	lines = 0;
+	while(*text) {
+		if(*text == '\n') {
+			if(lines++ == 12) {
 				LB_Pause();
-				di = 0;
+				lines = 0;
 			}
 		}
-		u4_putc(*bp04);
-		bp04++;
+		u4_putc(*text);
+		text++;
 	}
 }
 
+/*
+ * Heal every character that is not dead: full hit points, status Good.
+ */
 /*C_E408*/HealParty() {
-	int bp_02;
+	int chara;
 
-	for(bp_02 = Party._members - 1; bp_02 >= 0; bp_02 --) {
-		if(Party.chara[bp_02]._stat != 'D') {
-			Party.chara[bp_02]._stat = 'G';
-			Party.chara[bp_02]._HP[0] = Party.chara[bp_02]._HP[1];
+	for(chara = Party._members - 1; chara >= 0; chara --) {
+		if(Party.chara[chara]._stat != 'D') {
+			Party.chara[chara]._stat = 'G';
+			Party.chara[chara]._HP[0] = Party.chara[chara]._HP[1];
 		}
 	}
 }
 
-/*when asekd 'health'*/
+/*
+ * Answer to "health": Lord British asks if you are well; on No he heals the party.
+ */
 /*C_E442*/LB_Health() {
-	char bp_02;
+	char answer;
 
 	u4_puts(/*D_784D*/"\n\n\n\n\n\nHe says: I am well, thank ye.\n\nHe asks: Art thou well?\x12\x12\b");
-	bp_02 = AskY_N();
-	if(bp_02 == 'Y') {
+	answer = AskY_N();
+	if(answer == 'Y') {
 		u4_puts(/*D_788D*/"\nHe says: That is good.\n");
-	} else if(bp_02 =='N') {
+	} else if(answer =='N') {
 		u4_puts(/*D_78A6*/"\nHe says: Let me heal thy wounds!\n");
 		/*heal party*/
-		sound(10, 10);
-		Gra_InvertView(); sound(9, 0xc0); Gra_InvertView();
+		sound(SND_CAST, 10);
+		Gra_InvertView(); sound(SND_MAGIC, 0xc0); Gra_InvertView();
 		HealParty();
 		dspl_Stats();
 	}
 }
 
-/*C_E498*/RaiseStat(bp04)
-int *bp04;
+/*
+ * Raise the characteristic *stat by 1 to 8 (random), capped at 50.
+ */
+/*C_E498*/RaiseStat(stat)
+int *stat;
 {
-	*bp04 += U4_RND1(7)+1;
-	*bp04 = u4_min(*bp04, 50);
+	*stat += U4_RND1(7)+1;
+	*stat = u4_min(*stat, 50);
 }
 
+/*
+ * Lord British raises the level of the characters who have enough experience: the
+ * level is 1 + the number of times the XP reach 100, 200, 400, 800...; max hit points
+ * become 100 * level, the character is fully healed and set to Good (which also
+ * brings a dead one back to life) and strength, dexterity and intelligence each get
+ * +1 to +8.
+ */
 /*C_E4C3*/LB_LevelUp() {
-	int loc_A, loc_B, loc_C;
+	int limit, chara, newMax;
 
-	for(loc_B = 0; loc_B < Party._members; loc_B++) {
-		for(loc_C = loc_A = 100; loc_A <= Party.chara[loc_B]._XP; loc_C += 100, loc_A <<= 1);
-		if(Party.chara[loc_B]._HP[1] < loc_C) {
-			Party.chara[loc_B]._HP[1] = loc_C;
-			Party.chara[loc_B]._HP[0] = loc_C;
-			Party.chara[loc_B]._stat = 'G';
-			RaiseStat(&(Party.chara[loc_B]._str));
-			RaiseStat(&(Party.chara[loc_B]._dex));
-			RaiseStat(&(Party.chara[loc_B]._int));
+	for(chara = 0; chara < Party._members; chara++) {
+		for(newMax = limit = 100; limit <= Party.chara[chara]._XP; newMax += 100, limit <<= 1);
+		if(Party.chara[chara]._HP[1] < newMax) {
+			Party.chara[chara]._HP[1] = newMax;
+			Party.chara[chara]._HP[0] = newMax;
+			Party.chara[chara]._stat = 'G';
+			RaiseStat(&(Party.chara[chara]._str));
+			RaiseStat(&(Party.chara[chara]._dex));
+			RaiseStat(&(Party.chara[chara]._int));
 			Gra_CR();
-			u4_puts(Party.chara[loc_B]._name);
+			u4_puts(Party.chara[chara]._name);
 			u4_puts(/*D_78C9*/"\nThou art now Level ");
-			u4_putl(loc_C / 100, 1, '0');
+			u4_putl(newMax / 100, 1, '0');
 			Gra_CR();
-			Gra_InvertView(); sound(9, 0xc0); Gra_InvertView();
+			Gra_InvertView(); sound(SND_MAGIC, 0xc0); Gra_InvertView();
 			dspl_Stats();
 		}
 	}
 	u4_puts(/*D_78DE*/"What would thou ask of me?\n");
 }
 
-/*conversation with Lord british*/
+/*
+ * Talk to Lord British: greeting (the first time: the introduction; afterwards he
+ * resurrects a dead leader, heals, and raises levels), then answer questions until
+ * "bye" or an empty line.
+ */
 /*C_E59B*/TalkToLB()
 {
-	int bp_02;
-	char bp_12[15];
+	int topic;
+	char question[15];
 
 	if(Party._metLB == 0) {
 		/*-- first time --*/
@@ -243,13 +276,13 @@ A champion of virtue is called for. Thou may be this champion, but only time sha
 	} else {
 		/*-- second time and after --*/
 		if(Party.chara[0]._stat == 'D') {
-			/*resurection*/
+			/*resurrection*/
 			Party.chara[0]._stat = 'G';
 			u4_puts(Party.chara[0]._name);
 			u4_puts(/*D_7A92*/", Thou shalt live again!\n");
 			/*heal party*/
-			sound(10, 20);
-			Gra_InvertView(); sound(9, 0xc0); Gra_InvertView();
+			sound(SND_CAST, 20);
+			Gra_InvertView(); sound(SND_MAGIC, 0xc0); Gra_InvertView();
 			HealParty();
 			dspl_Stats();
 		}
@@ -268,19 +301,19 @@ A champion of virtue is called for. Thou may be this champion, but only time sha
 	}
 
 	for(;;) {
-		u4_gets(bp_12, 15);
+		u4_gets(question, 15);
 		Gra_CR();
-		if(bp_12[0] == 0)
-			bp_02 = 0;
+		if(question[0] == 0)
+			topic = 0;
 		else
-			bp_02 = LB_FindKeyword(bp_12);
-		if(bp_02 == 0)/*"bye"*/
+			topic = LB_FindKeyword(question);
+		if(topic == 0)/*"bye"*/
 			break;
-		switch(bp_02) {
+		switch(topic) {
 			case 2: LB_Health(); break;
 			case 1: LB_Help(); break;
 			case -1: u4_puts(/*D_7AFD*/"\nHe says: I cannot help thee with that.\n"); break;
-			default: LB_Speak(LBAnswers[bp_02-3]);
+			default: LB_Speak(LBAnswers[topic-3]);
 		}
 		u4_puts(/*D_7B26*/"\nWhat else?\n");
 	}

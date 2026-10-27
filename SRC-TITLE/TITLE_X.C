@@ -6,5 +6,7 @@
 
 #include "title.h"
 
+/*Current positions in the animation sequences (Monster1Seq, Monster2Seq) of the two
+ animated creatures drawn on either side of the title screen (see AnimateMonsters).*/
 unsigned /*D_0036*/Monster1Pos = 0;
 unsigned /*D_0038*/Monster2Pos = 0;

@@ -14,7 +14,9 @@ int /*D_00C2*/TileAnimDelay = 1;
 int /*D_00C4*/ViewScriptPos = -1;
 int /*D_00C6*/ViewFrameWait = 0;
 
-/*base tiles for view*/
+/*Base tile of each of the view's 15 actors (the low nibble of a ViewScript command):
+ moongate, pirate ship, ship, 2 sleeping people, 2 rogues, fighter, mage, sea serpent,
+ daemon, dragon, missile, hit flash, magic bolt. The script adds the frame / direction.*/
 unsigned char /*D_00C8*/ViewBaseTiles[] = {0x40,0x80,0x10,0x38,0x38,0xC8,0xC8,0x24,0x20,0x88,0xF0,0xF8,0x4D,0x4F,0x4E};
 
 /*====---- _BSS ----====*/
@@ -22,15 +24,22 @@ static unsigned char D_3A24[19 * 5];
 static unsigned D_3A84;
 /*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
  uninitialised statics in the order of its symbol table, which depends on the names.
- Renaming them would move them; the readable names are macros.*/
+ Renaming them would move them; the readable names are macros.
+ ViewTiles: the 19x5 tiles of the current frame of the view (background + actors).
+ ViewRunning: set while ShowView runs; makes AnimateMonsters redraw at every call.*/
 #define ViewTiles D_3A24
 #define ViewRunning D_3A84
 
-/*animate the 2 "monsters"*/
-/*callback for u_delay*/
+/*
+ * Animate the two creatures drawn in the top corners of the title screen: when its delay
+ * runs out, draw the next frame of each one's sequence (if MonstersShown). Called from
+ * u_delay and from u_kbhit when no key is waiting, so the creatures move during every
+ * wait; while the view runs (ViewRunning) it draws at every call.
+ * Also picks the text cursor's blink rate.
+ */
 /*C_019A*/AnimateMonsters()
 {
-	unsigned bp_02;
+	unsigned frame;
 
 	if(ViewRunning)
 		MonsterAnimDelay = 0;
@@ -38,76 +47,93 @@ static unsigned D_3A84;
 		return;
 	MonsterAnimDelay = ((GraphicsType == 1)?120:200) * speed_info;
 	if(MonstersShown) {
-		cursor_rate = 200;
+		cursor_delay = 200;
 
-		bp_02 = Monster1Seq[Monster1Pos++]; Monster1Pos &= 0x7f;
-		Gra_Blit(6, 32, Monster1FrameX[bp_02], MonsterFrameY[bp_02], pAnim, 0, -1, 0);
-		bp_02 = Monster2Seq[Monster2Pos++]; Monster2Pos &= 0x3f;
-		Gra_Blit(6, 32, Monster2FrameX[bp_02], MonsterFrameY[bp_02], pAnim, 0, -1, 34);
+		frame = Monster1Seq[Monster1Pos++]; Monster1Pos &= 0x7f;
+		Gra_Blit(6, 32, Monster1FrameX[frame], MonsterFrameY[frame], pAnim, 0, -1, 0);
+		frame = Monster2Seq[Monster2Pos++]; Monster2Pos &= 0x3f;
+		Gra_Blit(6, 32, Monster2FrameX[frame], MonsterFrameY[frame], pAnim, 0, -1, 34);
 	} else {
-		cursor_rate = 233;
+		cursor_delay = 233;
 	}
 }
 
-/*C_027A*/u4_putc(bp04)
-unsigned char bp04;
+/*
+ * Print character c at the text cursor and advance it; a backspace (8) moves the cursor
+ * back and blanks that position.
+ */
+/*C_027A*/u4_putc(c)
+unsigned char c;
 {
-	if(bp04 == 8) {
+	if(c == 8) {
 		txt_X --;
 		Gra_PutChar(' ');
 	} else {
-		Gra_PutChar(bp04);
+		Gra_PutChar(c);
 		txt_X ++;
 	}
 }
 
-/*C_02A3*/DelayUnlessKey(bp04)
-long bp04;
+/*
+ * Busy-wait count * speed_info iterations, unless a key is waiting (then return at once).
+ */
+/*C_02A3*/DelayUnlessKey(count)
+long count;
 {
 	if(u_kbhit())
 		return;
-	bp04 *= (long)speed_info;
-	while(-- bp04);
+	count *= (long)speed_info;
+	while(-- count);
 }
 
-/*handwriting?*/
-/*C_02D1*/DrawSignature(bp04)
-unsigned bp04;
+/*
+ * Draw Lord British's signature dot by dot from SignatureDots (x, y pairs ending with 0,
+ * y counted from the bottom); each dot is 2 pixels wide. With slowly set, pause after each dot so the signature looks
+ * handwritten, then wait a moment at the end.
+ */
+/*C_02D1*/DrawSignature(slowly)
+unsigned slowly;
 {
-	register int si;
+	register int dot;
 
-	for(si = 0; SignatureDots[si]; ) {
-		Gra_Dot(191 - SignatureDots[si+1], SignatureDots[si] + 20, 3);
-		Gra_Dot(191 - SignatureDots[si+1], SignatureDots[si] + 21, 3);
-		si += 2;
-		if(bp04)
+	for(dot = 0; SignatureDots[dot]; ) {
+		Gra_Dot(191 - SignatureDots[dot+1], SignatureDots[dot] + 20, 3);
+		Gra_Dot(191 - SignatureDots[dot+1], SignatureDots[dot] + 21, 3);
+		dot += 2;
+		if(slowly)
 			DelayUnlessKey((long)440);
 	}
-	if(bp04)
+	if(slowly)
 		u_delay(1, 1);
 }
 
-/*tiles animation ?*/
+/*
+ * Animate the view's tiles: two-frame actors (sea creatures 0x84-0x8e, player classes
+ * 0x20-0x2e, townsfolk 0x50-0x5e) switch frame and four-frame monsters (0x90 and up)
+ * step to their next frame, each 3 times out of 4; the pirate ship (0x80) keeps the
+ * direction the script gave it; other actors show their base tile. Every few calls
+ * (depending on speed_info) also animate the water, lava and field tiles and the flags.
+ */
 /*C_034D*/AnimateViewTiles()
 {
-	register int si;
+	register int slot;
 
-	for(si = 0; si < 32; si ++) {
-		register int di;
+	for(slot = 0; slot < 32; slot ++) {
+		register int tile;
 
-		di = Area._npc._tile[si];
+		tile = Area._npc._tile[slot];
 		if(
-			(di >= 0x84 && di <= 0x8e) ||
-			(di >= 0x20 && di <= 0x2e) ||
-			(di >= 0x50 && di <= 0x5e)
+			(tile >= 0x84 && tile <= 0x8e) ||
+			(tile >= 0x20 && tile <= 0x2e) ||
+			(tile >= 0x50 && tile <= 0x5e)
 		) {
 			if(u_rand_b() < 0xc0)
-				Area._npc._gtile[si] = ((Area._npc._gtile[si] & 1) | di) ^ 1;
-		} else if(di >= 0x90) {
+				Area._npc._gtile[slot] = ((Area._npc._gtile[slot] & 1) | tile) ^ 1;
+		} else if(tile >= 0x90) {
 			if(u_rand_b() < 0xc0)
-				Area._npc._gtile[si] = ((Area._npc._gtile[si] + 1) & 3) | di;
-		} else if(di != 0x80) {
-			Area._npc._gtile[si] = di;
+				Area._npc._gtile[slot] = ((Area._npc._gtile[slot] + 1) & 3) | tile;
+		} else if(tile != 0x80) {
+			Area._npc._gtile[slot] = tile;
 		}
 	}
 	if(--TileAnimDelay)
@@ -124,9 +150,19 @@ unsigned bp04;
 	Gra_AnimFlags();
 }
 
+/*
+ * Advance the view's script (ViewScript) by one frame, unless the current frame must still
+ * be held (ViewFrameWait). Script commands, one byte with the actor in the low nibble:
+ *   0x00-0x6f: place the actor; the high nibble is its row and the next byte holds its
+ *              column (low 5 bits) and the frame added to its base tile (high 3 bits);
+ *   0x7x:      remove the actor;
+ *   0x8x:      end of frame: build ViewTiles from the background and the actors, and
+ *              hold this frame for x more calls;
+ *   0x9x-0xfx: end of script, start it again.
+ */
 /*C_041A*/StepViewScript()
 {
-	int bp_02;
+	int idx;
 
 	if(ViewFrameWait) {
 		ViewFrameWait --;
@@ -149,11 +185,11 @@ unsigned bp04;
 				Area._npc._tile[ViewScript[ViewScriptPos] & 0xf] = 0;
 			break;
 			case 0x80:/*end frame*/
-				for(bp_02 = 0; bp_02 < 19 * 5; bp_02 ++)
-					ViewTiles[bp_02] = ViewBackground[bp_02];
-				for(bp_02 = 0; bp_02 < 32; bp_02 ++) {
-					if(Area._npc._gtile[bp_02])
-						ViewTiles[19 * Area._npc._y[bp_02] + Area._npc._x[bp_02]] = Area._npc._gtile[bp_02];
+				for(idx = 0; idx < 19 * 5; idx ++)
+					ViewTiles[idx] = ViewBackground[idx];
+				for(idx = 0; idx < 32; idx ++) {
+					if(Area._npc._gtile[idx])
+						ViewTiles[19 * Area._npc._y[idx] + Area._npc._x[idx]] = Area._npc._gtile[idx];
 				}
 				ViewFrameWait = ViewScript[ViewScriptPos] & 0xf;
 			return;
@@ -164,10 +200,13 @@ unsigned bp04;
 	}
 }
 
-/*the "view"*/
+/*
+ * Run the animated view (the scene below the title) until a key is pressed; the key is
+ * then read and discarded. Each frame is drawn several times depending on speed_info.
+ */
 /*C_05A4*/ShowView()
 {
-	register int si;
+	register int repeat;
 
 	ViewRunning = 1;
 	cursor_enabled = 0;
@@ -176,12 +215,12 @@ unsigned bp04;
 		StepViewScript();
 		MonstersShown = 0;
 		Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
-		for(si = speed_info / 2; si && !u_kbhit(); si --)
+		for(repeat = speed_info / 2; repeat && !u_kbhit(); repeat --)
 			Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
 		AnimateViewTiles();
 		StepViewScript();
 		Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
-		for(si = speed_info / 2; si && !u_kbhit(); si --)
+		for(repeat = speed_info / 2; repeat && !u_kbhit(); repeat --)
 			Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
 		MonstersShown = 1;
 	}
@@ -189,11 +228,16 @@ unsigned bp04;
 	u_kbread();
 }
 
-/*logo + splash + animation*/
+/*
+ * The opening sequence: the signature, "and", a line, "Origin Systems Inc.", "present",
+ * the "Ultima IV" logo, "Quest of the Avatar", the view opening like a scroll, and the
+ * two creatures rising into the top corners. A key press skips the slow parts.
+ * temp is used both as a column and as a creature's frame.
+ */
 /*C_068C*/TitleSequence()
 {
-	register unsigned loc_A, loc_B;
-	int loc_C;
+	register unsigned step, redraw;
+	int temp;
 
 	u_delay(1, 1);
 	/*"lord british"*/
@@ -202,31 +246,31 @@ unsigned bp04;
 	Gra_Blit(4, 4, 19, 17, pTitle, 17, -1, 19);
 	u_delay(1, 1);
 	/*draw line*/
-	for(loc_A = 86; loc_A < 238; loc_A++) {
-		Gra_Dot(31, loc_A, 2);
+	for(step = 86; step < 238; step++) {
+		Gra_Dot(31, step, 2);
 		DelayUnlessKey((long)320);
 	}
 	/*"origin systems inc."*/
-	for(loc_A = 1; loc_A < 10; loc_A ++) {
-		Gra_Blit(21, loc_A, 9, 21, pTitle, 30 - loc_A, -1, 9);
+	for(step = 1; step < 10; step ++) {
+		Gra_Blit(21, step, 9, 21, pTitle, 30 - step, -1, 9);
 		DelayUnlessKey((long)5000);
 	}
 	u_delay(1, 1);
 	/* */
 	if(!u_kbhit()) {
 		/*"present"*/
-		for(loc_A = 1; loc_A <= 5; loc_A++) {
-			Gra_Blit(15, loc_A, 14, 5 - loc_A, pTitle, 33, -1, 14);
+		for(step = 1; step <= 5; step++) {
+			Gra_Blit(15, step, 14, 5 - step, pTitle, 33, -1, 14);
 			DelayUnlessKey((long)5000);
 		}
 		u_delay(1, 1);
 		/*"Ultima iv"*/
-		for(loc_A = 0; loc_A < 57; loc_A ++) {
+		for(step = 0; step < 57; step ++) {
 			if(u_kbhit())
-				loc_A = 56;
-			Gra_BlitReveal(30, 45, 5, 34, pTitle, 34, loc_A, 5);
+				step = 56;
+			Gra_BlitReveal(30, 45, 5, 34, pTitle, 34, step, 5);
 			if(speed_info > 4)
-				Gra_BlitReveal(30, 45, 5, 34, pTitle, 34, loc_A, 5);
+				Gra_BlitReveal(30, 45, 5, 34, pTitle, 34, step, 5);
 		}
 		u_delay(1, 1);
 	} else {
@@ -234,21 +278,21 @@ unsigned bp04;
 		Gra_Blit(15,  5, 14,  0, pTitle, 33, -1, 14);
 	}
 	/*"quest of the avatar"*/
-	for(loc_A = 1; loc_A <= 6; loc_A ++) {
-		Gra_Blit(33, loc_A, 3,      81, pTitle, 86 - loc_A, -1, 3);
-		Gra_Blit(33, loc_A, 3, 93 - loc_A, pTitle,      86, -1, 3);
+	for(step = 1; step <= 6; step ++) {
+		Gra_Blit(33, step, 3,      81, pTitle, 86 - step, -1, 3);
+		Gra_Blit(33, step, 3, 93 - step, pTitle,      86, -1, 3);
 		DelayUnlessKey((long)4000);
 	}
 	/*open view like scroll*/
-	for(loc_A = 1; loc_A <= 20; loc_A ++) {
+	for(step = 1; step <= 20; step ++) {
 		if(u_kbhit())
-			loc_A = 20;
+			step = 20;
 		AnimateViewTiles();
 		Gra_DrawViewOver(5, 19, ViewBackground, 104, pTitle, 2);
 		if(speed_info > 4)
 			Gra_DrawViewOver(5, 19, ViewBackground, 104, pTitle, 2);
-		loc_C = 20 - loc_A;
-		Gra_Blit(loc_A * 2, 96, loc_C, 96, pTitle, 96, -1, loc_C);
+		temp = 20 - step;
+		Gra_Blit(step * 2, 96, temp, 96, pTitle, 96, -1, temp);
 		DelayUnlessKey((long)680);
 		AnimateViewTiles();
 		Gra_DrawViewOver(5, 19, ViewBackground, 104, pTitle, 2);
@@ -260,41 +304,48 @@ unsigned bp04;
 	if((pAnim = (void far *)_fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
 		exit(0x37);
 	Gra_LoadPicture((GraphicsType == 1)?/*D_00D7*/"ANIMATE.PIC":/*D_00E3*/"ANIMATE.EGA", pAnim);
-	for(loc_A = 1; loc_A <= 32; loc_A++) {
+	for(step = 1; step <= 32; step++) {
 /*C_09C4:*/
 		if(u_kbhit())
-			loc_A = 32;
+			step = 32;
 
 		/*the "2 monsters"*/
-		loc_C = Monster1Seq[Monster1Pos++]; Monster1Pos &= 0x7f;
-		Gra_Blit(6, loc_A, Monster1FrameX[loc_C], MonsterFrameY[loc_C] - loc_A + 32, pAnim, 0, -1, 0);
-		loc_C = Monster2Seq[Monster2Pos++]; Monster2Pos &= 0x3f;
-		Gra_Blit(6, loc_A, Monster2FrameX[loc_C], MonsterFrameY[loc_C] - loc_A + 32, pAnim, 0, -1, 34);
+		temp = Monster1Seq[Monster1Pos++]; Monster1Pos &= 0x7f;
+		Gra_Blit(6, step, Monster1FrameX[temp], MonsterFrameY[temp] - step + 32, pAnim, 0, -1, 0);
+		temp = Monster2Seq[Monster2Pos++]; Monster2Pos &= 0x3f;
+		Gra_Blit(6, step, Monster2FrameX[temp], MonsterFrameY[temp] - step + 32, pAnim, 0, -1, 34);
 		/*the "view"*/
 		AnimateViewTiles();
 		StepViewScript();
 		Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
-		for(loc_B = speed_info / 2; loc_B && !u_kbhit(); loc_B --)
+		for(redraw = speed_info / 2; redraw && !u_kbhit(); redraw --)
 			Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
 		AnimateViewTiles();
 		StepViewScript();
 		Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
-		for(loc_B = speed_info / 2; loc_B && !u_kbhit(); loc_B --)
+		for(redraw = speed_info / 2; redraw && !u_kbhit(); redraw --)
 			Gra_DrawView(5, 19, ViewTiles, 104, 0, 0, 2);
 	}
 }
 
-/*C_0B1E*/PutsAt(bp08, bp06, si/*bp04*/)
-int bp08;
-int bp06;
-register char *si;
+/*
+ * Print the string str at text position (row, col).
+ */
+/*C_0B1E*/PutsAt(row, col, str)
+int row;
+int col;
+register char *str;
 {
-	txt_Y = bp08;
-	txt_X = bp06;
-	while(*si)
-		u4_putc(*si++);
+	txt_Y = row;
+	txt_X = col;
+	while(*str)
+		u4_putc(*str++);
 }
 
+/*
+ * Draw the title menu (Return to the view, Journey Onward, Initiate New Game) and put
+ * the blinking cursor after "Options:".
+ */
 /*C_0B45*/ShowMenu()
 {
 	Gra_ClearMenu();
@@ -310,9 +361,14 @@ register char *si;
 	cursor_enabled = 1;
 }
 
+/*
+ * Redraw the whole title screen without animation after the new game creation (which
+ * used the screen): reload the tiles and pictures, draw the logo and the two creatures,
+ * then the menu. temp is used both as a column and as a creature's frame.
+ */
 /*C_0BCA*/RedrawTitle()
 {
-	int bp_02;
+	int temp;
 
 	Gra_ClearScreen();
 	if((pShapes = _fmalloc((GraphicsType == 1)?0x4000:0x8000)) == 0)
@@ -330,8 +386,8 @@ register char *si;
 	Gra_LoadPicture((GraphicsType == 1)?/*D_01A7*/"TITLE.PIC":/*D_01B1*/"TITLE.EGA", pTitle);
 	DrawSignature(0);
 	Gra_Blit(4, 4, 19, 17, pTitle, 17, -1, 19);
-	for(bp_02 = 86; bp_02 < 238; bp_02 ++)
-		Gra_Dot(31, bp_02, 2);
+	for(temp = 86; temp < 238; temp ++)
+		Gra_Dot(31, temp, 2);
 	Gra_Blit(21,  9,  9, 21, pTitle, 21, -1, 9);
 	Gra_Blit(30, 45,  5, 34, pTitle, 34, -1, 5);
 	Gra_Blit(15,  5, 14,  0, pTitle, 33, -1, 14);
@@ -344,15 +400,23 @@ register char *si;
 		exit(0x3b);
 	Gra_LoadPicture((GraphicsType == 1)?/*D_01BB*/"ANIMATE.PIC":/*D_01C7*/"ANIMATE.EGA", pAnim);
 
-	bp_02 = Monster1Seq[Monster1Pos++]; Monster1Pos &= 0x7f;
-	Gra_Blit(6, 32, Monster1FrameX[bp_02], MonsterFrameY[bp_02], pAnim, 0, -1, 0);
-	bp_02 = Monster2Seq[Monster2Pos++]; Monster2Pos &= 0x3f;
-	Gra_Blit(6, 32, Monster2FrameX[bp_02], MonsterFrameY[bp_02], pAnim, 0, -1, 34);
+	temp = Monster1Seq[Monster1Pos++]; Monster1Pos &= 0x7f;
+	Gra_Blit(6, 32, Monster1FrameX[temp], MonsterFrameY[temp], pAnim, 0, -1, 0);
+	temp = Monster2Seq[Monster2Pos++]; Monster2Pos &= 0x3f;
+	Gra_Blit(6, 32, Monster2FrameX[temp], MonsterFrameY[temp], pAnim, 0, -1, 34);
 
 	MonstersShown = 1;
 	ShowMenu();
 }
 
+/*
+ * TITLE.EXE entry point. The command line (in the PSP) may give the graphics card as its
+ * first one-letter argument (C = CGA, E = EGA, T = Tandy) and whether there are two
+ * floppy drives as its second (0 or 1); otherwise they are detected. Loads the character set
+ * and tiles, plays the opening sequence, then runs the menu: R shows the view again,
+ * I creates a new game (NewGame), J exits with '0' or '1' (one or two drives) as the exit
+ * code, for the batch file that runs AVATAR.EXE.
+ */
 cdecl /*C_0EAA*/main()
 {
 	cursor_enabled = 0;
@@ -416,15 +480,15 @@ cdecl /*C_0EAA*/main()
 	ShowView();
 	ShowMenu();
 	do {
-		int bp_02;
+		int key;
 
 /*C_10E8:*/
-		bp_02 = u_kbread();
-		if(u4_isupper((unsigned char)bp_02))
-			bp_02 = (bp_02 & 0xff00) | u4_lower((unsigned char)bp_02);
-		if((unsigned char)bp_02 > ' ' && ((unsigned char)bp_02 & 0x80) == 0)
-			Gra_PutChar((unsigned char)bp_02);
-		switch(bp_02) {
+		key = u_kbread();
+		if(u4_isupper((unsigned char)key))
+			key = (key & 0xff00) | u4_lower((unsigned char)key);
+		if((unsigned char)key > ' ' && ((unsigned char)key & 0x80) == 0)
+			Gra_PutChar((unsigned char)key);
+		switch(key) {
 			case KBD_R:/*(R)eturn*/
 				ShowView();
 				ShowMenu();

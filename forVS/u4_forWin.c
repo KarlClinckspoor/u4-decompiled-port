@@ -18,7 +18,7 @@ char cdecl SoundFlag;
 
 struct tPSP far *far_psp;
 
-unsigned cursor_rate;
+unsigned cursor_delay;
 
 /*load gr driver*/
 /*C_20C1*/LoadGraphicsDriver(char *fname) {

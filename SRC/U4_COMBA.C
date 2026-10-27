@@ -6,46 +6,51 @@
 
 #include "u4.h"
 
-/*C_59D5*/COM_GetFighterId(_x, _y)
-unsigned char _x;
-unsigned char _y;
+/*Index of the foe (0-15) at (x, y) on the combat map, or -1.*/
+/*C_59D5*/COM_GetFighterId(x, y)
+unsigned char x;
+unsigned char y;
 {
-	register int si;
+	register int fighter;
 
-	for(si = 15; si >= 0; si --)
-		if(Fighters._tile[si] && Combat._npcX[si] == _x && Combat._npcY[si] == _y)
+	for(fighter = 15; fighter >= 0; fighter --)
+		if(Fighters._tile[fighter] && Combat._npcX[fighter] == x && Combat._npcY[fighter] == y)
 			break;
-	return si;
+	return fighter;
 }
 
-/*party all out ?*/
+/*Is every party member dead?*/
 /*C_5A04*/IsPartyWipedOut()
 {
-	register int si;
+	register int member;
 
-	for(si = Party._members - 1; si >= 0; si --)
-		if(isCharaAlive(si))
+	for(member = Party._members - 1; member >= 0; member --)
+		if(isCharaAlive(member))
 			return 0;
 	return 1;
 }
 
+/*
+ * Is the combat over: no party member left on the field, or no foe left
+ * (in a dungeon room, only the first condition counts).
+ */
 /*C_5A28*/IsCombatEnded()
 {
-	register int si;
+	register int who;
 
-	for(si = 7; si >= 0; si --) {
-		if(Fighters._chtile[si] != 0)
+	for(who = 7; who >= 0; who --) {
+		if(Fighters._chtile[who] != 0)
 			break;
 	}
-	if(si == -1)
+	if(who == -1)
 		return 1;
 
 	if(CurMode == MOD_COM_ROOM) {
 		goto C_5A5F;
 	}
 
-	for(si = 15; si >= 0; si--) {
-		if(Fighters._tile[si] != 0) {
+	for(who = 15; who >= 0; who--) {
+		if(Fighters._tile[who] != 0) {
 C_5A5F:
 			return 0;
 		}
@@ -56,13 +61,18 @@ C_5A5F:
 /*COM_EndCharaTurn();
 COM_Attack();*/
 
+/*
+ * The combat loop: each conscious party member on the field gets a command,
+ * then the foes act, until the combat is over. Ctrl-S right after Alt-Z (the
+ * last key of the previous round) shows the karmas.
+ */
 /*C_5A6B*/COM_main()
 {
-	register unsigned si;
-	unsigned bp_04;
+	register unsigned cmd;
+	unsigned last_key;
 
 	u_kbflush();
-	bp_04 = 0;
+	last_key = 0;
 	RoomExitX = RoomExitY = 0;
 	do {
 		for(activeChara = 0; /*C_5A88:*/activeChara < Party._members && !IsCombatEnded(); activeChara++) {
@@ -74,24 +84,24 @@ COM_Attack();*/
 				activeCharaY = Combat._charaY[activeChara];
 				u4_puts(Party.chara[activeChara]._name);
 				u4_puts(/*D_1FE6*/" with ");
-				u4_puts(Names[37 + Party.chara[activeChara]._weapon]);
+				u4_puts(Names[NAME_WEAPONS + Party.chara[activeChara]._weapon]);
 				Gra_CR();
 				u4_putc(0x10);
 				CursorBlink = 2;
 				DrawCombat();
 				u_delay(25, 1);
-				si = u_kbhit()?u_kbread():KBD_SPACE;
-				if(u4_isupper((unsigned char)si))
-					si = (si & 0xff00) | u4_lower((unsigned char)si);
-				switch(si) {
+				cmd = u_kbhit()?u_kbread():KBD_SPACE;
+				if(u4_isupper((unsigned char)cmd))
+					cmd = (cmd & 0xff00) | u4_lower((unsigned char)cmd);
+				switch(cmd) {
 					case KBD_SPACE: w_Pass(); break;
-					case 0x487e:
+					case KBD_UP_:
 					case KBD_UP: COM_North(); break;
-					case 0x4b7c:
+					case KBD_LEFT_:
 					case KBD_LEFT: COM_West(); break;
-					case 0x5060:
+					case KBD_DOWN_:
 					case KBD_DOWN: COM_South(); break;
-					case 0xf400:
+					case KBD_RIGHT_:
 					case KBD_RIGHT: COM_East(); break;
 					case KBD_A: COM_Attack(); break;/*(A)ttack(combat)*/
 					case KBD_C: CMD_Cast(); break;
@@ -120,13 +130,13 @@ COM_Attack();*/
 					case KBD_X:
 					case KBD_Y: w_NotHere(); break;
 					case KBD_CTRL_S:
-						if(bp_04 == KBD_ALT_Z) {
+						if(last_key == KBD_ALT_Z) {
 							CheatShowKarma();
 							break;
 						}
 					default:
 						u4_puts(/*D_1FED*/"Bad command\n");
-						sound(2);
+						sound(SND_BAD_COMMAND);
 						Gra_InvertStatusLine(activeChara);
 						activeChara --;
 					continue;
@@ -145,13 +155,18 @@ COM_Attack();*/
 		}
 /*C_5CEF:*/
 		COM_FoesTurn();
-		bp_04 = si;
+		last_key = cmd;
 	} while(!IsCombatEnded());
 	if(!IsPartyWipedOut())
 		CombatEnd();
 	TurnDone = 1;
 }
 
+/*
+ * End of the active character's turn: effects of the tile it stands on,
+ * removal if dead, maybe another turn with Quickness (1 time out of 2), maybe
+ * waking up (1 time out of 8), and food consumption.
+ */
 /*C_5D14*/COM_EndCharaTurn()
 {
 	if(Fighters._chtile[activeChara] == 0)
@@ -172,41 +187,46 @@ COM_Attack();*/
 	food_dec(1);
 }
 
-/*C_5DAB*/COM_DoDamage(_npcId, _charaId, _damage)
-register int _npcId;
-int _charaId;
-unsigned char _damage;
+/*
+ * Inflict damage to foe fighter (Lord British cannot be killed). If it is
+ * killed, party member chara (unless -1) gets experience (max HP / 16 + 1);
+ * otherwise print its state ("Fleeing!" being under 24 HP whatever its max).
+ */
+/*C_5DAB*/COM_DoDamage(fighter, chara, damage)
+register int fighter;
+int chara;
+unsigned char damage;
 {
-	u4_puts(CreatureName(Fighters._tile[_npcId]));
+	u4_puts(CreatureName(Fighters._tile[fighter]));
 	u4_putc(' ');
-	if(Fighters._tile[_npcId] != TIL_LORD_BRITISH && (Fighters._HP[_npcId] -= _damage) < 0) {
+	if(Fighters._tile[fighter] != TIL_LORD_BRITISH && (Fighters._HP[fighter] -= damage) < 0) {
 		u4_puts(/*D_1FFA*/"Killed!\n");
-		if(_charaId != -1) {
-			register int di;
+		if(chara != -1) {
+			register int xp;
 
-			di = MonsterMaxHP[MonsterIndex(Fighters._tile[_npcId])] / 16 + 1;
-			XP_inc(_charaId, di);
+			xp = MonsterMaxHP[MonsterIndex(Fighters._tile[fighter])] / 16 + 1;
+			XP_inc(chara, xp);
 			u4_puts(/*D_2003*/"Exp. ");
-			u4_putl(di, 1, ' ');
+			u4_putl(xp, 1, ' ');
 			Gra_CR();
 		}
-		Fighters._tile[_npcId] = 0;
+		Fighters._tile[fighter] = 0;
 	} else {
-		int loc_D, loc_C, loc_B, loc_A;
+		int hp, mark75, mark25, mark50;
 
-		loc_B = loc_A = MonsterMaxHP[MonsterIndex(Fighters._tile[_npcId])] / 2;/*50% HP*/
-		loc_B >>= 1;/*25% HP*/
-		loc_C = loc_B + loc_A;/*75% HP*/
-		loc_D = Fighters._HP[_npcId];
-		if(loc_D < 24) {
+		mark25 = mark50 = MonsterMaxHP[MonsterIndex(Fighters._tile[fighter])] / 2;/*50% HP*/
+		mark25 >>= 1;/*25% HP*/
+		mark75 = mark25 + mark50;/*75% HP*/
+		hp = Fighters._HP[fighter];
+		if(hp < 24) {
 			u4_puts(/*D_2009*/"Fleeing!\n");
-		} else if(loc_D < loc_B) {
+		} else if(hp < mark25) {
 			u4_puts(/*D_2013*/"Critical!\n");
 		} else {
 			Gra_CR();
-			if(loc_D < loc_A) {
+			if(hp < mark50) {
 				u4_puts(/*D_201E*/"Heavily ");
-			} else if(loc_D < loc_C) {
+			} else if(hp < mark75) {
 				u4_puts(/*D_2027*/"Lightly ");
 			} else {
 				u4_puts(/*D_2030*/"Barely ");
@@ -216,194 +236,225 @@ unsigned char _damage;
 	}
 }
 
-/*C_5EA2*/COM_CheckHitable(_dir_x, _dir_y)
-unsigned char /*bp06*/_dir_x;
-unsigned char /*bp04*/_dir_y;
+/*
+ * Move the blow position (hit_x, hit_y) one square in direction (dx, dy),
+ * unless it would leave the map or enter a square that stops missiles
+ * (secret doors, and unwalkable tiles other than water, shores, ship rails
+ * and creatures). Returns 1 if it moved.
+ */
+/*C_5EA2*/COM_MissileStep(dx, dy)
+unsigned char dx;
+unsigned char dy;
 {
-	unsigned char loc_C, loc_A;
-	register int loc_B;
+	unsigned char x, y;
+	register int tile;
 
-	loc_C = _dir_x + hit_x;
-	loc_A = _dir_y + hit_y;
-	if(loc_C > 10 || loc_A > 10)
+	x = dx + hit_x;
+	y = dy + hit_y;
+	if(x > 10 || y > 10)
 		return 0;
-	loc_B = Combat_MAP(loc_A, loc_C);
-	if(loc_B == TIL_SECRET_DOOR)
+	tile = Combat_MAP(y, x);
+	if(tile == TIL_SECRET_DOOR)
 		return 0;
-	if(loc_B <= TIL_PIRATE_W && loc_B > TIL_SHALLOWS && loc_B != TIL_SHIP_RAIL)
-		if(loc_B < TIL_SHORE_1 || loc_B > TIL_SHORE_4)
-			if(!IsWalkable(loc_B))
+	if(tile <= TIL_PIRATE_W && tile > TIL_SHALLOWS && tile != TIL_SHIP_RAIL)
+		if(tile < TIL_SHORE_1 || tile > TIL_SHORE_4)
+			if(!IsWalkable(tile))
 				return 0;
 
-	hit_x = loc_C;
-	hit_y = loc_A;
+	hit_x = x;
+	hit_y = y;
 	return 1;
 }
 
-/*C_5F26*/DrawBlow(_range)
-int /*bp04*/_range;
+/*
+ * After a blow at range squares, a thrown magic axe flies back to the active
+ * character.
+ */
+/*C_5F26*/DrawAxeReturn(range)
+int range;
 {
-	int bp_04, bp_02;
+	int dy, dx;
 
-	if(Party.chara[activeChara]._weapon != 11 || _range < 2)
+	if(Party.chara[activeChara]._weapon != WPN_MAGIC_AXE || range < 2)
 		return;
-	bp_02 = u4_sign(Combat._charaX[activeChara] - hit_x);
-	bp_04 = u4_sign(Combat._charaY[activeChara] - hit_y);
+	dx = u4_sign(Combat._charaX[activeChara] - hit_x);
+	dy = u4_sign(Combat._charaY[activeChara] - hit_y);
 	hit_tile = TIL_MISSILE;
-	while(_range) {
-		COM_CheckHitable(bp_02, bp_04);
+	while(range) {
+		COM_MissileStep(dx, dy);
 		DrawCombat();
-		_range --;
+		range --;
 	}
 	hit_tile = 0;
 }
 
-/*C_5F9D*/w_missed(_range)
-int /*bp04*/_range;
+/*
+ * The blow (at range squares, 0 for a hand to hand blow) missed. Flaming oil
+ * still sets a fire field where it lands (but not on water).
+ */
+/*C_5F9D*/w_missed(range)
+int range;
 {
-	if(_range == 0)
-		sound(4);
+	if(range == 0)
+		sound(SND_ATTACK);
 	hit_tile = 0;
 	u4_puts(/*D_2042*/"Missed!\n");
-	if(Party.chara[activeChara]._weapon == 9 && hit_x < 11 && hit_y < 11 && Combat_MAP(hit_y, hit_x) >= TIL_SWAMP)
+	if(Party.chara[activeChara]._weapon == WPN_OIL && hit_x < 11 && hit_y < 11 && Combat_MAP(hit_y, hit_x) >= TIL_SWAMP)
 		Combat_MAP(hit_y, hit_x) = TIL_FIRE_FIELD;
 	DrawCombat();
-	DrawBlow(_range);
+	DrawAxeReturn(range);
 }
 
-/*C_6012*/TryDamage(_npcId, _range)
-int /*bp06*/_npcId;
-int /*bp04*/_range;
+/*
+ * The active character's blow reaches foe fighter at range squares. In the
+ * Abyss only the magic weapons work. A dexterity under 40 may miss. The damage
+ * is random, modulo strength + weapon damage (at most 255).
+ */
+/*C_6012*/TryDamage(fighter, range)
+int fighter;
+int range;
 {
-	register char *loc_B;
-	register struct tChara *loc_C;
-	int loc_A;
+	register char *p_ground;
+	register struct tChara *chara;
+	int damage;
 	
-	loc_C = &(Party.chara[activeChara]);
-	if(Party._loc == 0x18 && loc_C->_weapon < 11) {
+	chara = &(Party.chara[activeChara]);
+	if(Party._loc == LOC_ABYSS && chara->_weapon < WPN_MAGIC_AXE) {
 		/*abyss without good weapons*/
-		w_missed(_range);
+		w_missed(range);
 		return;
 	}
-	hit_tile = (loc_C->_weapon == 14)?TIL_MAGIC_BOLT:TIL_HIT_FLASH;
+	hit_tile = (chara->_weapon == WPN_WAND)?TIL_MAGIC_BOLT:TIL_HIT_FLASH;
 	/*dexterity test*/
-	if(loc_C->_dex < 40 && U4_RND1(0xff) > loc_C->_dex + 0x80) {
-		w_missed(_range);
+	if(chara->_dex < 40 && U4_RND1(0xff) > chara->_dex + 0x80) {
+		w_missed(range);
 		return;
 	}
 	/*success*/
-	loc_B = &(Combat_MAP(Combat._npcY[_npcId], Combat._npcX[_npcId]));
-	if(loc_C->_weapon == 9 && *loc_B >= TIL_SWAMP)
-		*loc_B = TIL_FIRE_FIELD;
+	p_ground = &(Combat_MAP(Combat._npcY[fighter], Combat._npcX[fighter]));
+	if(chara->_weapon == WPN_OIL && *p_ground >= TIL_SWAMP)
+		*p_ground = TIL_FIRE_FIELD;
 	/*damage points*/
-	loc_A = loc_C->_str;
-	loc_A += WeaponDamage[loc_C->_weapon];
-	loc_A = SafeModulo(U4_RND1(0xff), u4_min(loc_A, 0xff));
+	damage = chara->_str;
+	damage += WeaponDamage[chara->_weapon];
+	damage = SafeModulo(U4_RND1(0xff), u4_min(damage, 0xff));
 	DrawCombat();
-	sound(6);
+	sound(SND_HIT);
 	hit_tile = 0;
-	COM_DoDamage(_npcId, activeChara, loc_A);
-	DrawBlow(_range);
+	COM_DoDamage(fighter, activeChara, damage);
+	DrawAxeReturn(range);
 }
 
-/*projectile weapon?*/
-/*C_60F1*/COM_Shoot(_dir_x, _dir_y)
-int _dir_x;
-int _dir_y;
+/*
+ * The active character shoots (or throws) in direction (dx, dy): up to 11
+ * squares, or the range asked for flaming oil. Daggers and oil are used up.
+ */
+/*C_60F1*/COM_Shoot(dx, dy)
+int dx;
+int dy;
 {
-	register struct tChara *loc_A;
-	int loc_D, loc_B, loc_C;
+	register struct tChara *chara;
+	int range, foe, dist;
 
-	loc_D = 11;
-	loc_C = 0;
-	loc_A = &(Party.chara[activeChara]);
+	range = 11;
+	dist = 0;
+	chara = &(Party.chara[activeChara]);
 	/*-- For OIL, ask range --*/
-	if(loc_A->_weapon == 9) {
-		loc_D = AskLetter(/*D_204B*/"Range:\x12\x12\b", '0', '9');
-		loc_D -= '0';
-		if(loc_D < 0)
+	if(chara->_weapon == WPN_OIL) {
+		range = AskLetter(/*D_204B*/"Range:\x12\x12\b", '0', '9');
+		range -= '0';
+		if(range < 0)
 			return;
 	}
-	/*-- if denumbrable weapon, decrement --*/
-	if(loc_A->_weapon == 2 || loc_A->_weapon == 9) {
-		if(Party._weapons[loc_A->_weapon] == 0) {
-			loc_A->_weapon = 0;
+	/*-- if thrown weapon, decrement --*/
+	if(chara->_weapon == WPN_DAGGER || chara->_weapon == WPN_OIL) {
+		if(Party._weapons[chara->_weapon] == 0) {
+			chara->_weapon = WPN_HANDS;
 			u4_puts(/*D_2055*/"Last one!\n");
 		} else {
-			Party._weapons[loc_A->_weapon] --;
+			Party._weapons[chara->_weapon] --;
 		}
 	}
 	/*-- --*/
-	hit_tile = (loc_A->_weapon != 14)?TIL_MISSILE:TIL_MAGIC_BOLT;
-	sound(4);
+	hit_tile = (chara->_weapon != WPN_WAND)?TIL_MISSILE:TIL_MAGIC_BOLT;
+	sound(SND_ATTACK);
 	/*note:when using flaming oil with range '0'
-	 this loop is never entered, and so loc_B stays
+	 this loop is never entered, and so foe stays
 	 uninitialized. This may lead to unexpected behavior
 	 on the original version, or exception on modern
 	 systems.
 	*/
-	for(; loc_D; loc_D--) {
-		if(!COM_CheckHitable(_dir_x, _dir_y)) {
-			w_missed(loc_C);
+	for(; range; range--) {
+		if(!COM_MissileStep(dx, dy)) {
+			w_missed(dist);
 			return;
 		}
-		loc_C ++;
+		dist ++;
 		DrawCombat();
-		if((loc_B = COM_GetFighterId(hit_x, hit_y)) != -1)
+		if((foe = COM_GetFighterId(hit_x, hit_y)) != -1)
 			break;
 	}
 	hit_tile = 0;
-	if(loc_B == -1) {
-		w_missed(loc_C);
+	if(foe == -1) {
+		w_missed(dist);
 		return;
 	}
-	TryDamage(loc_B, loc_C);
+	TryDamage(foe, dist);
 }
 
-/*(A)ttack [combat]*/
+/*
+ * (A)ttack in combat: hand to hand weapons hit the next square (the halberd
+ * the one after); a dagger with nobody next is thrown; ranged weapons shoot.
+ */
 /*C_61D1*/COM_Attack()
 {
-	register struct tChara *loc_C;
-	int loc_A, loc_B, loc_D;
+	register struct tChara *chara;
+	int dx, dy, foe;
 
-	loc_C = &(Party.chara[activeChara]);
-	AskDir(/*D_2060*/"Dir: ", &loc_A, &loc_B);
-	if(!(loc_A | loc_B))
+	chara = &(Party.chara[activeChara]);
+	AskDir(/*D_2060*/"Dir: ", &dx, &dy);
+	if(!(dx | dy))
 		return;
 	hit_x = Combat._charaX[activeChara];
 	hit_y = Combat._charaY[activeChara];
 
-	if(!WeaponIsRanged[loc_C->_weapon]) {/*is not range weapon?*/
-		if(loc_C->_weapon == 10) {/*Halberd*/
-			hit_x += loc_A;
-			hit_y += loc_B;
+	if(!WeaponIsRanged[chara->_weapon]) {/*is not range weapon?*/
+		if(chara->_weapon == WPN_HALBERD) {
+			hit_x += dx;
+			hit_y += dy;
 		}
-		if(COM_CheckHitable(loc_A, loc_B)) {
+		if(COM_MissileStep(dx, dy)) {
 			hit_tile = TIL_MISSILE;
 			DrawCombat();
 			hit_tile = 0;
-			sound(4);
+			sound(SND_ATTACK);
 
-			if((loc_D = COM_GetFighterId(hit_x, hit_y)) != -1) {
-				TryDamage(loc_D, 1);
+			if((foe = COM_GetFighterId(hit_x, hit_y)) != -1) {
+				TryDamage(foe, 1);
 				return;
 			}
-			if(loc_C->_weapon == 2) {/*dagger?*/
-				COM_Shoot(loc_A, loc_B);
+			if(chara->_weapon == WPN_DAGGER) {
+				COM_Shoot(dx, dy);
 				return;
 			}
 		}
 		w_missed(0);
 	} else {
-		COM_Shoot(loc_A, loc_B);
+		COM_Shoot(dx, dy);
 		return;
 	}
 }
 
+/*
+ * (A)ttack outside combat: start a combat with the npc in the given direction.
+ * In a towne, the guards and Lord British turn hostile; attacking there, or
+ * attacking a non-evil creature, costs compassion, justice and honor.
+ * Odd: TIL_SHALLOWS (2) is tested as an npc tile.
+ */
 /*C_628F*/CMD_Attack()
 {
-	register int loc_C;
-	int loc_A, loc_B;
+	register int npc;
+	int dx, dy;
 
 	if(CurMode <= MOD_BUILDING && Party._fly_light != 0) {
 		u4_puts(/*D_2066*/"Attack\n");
@@ -411,30 +462,30 @@ int _dir_y;
 		return;
 	}
 
-	AskDir(/*D_206E*/"Attack: ", &loc_A, &loc_B);
-	if(!(loc_A|loc_B))
+	AskDir(/*D_206E*/"Attack: ", &dx, &dy);
+	if(!(dx|dy))
 		return;
 	if(
-		(loc_C = FindTownNpcAt(Party._x + loc_A, Party._y + loc_B)) == -1 ||
-		Area._npc._tile[loc_C] == TIL_WHIRLPOOL ||
-		Area._npc._tile[loc_C] == TIL_SHALLOWS ||
-		Area._npc._tile[loc_C] == TIL_TWISTER
+		(npc = FindLocalNpcAt(Party._x + dx, Party._y + dy)) == -1 ||
+		Area._npc._tile[npc] == TIL_WHIRLPOOL ||
+		Area._npc._tile[npc] == TIL_SHALLOWS ||
+		Area._npc._tile[npc] == TIL_TWISTER
 	) {
 		u4_puts(/*D_2077*/"Nothing to Attack!\n");
 		return;
 	}
 	if(CurMode == MOD_BUILDING) {
-		register int di;
-		for(di = 31; di >= 0; di --)
-			if(Area._npc._tile[di] == TIL_GUARD || Area._npc._tile[di] == TIL_LORD_BRITISH) {
-				Area._npc._var[di] = 0xff;
-				Area._npc._tlkidx[di] = 0;
+		register int guard;
+		for(guard = 31; guard >= 0; guard --)
+			if(Area._npc._tile[guard] == TIL_GUARD || Area._npc._tile[guard] == TIL_LORD_BRITISH) {
+				Area._npc._var[guard] = 0xff;
+				Area._npc._tlkidx[guard] = 0;
 			}
 	}
-	if(CurMode == MOD_BUILDING || IsNonEvil(Area._npc._tile[loc_C])) {
+	if(CurMode == MOD_BUILDING || IsNonEvil(Area._npc._tile[npc])) {
 		karma_dec(&(Party._compa), 5);
 		karma_dec(&(Party._justi), 5);
 		karma_dec(&(Party._honor), 5);
 	}
-	StartCombat(loc_C);
+	StartCombat(npc);
 }

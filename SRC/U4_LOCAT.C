@@ -10,6 +10,10 @@
 LOCATE
 ----------------------------------------*/
 
+/*
+ * (L)ocate position with a sextant: the latitude/longitude are given as letters,
+ * the high and low nibbles of the party's y/x.
+ */
 /*C_755E*/CMD_Locate()
 {
 	u4_puts(/*D_22EA*/"Locate position with ");
@@ -30,9 +34,11 @@ LOCATE
 }
 
 /*----------------------------------------
-
+READY WEAPON / WEAR ARMOUR
 ----------------------------------------*/
 
+/*which classes may use each weapon/armour: bit 7 (0x80) for a mage, down to
+ bit 0 for a shepherd (0x80 >> _class)*/
 unsigned char /*D_2334*/ClassMasks[] = {
 	/*weapons class masks*/
 	0xFF,0xFF,0xFF,0xFF,0x7F,0x6F,0x6F,0x7E,0x7E,0xFF,0x2C,0x0C,0x2E,0x5E,0xD0,0xFF,
@@ -40,106 +46,118 @@ unsigned char /*D_2334*/ClassMasks[] = {
 	0xFF,0xFF,0x7F,0x2C,0x2C,0x24,0x04,0xFF
 };
 
-/*"may not use"*/
-/*C_75DC*/w_MayNotUse(bp08, bp06, bp04)
-int bp08;
-int bp06;
-int bp04;
+/*
+ * "A <class> may NOT use (a) <item>": item indexes ClassMasks, i.e. a weapon, or
+ * 0x10 + an armour (the armour names follow the weapon names in Names[]);
+ * article: print the "a" (for weapons).
+ */
+/*C_75DC*/w_MayNotUse(chara, item, article)
+int chara;
+int item;
+int article;
 {
 	u4_puts(/*D_2322*/"\nA ");
-	u4_puts(Names[77 + (int)Party.chara[bp08]._class]);
+	u4_puts(Names[NAME_CLASSES + (int)Party.chara[chara]._class]);
 	u4_puts(/*D_2326*/" may NOT use ");
-	if(bp04)
+	if(article)
 		u4_putc('a');
 	Gra_CR();
-	u4_puts(Names[37 + bp06]);
+	u4_puts(Names[NAME_WEAPONS + item]);
 	Gra_CR();
-	sound(1);
+	sound(SND_BEEP);
 }
 
+/*
+ * (R)eady a weapon (in combat: for the active character). The weapon in hand goes
+ * back to the party's stock (at most 99); hands (A) can always be used, otherwise
+ * the class must be allowed (ClassMasks).
+ */
 /*C_7631*/CMD_Ready()
 {
-	register int loc_A, loc_B;
-	int loc_C;
+	register int wielder, weapon;
+	int oldWeapon;
 
 	if(CurMode >= MOD_COMBAT) {
 		u4_puts(/*D_234C*/"Ready Weapon!\n");
-		loc_A = activeChara;
+		wielder = activeChara;
 	} else {
 		u4_puts(/*D_235B*/"Ready a weapon\n");
-		if((loc_A = AskChara(/*D_236B*/"for:\x12\x12\b")) < 0)
+		if((wielder = AskChara(/*D_236B*/"for:\x12\x12\b")) < 0)
 			return;
 	}
 	Gra_ClearStatus();
 	ZtatsWeapons();
 	txt_Y = 23; txt_X = 24;
-	loc_B = AskLetter(/*D_2373*/"Weapon:\x12\x12\b", 'A', 'P');
+	weapon = AskLetter(/*D_2373*/"Weapon:\x12\x12\b", 'A', 'P');
 	Gra_ClearStatus();
 	ZtatsClearTitle();
 	dspl_Stats();
 	if(CurMode >= MOD_COMBAT)
 		Gra_InvertStatusLine(activeChara);
-	if(loc_B < 0)
+	if(weapon < 0)
 		return;
-	loc_B -= 'A';
-	if(loc_B != 0 && Party._weapons[loc_B] == 0) {
+	weapon -= 'A';
+	if(weapon != 0 && Party._weapons[weapon] == 0) {
 		w_NoneLeft();
 		return;
 	}
-	if(loc_B != 0) {
-		if(((0x80 >> Party.chara[loc_A]._class) & ClassMasks[loc_B]) == 0) {
-			w_MayNotUse(loc_A, loc_B, 1);
+	if(weapon != 0) {
+		if(((0x80 >> Party.chara[wielder]._class) & ClassMasks[weapon]) == 0) {
+			w_MayNotUse(wielder, weapon, 1);
 			return;
 		}
 	}
-	if((loc_C = Party.chara[loc_A]._weapon) != 0) {
-		if(++Party._weapons[loc_C] > 99)
-			Party._weapons[loc_C] = 99;
+	if((oldWeapon = Party.chara[wielder]._weapon) != 0) {
+		if(++Party._weapons[oldWeapon] > 99)
+			Party._weapons[oldWeapon] = 99;
 	}
-	if(loc_B != 0) 
-		Party._weapons[loc_B] --;
-	Party.chara[loc_A]._weapon = loc_B;
-	u4_puts(Names[37 + loc_B]);
+	if(weapon != 0) 
+		Party._weapons[weapon] --;
+	Party.chara[wielder]._weapon = weapon;
+	u4_puts(Names[NAME_WEAPONS + weapon]);
 	Gra_CR();
 }
 
+/*
+ * (W)ear armour: same as CMD_Ready for armours; skin (A) means no armour.
+ */
 /*C_7732*/CMD_Wear()
 {
-	register int loc_A, loc_B;
-	int loc_C;
+	register int chara, armor;
+	int oldArmor;
 
 	u4_puts(/*D_237E*/"Wear Armour\n");
-	if((loc_A = AskChara(/*D_238B*/"for:\x12\x12\b")) < 0)
+	if((chara = AskChara(/*D_238B*/"for:\x12\x12\b")) < 0)
 		return;
 	Gra_ClearStatus();
 	ZtatsArmour();
 	txt_Y = 23; txt_X = 24;
-	loc_B = AskLetter(/*D_2393*/"Armour:\x12\x12\b", 'A', 'H');
+	armor = AskLetter(/*D_2393*/"Armour:\x12\x12\b", 'A', 'H');
 	Gra_ClearStatus();
 	ZtatsClearTitle();
 	dspl_Stats();
 	if(CurMode >= MOD_COMBAT)
 		Gra_InvertStatusLine(activeChara);
-	if(loc_B < 0)
+	if(armor < 0)
 		return;
-	loc_B -= 'A';
-	if(loc_B != 0 && Party._armors[loc_B] == 0) {
+	armor -= 'A';
+	if(armor != 0 && Party._armors[armor] == 0) {
 		w_NoneLeft();
 		return;
 	}
-	if(loc_B != 0) {
-		if(((0x80 >> Party.chara[loc_A]._class) & ClassMasks[loc_B + 0x10]) == 0) {
-			w_MayNotUse(loc_A, loc_B + 0x10, 0);
+	if(armor != 0) {
+		if(((0x80 >> Party.chara[chara]._class) & ClassMasks[armor + 0x10]) == 0) {
+			w_MayNotUse(chara, armor + 0x10, 0);
 			return;
 		}
 	}
-	if((loc_C = Party.chara[loc_A]._armor) != 0) {
-		if(++Party._armors[loc_C] > 99)
-			Party._armors[loc_C] = 99;
+	if((oldArmor = Party.chara[chara]._armor) != 0) {
+		if(++Party._armors[oldArmor] > 99)
+			Party._armors[oldArmor] = 99;
 	}
-	if(loc_B != 0)
-		Party._armors[loc_B] --;
-	Party.chara[loc_A]._armor = loc_B;
-	u4_puts(Names[53 + loc_B]);
+	if(armor != 0)
+		Party._armors[armor] --;
+	Party.chara[chara]._armor = armor;
+	u4_puts(Names[NAME_ARMOURS + armor]);
 	Gra_CR();
 }

@@ -10,6 +10,8 @@
 
 /*----------------------------------------*/
 
+/*Hawkwind's advice: [karma level][virtue], the levels being karma < 20, < 40, < 60,
+ < 99 and >= 99 (karma 0 means the virtue was already elevated)*/
 char * /*D_3F0C*/SeerSayings[][8] = {
 	{/* < 20*/
 		/*D_316E*/"Thou art a thief and a scoundrel. Thou may not ever become an Avatar!",
@@ -61,20 +63,27 @@ char * /*D_3F0C*/SeerSayings[][8] = {
 
 static unsigned char D_913A;
 static unsigned char D_913B, D_913C;
-static unsigned D_913E;/*# of drinks in pub*/
+static unsigned D_913E;
 /*The statics keep their address-like names: Microsoft C 4.00 lays out a module's
  uninitialised statics in the order of its symbol table, which depends on the names.
- Renaming them would move them; the readable names are macros.*/
+ Renaming them would move them; the readable names are macros.
+ InnCost, InnBedX, InnBedY: price and bed position of the room taken at the inn.
+ PubDrinks: number of ales ordered during this visit to the pub (at most 3).*/
 #define InnCost D_913A
 #define InnBedX D_913B
 #define InnBedY D_913C
 #define PubDrinks D_913E
 
-/*SHOP #10 - The Seer*/
+/*
+ * SHOP #10 - Hawkwind the Seer (Lord British's castle). Only speaks to a conscious
+ * Avatar. For each virtue named (its first 4 letters are enough), tells how far the
+ * Avatar is on that path; "none", "bye" or an empty line ends. Leaving gives
+ * 3 Spirituality, once per 100 moves (shared with meditation).
+ */
 /*C_C922*/SHP_hawkwind()
 {
-	int bp_02, bp_04;
-	char bp_14[16];
+	int karmaLevel, virtueIdx;
+	char input[16];
 
 	if(!isCharaConscious(0)) {
 		u4_puts(/*D_3CD9*/"The Seer says: I will speak only with ");
@@ -89,46 +98,46 @@ static unsigned D_913E;/*# of drinks in pub*/
 	u4_puts(/*D_3D29*/"\nI am Hawkwind, Seer of Souls. I see that which is within thee and drives thee to deeds of good or evil...\n");
 	u_kbflush();
 	u_kbread();
-	bp_14[0] = 0;
+	input[0] = 0;
 	while(1) {
-		u4_puts(bp_14[0] == 0?
+		u4_puts(input[0] == 0?
 			/*D_3D95*/"\nFor what path dost thou seek enlightenment?\n":
 			/*D_3DC3*/"\nHawkwind asks: What other path seeks clarity?\n"
 		);
-		u4_gets(bp_14, 15);
+		u4_gets(input, 15);
 		if(
-			bp_14[0] == 0 ||
-			strnicmp(bp_14, /*D_3DF3*/"none", 16) == 0 ||
-			strnicmp(bp_14, /*D_3DF8*/"bye", 16) == 0
+			input[0] == 0 ||
+			strnicmp(input, /*D_3DF3*/"none", 16) == 0 ||
+			strnicmp(input, /*D_3DF8*/"bye", 16) == 0
 		) break;
-		for(bp_04 = 7; bp_04 >= 0; bp_04 --) {
-			if(strnicmp(bp_14, Names[151 + bp_04], 4) == 0)
+		for(virtueIdx = 7; virtueIdx >= 0; virtueIdx --) {
+			if(strnicmp(input, Names[NAME_VIRTUES + virtueIdx], 4) == 0)
 				break;
 		}
-		if(bp_04 == -1) {
+		if(virtueIdx == -1) {
 			u4_puts(/*D_3DFC*/"\nHe says: That is not a subject for enlightenment.\n");
 			continue;
 		}
 		Gra_CR();
-		if(*(pKarmas[bp_04]) == 0) {
+		if(*(pKarmas[virtueIdx]) == 0) {
 			u4_puts(/*D_3E30*/"He says:\nThou hast become a partial Avatar in that attribute. Thou need not my insights.\n");
 			continue;
 		}
-		if(*(pKarmas[bp_04]) < 20) {
-			bp_02 = 0;
-		} else  if(*(pKarmas[bp_04]) < 40) {
-			bp_02 = 1;
-		} else  if(*(pKarmas[bp_04]) < 60) {
-			bp_02 = 2;
-		} else  if(*(pKarmas[bp_04]) < 99) {
-			bp_02 = 3;
+		if(*(pKarmas[virtueIdx]) < 20) {
+			karmaLevel = 0;
+		} else  if(*(pKarmas[virtueIdx]) < 40) {
+			karmaLevel = 1;
+		} else  if(*(pKarmas[virtueIdx]) < 60) {
+			karmaLevel = 2;
+		} else  if(*(pKarmas[virtueIdx]) < 99) {
+			karmaLevel = 3;
 		} else {
-			bp_02 = 4;
+			karmaLevel = 4;
 		}
 		Gra_CR();
-		u4_puts(SeerSayings[bp_02][bp_04]);
+		u4_puts(SeerSayings[karmaLevel][virtueIdx]);
 		Gra_CR();
-		if(bp_02 == 4) {
+		if(karmaLevel == 4) {
 			u4_puts(/*D_3E8A*/"\nGo to the Shrine and meditate for three Cycles!\n");
 			u_kbflush();
 			u_kbread();
@@ -143,7 +152,8 @@ static unsigned D_913E;/*# of drinks in pub*/
 
 /*----------------------------------------*/
 
-/*shops indexes*/
+/*Shop tables are indexed by ShopId, which comes from a per-town table such as this one:
+ [Party._loc - 1] gives the shop number + 1, or 0 for a town without such a shop.*/
 unsigned char /*D_4170*/ReagentShopIds[16] = {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 3, 4, 0, 0};
 
 char * /*D_4180*/ReagentShopNames[] = {
@@ -160,6 +170,7 @@ char * /*D_4188*/ReagentShopKeepers[] = {
 	/*D_3FA6*/"Shannon"
 };
 
+/*price of each reagent (Sulfurous Ash .. Black Pearl) in each shop*/
 unsigned char /*D_4190*/ReagentPrices[][6] = {
 	{2, 5, 6, 3, 6, 9},
 	{2, 4, 9, 6, 4, 8},
@@ -167,11 +178,17 @@ unsigned char /*D_4190*/ReagentPrices[][6] = {
 	{6, 7, 9, 9, 9, 1}
 };
 
-/*SHOP #5 - reagents*/
+/*
+ * SHOP #5 - reagents. The player chooses a reagent and an amount, then says how much
+ * he pays: the shopkeeper is blind, so paying less than the price is accepted but
+ * costs Honesty, Justice and Honor (4, or a third of the missing gold when 12 or more).
+ * A paid purchase then gives 2 points in each of these, even after underpaying.
+ * At most 99 of each reagent.
+ */
 /*C_CAF6*/SHP_reagent()
 {
-	char loc_C;
-	int loc_A, loc_B, loc_D, loc_E;
+	char reply;
+	int amount, reagent, paid, shortBy;
 
 	ShopId = ReagentShopIds[Party._loc - 1] - 1;
 	u4_puts(/*D_3FAE*/"A blind woman turns to you and says: Welcome to ");
@@ -181,8 +198,8 @@ unsigned char /*D_4190*/ReagentPrices[][6] = {
 	u4_puts(/*D_3FDF*/"\n\nI am ");
 	u4_puts(ReagentShopKeepers[ShopId]);
 	u4_puts(/*D_3FE7*/"\nAre you in need of Reagents?\x12\x12\b");
-	loc_C = AskY_N();
-	if(loc_C == 'Y') {
+	reply = AskY_N();
+	if(reply == 'Y') {
 		u4_puts(/*D_4008*/"Very well,\n");
 		do {
 			u4_puts(/*D_4014*/"I have\n\
@@ -193,42 +210,42 @@ D-Spider Silk\n\
 E-Blood Moss\n\
 F-Black Pearl\n"
 			);
-			loc_B = AskLetter(/*D_4068*/"Your Interest:\x12\x12\b", 'A', 'F');
-			loc_B -= 'A';
-			if(loc_B < 0)
+			reagent = AskLetter(/*D_4068*/"Your Interest:\x12\x12\b", 'A', 'F');
+			reagent -= 'A';
+			if(reagent < 0)
 				break;
 			u4_puts(/*D_407A*/"\nVery well, we sell ");
-			u4_puts(Names[93 + loc_B]);
+			u4_puts(Names[NAME_REAGENTS + reagent]);
 			u4_puts(/*D_408F*/" for ");
-			u4_putl(ReagentPrices[ShopId][loc_B], 1, '0');
+			u4_putl(ReagentPrices[ShopId][reagent], 1, '0');
 			u4_puts(/*D_4095*/"gp. How many would you like?\x12\x12\x12\b\b");
-			loc_A = AskInt(2);
-			if(loc_A > 0) {
+			amount = AskInt(2);
+			if(amount > 0) {
 				u4_puts(/*D_40B7*/"\nVery good, that will be ");
-				u4_putl((long)loc_A * ReagentPrices[ShopId][loc_B], 1, '0');
+				u4_putl((long)amount * ReagentPrices[ShopId][reagent], 1, '0');
 				u4_puts(/*D_40D1*/"gp. You pay:\x12\x12\x12\x12\b\b\b");
-				loc_D = AskInt(3);
-				if(loc_D <= 0) {
-					if(loc_D < 0)
-						sound(1);
+				paid = AskInt(3);
+				if(paid <= 0) {
+					if(paid < 0)
+						sound(SND_BEEP);
 				} else {
-					if(loc_D < loc_A * ReagentPrices[ShopId][loc_B]) {
-						loc_E = loc_A * ReagentPrices[ShopId][loc_B] - loc_D;
-						loc_E = (loc_E < 12)?4:(loc_E / 3);
-						karma_dec(&(Party._hones), loc_E);
-						karma_dec(&(Party._justi), loc_E);
-						karma_dec(&(Party._honor), loc_E);
+					if(paid < amount * ReagentPrices[ShopId][reagent]) {
+						shortBy = amount * ReagentPrices[ShopId][reagent] - paid;
+						shortBy = (shortBy < 12)?4:(shortBy / 3);
+						karma_dec(&(Party._hones), shortBy);
+						karma_dec(&(Party._justi), shortBy);
+						karma_dec(&(Party._honor), shortBy);
 					}
-					if(loc_D > Party._gold) {
+					if(paid > Party._gold) {
 						u4_puts(/*D_40E5*/"It seems you have not the gold!\n");
 					} else {
 						karma_inc(&(Party._hones), 2);
 						karma_inc(&(Party._justi), 2);
 						karma_inc(&(Party._honor), 2);
-						Party._gold -= loc_D; dspl_Gold();
-						Party._reagents[loc_B] += loc_A;
-						if(Party._reagents[loc_B] > 99)
-							Party._reagents[loc_B] = 99;
+						Party._gold -= paid; dspl_Gold();
+						Party._reagents[reagent] += amount;
+						if(Party._reagents[reagent] > 99)
+							Party._reagents[reagent] = 99;
 						ZtatsReagents();
 						u4_puts(/*D_4106*/"\nVery good.\n");
 					}
@@ -237,8 +254,8 @@ F-Black Pearl\n"
 				u4_puts(/*D_4113*/"\nI see, then\n");
 			}
 			u4_puts(/*D_4121*/"Anything else?\x12\x12\b");
-			loc_C = AskY_N();
-		} while(loc_C == 'Y');
+			reply = AskY_N();
+		} while(reply == 'Y');
 	}
 	Gra_ClearStatus();
 	ZtatsClearTitle();
@@ -268,6 +285,7 @@ char * /*D_46AE*/WeaponShopKeepers[] = {
 	/*D_4226*/"Wendy"
 };
 
+/*the 4 weapons (WPN_*) each weapon shop sells*/
 unsigned char /*D_46BA*/WeaponShopStock[][4] = {
 	{1,  2,  3,  6},
 	{5,  6,  8, 10},
@@ -277,7 +295,7 @@ unsigned char /*D_46BA*/WeaponShopStock[][4] = {
 	{2,  3,  7,  9}
 };
 
-/*prices[weapons]*/
+/*price of each weapon (WPN_*); selling gives half of it*/
 int /*D_46D2*/WeaponPrices[] = {
 	   0,
 	  20,
@@ -295,12 +313,12 @@ int /*D_46D2*/WeaponPrices[] = {
 	2000,
 	5000,
 
-	7000/*what is this price for?*/
+	7000/*WPN_MYSTIC: never offered, but WeaponShopSell accepts 'P'*/
 };
 
-/*shops indexes*/
 unsigned char /*D_46F2*/WeaponShopIds[16] = {0, 0, 0, 0, 0, 1, 2, 0, 3, 4, 0, 0, 0, 5, 6, 0};
 
+/*sales pitch of each weapon, indexed by weapon - 1*/
 char * /*D_4702*/WeaponPitches[] = {
 	/*D_422C*/"We are the only staff makers in Britannia, yet sell them for only 20gp.\n",
 	/*D_4275*/"We sell the most deadly of daggers, a bargain at only 2gp each.\n",
@@ -318,151 +336,167 @@ char * /*D_4702*/WeaponPitches[] = {
 	/*D_4608*/"This magic wand casts mighty blue bolts to strike down thy foes, 5000gp.\n"
 };
 
-/*finalize deal[weapon]*/
-/*C_CD1D*/WeaponShopDeal(bp06, bp04)
-int bp06;
-int bp04;
+/*
+ * Buy count weapons of the given kind if the party has the gold (at most 99 kept).
+ * Probable original bug: price * count is computed in 16 bits and wraps for the
+ * expensive weapons (14 wands: 5000 * 14 = 70000 becomes 4464 gp).
+ */
+/*C_CD1D*/WeaponShopDeal(weapon, count)
+int weapon;
+int count;
 {
-	if(WeaponPrices[bp06] * bp04 > Party._gold) {
+	if(WeaponPrices[weapon] * count > Party._gold) {
 		u4_puts(/*D_4652*/"I fear you have not the funds, perhaps something else.\n");
 		return;
 	}
-	Party._gold -= WeaponPrices[bp06] * bp04; dspl_Gold();
-	Party._weapons[bp06] += bp04;
-	if(Party._weapons[bp06] > 99)
-		Party._weapons[bp06] = 99;
+	Party._gold -= WeaponPrices[weapon] * count; dspl_Gold();
+	Party._weapons[weapon] += count;
+	if(Party._weapons[weapon] > 99)
+		Party._weapons[weapon] = 99;
 	ZtatsWeapons();
 	Gra_CR();
 	u4_puts(WeaponShopKeepers[ShopId]);
 	u4_puts(/*D_468A*/" says: A fine choice!\n");
 }
 
-/*choose item[weapon]*/
+/*
+ * Weapon shop, buying: list the shop's 4 weapons, ask which (letter of the weapon,
+ * beeping until it is one of the shop's) and how many, until no more is wanted.
+ * entry indexes the shop's stock; choice is the weapon, then the Y/N answer.
+ */
 /*C_CD80*/WeaponShopBuy()
 {
-	int loc_A, loc_B, loc_C;
+	int amount, entry, choice;
 
 	Gra_CR();
 	u4_puts(/*D_471E*/"\n\nVery Good!\n\n");
 	do {
 		u4_puts(/*D_472D*/"We have:\n");
-		for(loc_B = 0; loc_B < 4; loc_B ++) {
-			u4_putc(WeaponShopStock[ShopId][loc_B] + 'A');
+		for(entry = 0; entry < 4; entry ++) {
+			u4_putc(WeaponShopStock[ShopId][entry] + 'A');
 			u4_putc('-');
-			u4_puts(Names[37 + WeaponShopStock[ShopId][loc_B]]);
+			u4_puts(Names[NAME_WEAPONS + WeaponShopStock[ShopId][entry]]);
 			u4_putc('s');
 			Gra_CR();
 		}
 
 
 		do {
-			loc_C = AskLetter(/*D_4737*/"Your Interest?\x12\x12\b", 'B', 'O');
-			loc_C -= 'A';
-			if(loc_C <= 0)
+			choice = AskLetter(/*D_4737*/"Your Interest?\x12\x12\b", 'B', 'O');
+			choice -= 'A';
+			if(choice <= 0)
 				break;
-			for(loc_B = 0; loc_B < 4; loc_B ++) {
-				if(WeaponShopStock[ShopId][loc_B] == loc_C)
+			for(entry = 0; entry < 4; entry ++) {
+				if(WeaponShopStock[ShopId][entry] == choice)
 					break;
 			}
-			if(loc_B == 4)
-				sound(1);
-		} while(loc_B == 4);
-		if(loc_C < 0)
+			if(entry == 4)
+				sound(SND_BEEP);
+		} while(entry == 4);
+		if(choice < 0)
 			break;
-		if(WeaponPrices[loc_C] > Party._gold) {
+		if(WeaponPrices[choice] > Party._gold) {
 			u4_puts(/*D_4749*/"You have not the funds for even one!\n");
 		} else {
 			Gra_CR();
-			u4_puts(WeaponPitches[loc_C-1]);
+			u4_puts(WeaponPitches[choice-1]);
 			Gra_CR();
 			u4_puts(/*D_476F*/"How many would you like?\x12\x12\x12\b\b");
-			loc_A = AskInt(2);
-			if(loc_A <= 0) {
-				if(loc_A == 0)
+			amount = AskInt(2);
+			if(amount <= 0) {
+				if(amount == 0)
 					u4_puts(/*D_478D*/"\nToo bad.\n");
 				else
-					sound(1);
+					sound(SND_BEEP);
 			} else {
-				WeaponShopDeal(loc_C, loc_A);
+				WeaponShopDeal(choice, amount);
 			}
 		}
 		u4_puts(/*D_4798*/"\nAnything else?\x12\x12\b");
-		loc_C = (char)AskY_N();
-	} while(loc_C == 'Y');
+		choice = (char)AskY_N();
+	} while(choice == 'Y');
 	Gra_CR();
 }
 
+/*a += b, but not beyond c*/
 #define clamp(a, b, c) if((a)+(b) > (c)) (a) = (c); else (a) += (b)
 
-/*sell item[weapon]*/
+/*
+ * Weapon shop, selling: any weapon the party owns (letter B to P, so even the mystic
+ * weapons), for half its price; the party's gold is capped at 9999.
+ * Probable original bug: when the first weapon asked for is not owned, the loop test
+ * reads answer before anything was stored in it.
+ */
 /*C_CEBE*/WeaponShopSell()
 {
-	int loc_A, loc_B;
-	char loc_C;
+	int amount, weapon;
+	char answer;
 
 	u4_puts(/*D_47AB*/"\nExcellent! Which wouldst\n");
-	loc_B = -1;
+	weapon = -1;
 	do {
 		txt_Y = 23;
 		txt_X = 24;
-		loc_B = AskLetter(/*D_47C6*/"You sell:\x12\x12\b", 'B', 'P');
-		loc_B -= 'A';
+		weapon = AskLetter(/*D_47C6*/"You sell:\x12\x12\b", 'B', 'P');
+		weapon -= 'A';
 		Gra_CR();
-		if(loc_B <= 0)
+		if(weapon <= 0)
 			break;
-		if(Party._weapons[loc_B] == 0) {
+		if(Party._weapons[weapon] == 0) {
 			u4_puts(/*D_47D3*/"Thou dost not own that. What else might\n");
 		} else {
-			if(Party._weapons[loc_B] > 1) {
+			if(Party._weapons[weapon] > 1) {
 				u4_puts(/*D_47FC*/"How many ");
-				u4_puts(Names[37 + loc_B]);
+				u4_puts(Names[NAME_WEAPONS + weapon]);
 				u4_puts(/*D_4806*/"s would you wish to sell?\x12\x12\x12\b\b");
-				loc_A = AskInt(2);
-				if(loc_A <= 0) {
-					if(loc_A == 0)
+				amount = AskInt(2);
+				if(amount <= 0) {
+					if(amount == 0)
 						u4_puts(/*D_4825*/"\nToo bad.\n");
 					else
-						sound(1);
+						sound(SND_BEEP);
 					break;
 				}
-				if(Party._weapons[loc_B] < loc_A) {
+				if(Party._weapons[weapon] < amount) {
 					u4_puts(/*D_4830*/"You don't have that many swine!\n");
 					break;
 				}
 				u4_puts(/*D_4851*/"I will give you ");
-				u4_putl(((long)loc_A * WeaponPrices[loc_B]) >> 1, 1, '0');
+				u4_putl(((long)amount * WeaponPrices[weapon]) >> 1, 1, '0');
 				u4_puts(/*D_4862*/"gp for ");
-				if(loc_A > 1)
+				if(amount > 1)
 					u4_puts(/*D_486A*/"them.");
 				else
 					u4_puts(/*D_4870*/"it.");
 			} else {
-				loc_A = 1;
+				amount = 1;
 				u4_puts(/*D_4874*/"I will give you ");
-				u4_putl((long)WeaponPrices[loc_B] >> 1, 1, '0');
+				u4_putl((long)WeaponPrices[weapon] >> 1, 1, '0');
 				u4_puts(/*D_4885*/"gp for that ");
-				u4_puts(Names[37 + loc_B]);
+				u4_puts(Names[NAME_WEAPONS + weapon]);
 			}
 			u4_puts(/*D_4892*/"\nDeal?\x12\x12\b");
-			loc_C = AskY_N();
-			if(loc_C < 'N')
+			answer = AskY_N();
+			if(answer < 'N')
 				break;
-			if(loc_C == 'N') {
+			if(answer == 'N') {
 				u4_puts(/*D_489C*/"Hmmph. What else would\n");
 			} else {
-				Party._weapons[loc_B] -= loc_A;
-				clamp(Party._gold, (((long)loc_A * WeaponPrices[loc_B]) >> 1), 9999); dspl_Gold();
+				Party._weapons[weapon] -= amount;
+				clamp(Party._gold, (((long)amount * WeaponPrices[weapon]) >> 1), 9999); dspl_Gold();
 				ZtatsWeapons();
 				u4_puts(/*D_48B4*/"\nFine! What else?\n");
 			}
 		}
-	} while(loc_C == 'Y' || loc_C == 'N');
+	} while(answer == 'Y' || answer == 'N');
 }
 
-/*SHOP #1 - weapons*/
+/*
+ * SHOP #1 - weapons: welcome, then Buy or Sell (Space, Enter or Escape leave).
+ */
 /*C_D085*/SHP_weapon()
 {
-	char bp_02;
+	char choice;
 
 	Gra_ClearStatus();
 	ZtatsWeapons();
@@ -473,22 +507,22 @@ int bp04;
 	u4_puts(WeaponShopKeepers[ShopId]);
 	u4_puts(/*D_48DA*/" says: Welcome friend! Art thou here to Buy or Sell? ");
 	do {
-		switch(bp_02 = u_kbread()) {
-			case 'B': case 'b': bp_02 = 'b'; break;
-			case 'S': case 's': bp_02 = 's'; break;
+		switch(choice = u_kbread()) {
+			case 'B': case 'b': choice = 'b'; break;
+			case 'S': case 's': choice = 's'; break;
 			case ' ': case '\n': case '\r': case 0x1b:
-				bp_02 = 0;
+				choice = 0;
 				Gra_CR();
 			break;
 			default:
-				bp_02 = -1;
-				sound(1);
+				choice = -1;
+				sound(SND_BEEP);
 		}
-	} while(bp_02 == -1);
-	if(bp_02) {
-		u4_putc(bp_02);
+	} while(choice == -1);
+	if(choice) {
+		u4_putc(choice);
 		Gra_CR();
-		if(bp_02 == 'b')
+		if(choice == 'b')
 			WeaponShopBuy();
 		else
 			WeaponShopSell();
@@ -518,9 +552,10 @@ char * /*D_4BB8*/ArmourShopKeepers[] = {
 	/*D_4987*/"Pierre",
 	/*D_498E*/"Limpy",
 
-	/*D_4994*/"Big John"/*?!?who is that?!?*/
+	/*D_4994*/"Big John"/*no sixth armour shop: unused (as the last row of ArmourShopStock)*/
 };
 
+/*the armours (ARM_*) each armour shop sells, 0 for an empty slot*/
 unsigned char /*D_4BC4*/ArmourShopStock[][4] = {
 	{1, 2, 3, 0},
 	{3, 4, 5, 6},
@@ -531,7 +566,7 @@ unsigned char /*D_4BC4*/ArmourShopStock[][4] = {
 	{0, 0, 0, 0}
 };
 
-/*prices[armour]*/
+/*price of each armour (ARM_*); selling gives half of it*/
 int /*D_4BDC*/ArmourPrices[] = {
 	   0,
 	  50,
@@ -541,12 +576,12 @@ int /*D_4BDC*/ArmourPrices[] = {
 	4000,
 	7000,
 
-	9000/*what is this price for?*/
+	9000/*ARM_MYSTIC: never offered, but ArmourShopSell accepts 'H'*/
 };
 
-/*shops indexes*/
 unsigned char /*D_4BEC*/ArmourShopIds[16] = {0, 0, 0, 0, 0, 1, 2, 0, 0, 3, 0, 0, 4, 5, 0, 0};
 
+/*sales pitch of each armour, indexed by armour - 1*/
 char * /*D_4BFC*/ArmourPitches[] = {
 	/*D_499D*/"Cloth Armour is good for a tight budget, Fairly priced at 50gp.\n",
 	/*D_49DE*/"Leather Armour is both supple and strong, and costs a mere 200gp.\nA Bargain!\n",
@@ -556,149 +591,160 @@ char * /*D_4BFC*/ArmourPitches[] = {
 	/*D_4B12*/"Magic Plate Armour is the best known protection. Only we have it. Cost: 7000gp.\n"
 };
 
-/*finalize deal[armor]*/
-/*C_D16D*/ArmourShopDeal(bp06, bp04)
-int bp06;
-int bp04;
+/*
+ * Buy count armours of the given kind if the party has the gold (at most 99 kept).
+ * Probable original bug: as in WeaponShopDeal, price * count wraps in 16 bits.
+ */
+/*C_D16D*/ArmourShopDeal(armour, count)
+int armour;
+int count;
 {
-	if(ArmourPrices[bp06] * bp04 > Party._gold) {
+	if(ArmourPrices[armour] * count > Party._gold) {
 		u4_puts(/*D_4B63*/"You don't have enough gold.\nMaybe something cheaper?\n");
 		return;
 	}
-	Party._gold -= ArmourPrices[bp06] * bp04; dspl_Gold();
-	Party._armors[bp06] += bp04;
-	if(Party._armors[bp06] > 99)
-		Party._armors[bp06] = 99;
+	Party._gold -= ArmourPrices[armour] * count; dspl_Gold();
+	Party._armors[armour] += count;
+	if(Party._armors[armour] > 99)
+		Party._armors[armour] = 99;
 	ZtatsArmour();
 	Gra_CR();
 	u4_puts(ArmourShopKeepers[ShopId]);
 	u4_puts(/*D_4B99*/" says: Good choice!\n");
 }
 
-/*choose item[armor]*/
+/*
+ * Armour shop, buying: as WeaponShopBuy, with the shop's (up to 4) armours.
+ */
 /*C_D1D0*/ArmourShopBuy()
 {
-	int loc_A, loc_B, loc_C;
+	int amount, entry, choice;
 
 
 	u4_puts(/*D_4C08*/"\n\n\nWell then,\n");
 	do {
 		u4_puts(/*D_4C17*/"We've got:\n");
-		for(loc_B = 0; loc_B < 4; loc_B ++) {
-			if(ArmourShopStock[ShopId][loc_B]) {
-				u4_putc(ArmourShopStock[ShopId][loc_B] + 'A');
+		for(entry = 0; entry < 4; entry ++) {
+			if(ArmourShopStock[ShopId][entry]) {
+				u4_putc(ArmourShopStock[ShopId][entry] + 'A');
 				u4_putc(' ');
-				u4_puts(Names[53 + ArmourShopStock[ShopId][loc_B]]);
+				u4_puts(Names[NAME_ARMOURS + ArmourShopStock[ShopId][entry]]);
 				Gra_CR();
 			}
 		}
 		Gra_CR();
 		do {
-			loc_C = AskLetter(/*D_4C23*/"What'll it be?\x12\x12\b", 'B', 'G');
-			loc_C -= 'A';
-			if(loc_C <= 0)
+			choice = AskLetter(/*D_4C23*/"What'll it be?\x12\x12\b", 'B', 'G');
+			choice -= 'A';
+			if(choice <= 0)
 				break;
-			for(loc_B = 0; loc_B < 4; loc_B ++) {
-				if(ArmourShopStock[ShopId][loc_B] == loc_C)
+			for(entry = 0; entry < 4; entry ++) {
+				if(ArmourShopStock[ShopId][entry] == choice)
 					break;
 			}
-			if(loc_B == 4)
-				sound(1);
-		} while(loc_B == 4);
-		if(loc_C < 0)
+			if(entry == 4)
+				sound(SND_BEEP);
+		} while(entry == 4);
+		if(choice < 0)
 			break;
-		if(ArmourPrices[loc_C] > Party._gold) {
+		if(ArmourPrices[choice] > Party._gold) {
 			u4_puts(/*D_4C35*/"What you try'n to pull? You can't pay!\n");
 		} else {
 			Gra_CR();
-			u4_puts(ArmourPitches[loc_C-1]);
+			u4_puts(ArmourPitches[choice-1]);
 			Gra_CR();
 			u4_puts(/*D_4C5D*/"How many would you like?\x12\x12\x12\b\b");
-			loc_A = AskInt(2);
-			if(loc_A <= 0) {
+			amount = AskInt(2);
+			if(amount <= 0) {
 
 				u4_puts(/*D_4C7B*/"\nToo bad.\n");
 
 
 			} else {
-				ArmourShopDeal(loc_C, loc_A);
+				ArmourShopDeal(choice, amount);
 			}
 		}
 		u4_puts(/*D_4C86*/"\nAnything else?\x12\x12\b");
-		loc_C = (char)AskY_N();
-	} while(loc_C == 'Y');
+		choice = (char)AskY_N();
+	} while(choice == 'Y');
 
 }
 
-/*sell item[armor]*/
+/*
+ * Armour shop, selling: any armour the party owns (letter B to H, so even the mystic
+ * robes), for half its price; the party's gold is capped at 9999.
+ * Probable original bug: as in WeaponShopSell, answer can be tested before being set.
+ */
 /*C_D2F8*/ArmourShopSell()
 {
-	int loc_A, loc_B;
-	char loc_C;
+	int amount, armour;
+	char answer;
 
 	u4_puts(/*D_4C99*/"\nWhat will\n");
-	loc_B = -1;
+	armour = -1;
 	do {
 		txt_Y = 23;
 		txt_X = 24;
-		loc_B = AskLetter(/*D_4CA5*/"You sell:\x12\x12\b", 'B', 'H');
-		loc_B -= 'A';
+		armour = AskLetter(/*D_4CA5*/"You sell:\x12\x12\b", 'B', 'H');
+		armour -= 'A';
 		Gra_CR();
-		if(loc_B <= 0)
+		if(armour <= 0)
 			break;
-		if(Party._armors[loc_B] == 0) {
+		if(Party._armors[armour] == 0) {
 			u4_puts(/*D_4CB2*/"Come on, you don't own any.\n");
 		} else {
-			if(Party._armors[loc_B] > 1) {
+			if(Party._armors[armour] > 1) {
 				u4_puts(/*D_4CCF*/"How many ");
-				u4_puts(Names[53 + loc_B]);
+				u4_puts(Names[NAME_ARMOURS + armour]);
 				u4_puts(/*D_4CD9*/"s would you like to sell?\x12\x12\x12\b\b");
-				loc_A = AskInt(2);
-				if(loc_A <= 0) {
+				amount = AskInt(2);
+				if(amount <= 0) {
 
 					u4_puts(/*D_4CF8*/"\nToo bad.\n");
 
 
 					break;
 				}
-				if(Party._armors[loc_B] < loc_A) {
+				if(Party._armors[armour] < amount) {
 					u4_puts(/*D_4D03*/"You don't have that many swine!\n");
 					break;
 				}
 				u4_puts(/*D_4D24*/"I'll give ya\n");
-				u4_putl(((long)loc_A * ArmourPrices[loc_B]) >> 1, 1, '0');
+				u4_putl(((long)amount * ArmourPrices[armour]) >> 1, 1, '0');
 				u4_puts(/*D_4D32*/"gp for ");
-				if(loc_A > 1)
+				if(amount > 1)
 					u4_puts(/*D_4D3A*/"them.");
 				else
 					u4_puts(/*D_4D40*/"it.");
 			} else {
-				loc_A = 1;
+				amount = 1;
 				u4_puts(/*D_4D44*/"I will give you\n");
-				u4_putl((long)ArmourPrices[loc_B] >> 1, 1, '0');
+				u4_putl((long)ArmourPrices[armour] >> 1, 1, '0');
 				u4_puts(/*D_4D55*/"gp for that ");
-				u4_puts(Names[53 + loc_B]);
+				u4_puts(Names[NAME_ARMOURS + armour]);
 			}
 			u4_puts(/*D_4D62*/"\nDeal?\x12\x12\b");
-			loc_C = AskY_N();
-			if(loc_C < 'N')
+			answer = AskY_N();
+			if(answer < 'N')
 				break;
-			if(loc_C == 'N') {
+			if(answer == 'N') {
 				u4_puts(/*D_4D6C*/"Harumph. What else would\n");
 			} else {
-				Party._armors[loc_B] -= loc_A;
-				clamp(Party._gold, (((long)loc_A * ArmourPrices[loc_B]) >> 1), 9999); dspl_Gold();
+				Party._armors[armour] -= amount;
+				clamp(Party._gold, (((long)amount * ArmourPrices[armour]) >> 1), 9999); dspl_Gold();
 				ZtatsArmour();
 				u4_puts(/*D_4D86*/"\nFine! What else?\n");
 			}
 		}
-	} while(loc_C == 'Y' || loc_C == 'N');
+	} while(answer == 'Y' || answer == 'N');
 }
 
-/*SHOP #2 - armor*/
-/*C_D4AE*/SHP_armor()
+/*
+ * SHOP #2 - armour: welcome, then Buy or Sell (Space, Enter or Escape leave).
+ */
+/*C_D4AE*/SHP_armour()
 {
-	char bp_02;
+	char choice;
 
 	Gra_ClearStatus();
 	ZtatsArmour();
@@ -709,22 +755,22 @@ int bp04;
 	u4_puts(ArmourShopKeepers[ShopId]);
 	u4_puts(/*D_4DAC*/" says: Welcome friend! Want to Buy or Sell? ");
 	do {
-		switch(bp_02 = u_kbread()) {
-			case 'B': case 'b': bp_02 = 'b'; break;
-			case 'S': case 's': bp_02 = 's'; break;
+		switch(choice = u_kbread()) {
+			case 'B': case 'b': choice = 'b'; break;
+			case 'S': case 's': choice = 's'; break;
 			case ' ': case '\n': case '\r': case 0x1b:
-				bp_02 = 0;
+				choice = 0;
 				Gra_CR();
 			break;
 			default:
-				bp_02 = -1;
-				sound(1);
+				choice = -1;
+				sound(SND_BEEP);
 		}
-	} while(bp_02 == -1);
-	if(bp_02) {
-		u4_putc(bp_02);
+	} while(choice == -1);
+	if(choice) {
+		u4_putc(choice);
 		Gra_CR();
-		if(bp_02 == 'b')
+		if(choice == 'b')
 			ArmourShopBuy();
 		else
 			ArmourShopSell();
@@ -734,29 +780,32 @@ int bp04;
 	dspl_Stats();
 	Gra_CR();
 	u4_puts(ArmourShopKeepers[ShopId]);
-	u4_puts(/*D_4DD9*/" says: Good Bye.\n\0");/*TODO:0 is for padding*/
+	u4_puts(/*D_4DD9*/" says: Good Bye.\n\0");/*the extra 0 reproduces the original data layout*/
 }
 
 /*----------------------------------------*/
 
-/*SHOP #9 - horses*/
+/*
+ * SHOP #9 - horses: one horse per party member, 100 gp each; the party then rides
+ * (Party._tile becomes a horse).
+ */
 /*C_D596*/SHP_horse()
 {
-	char bp_02;
+	char answer;
 
 	u4_puts(/*D_4DEC*/"\nWelcome friend! Can I interest thee in horses?\x12\x12\b");
-	bp_02 = AskY_N();
-	if(bp_02 != 'Y') {
-		if(bp_02 == 'N')
+	answer = AskY_N();
+	if(answer != 'Y') {
+		if(answer == 'N')
 			u4_puts(/*D_4E1F*/"\nA shame, thou looks like thou could use a good horse!\n");
 		return;
 	}
 	u4_puts(/*D_4E57*/"\nFor only ");
 	u4_putl(Party._members, 1, '0');
 	u4_puts(/*D_4E62*/"00g.p. Thou can have the best!  Wilt thou buy?\x12\x12\b");
-	bp_02 = AskY_N();
-	if(bp_02 != 'Y') {
-		if(bp_02 == 'N')
+	answer = AskY_N();
+	if(answer != 'Y') {
+		if(answer == 'N')
 			u4_puts(/*D_4E94*/"\nA shame, thou looks like thou could use a good horse!\n");
 		return;
 	}
@@ -771,12 +820,10 @@ int bp04;
 
 /*----------------------------------------*/
 
-/*shops indexes*/
 unsigned char /*D_5196*/GuildShopIds[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0};
 
-/*items prices*/
+/*torches, gems, keys, sextant: price, and number sold for that price*/
 int /*D_51A6*/GuildPrices[] = {50, 60, 60, 900};
-/*items quantities*/
 int /*D_51AE*/GuildQuantities[] = { 5,  5,  6,   1};
 
 char * /*D_51B6*/GuildShopNames[] = {
@@ -795,12 +842,15 @@ char * /*D_51BE*/GuildPitches[] = {
 	/*D_5006*/"So...Ya want a Sextant...Well I gots one which I might part with fer 900 gold!\n"
 };
 
-/*SHOP #8 - guild*/
+/*
+ * SHOP #8 - guild: torches, gems and keys, and a sextant, not on the list but
+ * sold as item D. At most 99 of each.
+ */
 /*C_D61E*/SHP_guild()
 {
-	int loc_A;
-	char loc_B;
-	U16 *loc_C;
+	int item;
+	char reply;
+	U16 *pQuantity;
 
 	ShopId = GuildShopIds[Party._loc - 1] - 1;
 	Gra_ClearStatus();
@@ -812,42 +862,42 @@ char * /*D_51BE*/GuildPitches[] = {
 	u4_puts(/*D_508F*/" says: Welcome to ");
 	u4_puts(GuildShopNames[ShopId]);
 	u4_puts(/*D_50A2*/"\nLike to see my goods?\x12\x12\b");
-	while((loc_B = AskY_N()) == 'Y') {
+	while((reply = AskY_N()) == 'Y') {
 		Gra_CR();
 		u4_puts(GuildShopKeepers[ShopId]);
 		u4_puts(/*D_50BC*/" says: Good Mate! Ya see I gots:\n\
 A-Torches\n\
 B-Magic Gems\n\
 C-Magic Keys\n");
-		loc_A = AskLetter(/*D_5102*/"Wat'l it be?\x12\x12\b", 'A', 'D') - 'A';
-		if(loc_A < 0)
+		item = AskLetter(/*D_5102*/"Wat'l it be?\x12\x12\b", 'A', 'D') - 'A';
+		if(item < 0)
 			break;
 		Gra_CR();
-		u4_puts(GuildPitches[loc_A]);
+		u4_puts(GuildPitches[item]);
 		u4_puts(/*D_5112*/"\nWill ya buy?\x12\x12\b");
-		loc_B = AskY_N();
-		if(loc_B != 'Y') {
-			if(loc_B == 'N')
+		reply = AskY_N();
+		if(reply != 'Y') {
+			if(reply == 'N')
 				u4_puts(/*D_5123*/"\nHmmm...Grmbl...\n");
 			break;
 		}
-		if(Party._gold < GuildPrices[loc_A]) {
+		if(Party._gold < GuildPrices[item]) {
 			Gra_ClearStatus();
 			ZtatsClearTitle();
 			dspl_Stats();
 			u4_puts(/*D_5135*/"\nWhat? Can't pay! Buzz off swine!\n");
 			return;
 		}
-		switch(loc_A) {
-			case 0: loc_C = &(Party._torches); break;
-			case 1: loc_C = &(Party._gems); break;
-			case 2: loc_C = &(Party._keys); break;
-			case 3: loc_C = &(Party._sextants); break;
+		switch(item) {
+			case 0: pQuantity = &(Party._torches); break;
+			case 1: pQuantity = &(Party._gems); break;
+			case 2: pQuantity = &(Party._keys); break;
+			case 3: pQuantity = &(Party._sextants); break;
 		}
-		*loc_C += GuildQuantities[loc_A];
-		if(*loc_C > 99)
-			*loc_C = 99;
-		Party._gold -= GuildPrices[loc_A];
+		*pQuantity += GuildQuantities[item];
+		if(*pQuantity > 99)
+			*pQuantity = 99;
+		Party._gold -= GuildPrices[item];
 		u4_puts(/*D_5158*/"\nFine...fine...\n\n");
 		dspl_Gold();
 		ZtatsEquipment();
@@ -865,9 +915,9 @@ C-Magic Keys\n");
 
 /*----------------------------------------*/
 
-/*shops indexes*/
 unsigned char /*D_5484*/InnIds[16] = {0, 0, 0, 0, 1, 2, 3, 0, 4, 5, 6, 0, 0, 0, 7, 0};
 
+/*position of the bed (in the town map) and price of the room of each inn*/
 unsigned char /*D_5494*/InnBedXs[] = {0x1C, 0x1D, 0x0A, 0x02, 0x1D, 0x1C, 0x19, 0};
 unsigned char /*D_549C*/InnBedYs[] = {0x06, 0x06, 0x1A, 0x06, 0x02, 0x0B, 0x17, 0};
 unsigned char /*D_54A4*/InnPrices[] = {  20,   15,   10,   30,   15,    5,    1, 0};
@@ -902,38 +952,48 @@ char * /*D_54C8*/InnPitches[] = {
 	/*D_5402*/"All we have is that cot over there. But it is comfortable, and only 1gp."
 };
 
+/*
+ * At night, the Avatar is attacked by rogues (a camp-style combat).
+ */
 /*C_D7A8*/InnAmbush()
 {
-	int bp_02;
+	int savedMode;
 
 	u4_puts(/*D_544B*/"\nIn the middle of the night, while out for a stroll...\n");
-	bp_02 = CurMode;
+	savedMode = CurMode;
 	CurMode = MOD_COM_CAMP;
 	CombatFoeTile = CombatFoe = TIL_ROGUE;
 	InnCombat();
-	CurMode = bp_02;
+	CurMode = savedMode;
 }
 
+/*
+ * A night at the inn: the party goes to the bed, the living members sleep and wake up
+ * in good health (which also cures poison) with 100 to 198 more HP, magic points are
+ * recovered. Then 1 time in 8 the Avatar is
+ * ambushed by rogues; otherwise, in Skara Brae's inn (ShopId 5), 1 time in 4 the ghost
+ * Isaac comes next to the bed.
+ */
 /*C_D7D6*/InnNight()
 {
-	int bp_02;
+	int chara;
 
 	u_delay(1, 0);
 	Party._x = InnBedX;
 	Party._y = InnBedY;
 	u_delay(1, 0);
-	for(bp_02 = Party._members - 1; bp_02 >= 0; bp_02 --) {
-		if(isCharaAlive(bp_02))
-			Party.chara[bp_02]._stat = 'S';
+	for(chara = Party._members - 1; chara >= 0; chara --) {
+		if(isCharaAlive(chara))
+			Party.chara[chara]._stat = 'S';
 	}
 	dspl_Stats();
 	Party._tile = TIL_SLEEPING;
 	u_delay(5, 0);
 	Party._tile = TIL_AVATAR;
-	for(bp_02 = Party._members - 1; bp_02 >= 0; bp_02 --) {
-		if(Party.chara[bp_02]._stat == 'S') {
-			Party.chara[bp_02]._stat = 'G';
-			HP_inc(bp_02, U4_RND3(50) * 2 + 100);
+	for(chara = Party._members - 1; chara >= 0; chara --) {
+		if(Party.chara[chara]._stat == 'S') {
+			Party.chara[chara]._stat = 'G';
+			HP_inc(chara, U4_RND3(50) * 2 + 100);
 		}
 	}
 	MP_recover();
@@ -951,15 +1011,19 @@ char * /*D_54C8*/InnPitches[] = {
 	u4_puts(/*D_54D6*/"\nMorning!\n");
 }
 
+/*the 3 rooms of the Wayfarer's Inn (ShopId 3): bed position and price*/
 unsigned char /*D_5672*/InnRoomBedX[] = { 2, 2, 8, 0};
 unsigned char /*D_5676*/InnRoomBedY[] = { 6, 2, 2, 0};
 unsigned char /*D_567A*/InnRoomPrices[] = {30,60,90, 0};
 
-/*SHOP #7 - inn*/
+/*
+ * SHOP #7 - inn: not on horseback. Offers the room (or one of 3 rooms at the
+ * Wayfarer's Inn), takes the gold and spends the night (InnNight).
+ */
 /*C_D8DD*/SHP_inn()
 {
-	int bp_02;
-	char bp_04;
+	int room;
+	char answer;
 
 	if(Party._tile != TIL_AVATAR) {
 		u4_puts(/*D_54E1*/"The Innkeeper says: Get that horse out of here!!!\n");
@@ -971,24 +1035,24 @@ unsigned char /*D_567A*/InnRoomPrices[] = {30,60,90, 0};
 	u4_puts(/*D_5534*/"\n\nI am ");
 	u4_puts(InnKeepers[ShopId]);
 	u4_puts(/*D_553C*/".\n\nAre you in need of lodging?\x12\x12\b");
-	bp_04 = AskY_N();
-	if(bp_04 == 'Y') {
+	answer = AskY_N();
+	if(answer == 'Y') {
 		Gra_CR();
 		u4_puts(InnPitches[ShopId]);
 		Gra_CR();
 		if(ShopId == 3) {
-			bp_02 = AskLetter(/*D_555E*/"1, 2 or 3 beds?\x12\x12\b", '1', '3');
-			bp_02 -= '1';
-			if(bp_02 < 0)
+			room = AskLetter(/*D_555E*/"1, 2 or 3 beds?\x12\x12\b", '1', '3');
+			room -= '1';
+			if(room < 0)
 				return;
-			InnBedX = InnRoomBedX[bp_02];
-			InnBedY = InnRoomBedY[bp_02];
-			InnCost = InnRoomPrices[bp_02];
+			InnBedX = InnRoomBedX[room];
+			InnBedY = InnRoomBedY[room];
+			InnCost = InnRoomPrices[room];
 		} else {
 			u4_puts(/*D_5571*/"\nTake it?\x12\x12\b");
-			bp_04 = AskY_N();
-			if(bp_04 != 'Y') {
-				if(bp_04 == 'N')
+			answer = AskY_N();
+			if(answer != 'Y') {
+				if(answer == 'N')
 					u4_puts(/*D_557E*/"\nYou won't find a better deal in this towne!\n");
 				return;
 			}
@@ -1014,7 +1078,6 @@ unsigned char /*D_567A*/InnRoomPrices[] = {30,60,90, 0};
 
 /*----------------------------------------*/
 
-/*shops indexes*/
 unsigned char /*D_5788*/HealerIds[16] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 9, 0, 0, 0, 0, 10};
 
 char * /*D_5798*/HealerNames[] = {
@@ -1043,55 +1106,69 @@ char * /*D_57AC*/HealerKeepers[] = {
 	/*D_575F*/"Quat"
 };
 
+/*
+ * Ask which party member needs help; returns its index, or a negative value.
+ * Probable original bug: AskChara returns -2 for '0', but the callers only test for -1
+ * and then use Party.chara[-2].
+ */
 /*C_DA05*/HealerAskWho()
 {
-	register int si;
+	register int chara;
 
 	Gra_CR();
 	u4_puts(HealerKeepers[ShopId]);
 	u4_puts(/*D_5764*/" asks:\n");
-	si = AskChara(/*D_576C*/"Who is in need?\x12\x12\b");
-	if(si < 0)
+	chara = AskChara(/*D_576C*/"Who is in need?\x12\x12\b");
+	if(chara < 0)
 		u4_puts(/*D_577F*/"No one?\n");
-	return si;
+	return chara;
 }
 
-/*C_DA3E*/HealerAskPay(bp04)
-int bp04;
+/*
+ * Ask whether to pay price gold; if Yes, take it and return 1, else return 0.
+ */
+/*C_DA3E*/HealerAskPay(price)
+int price;
 {
-	char bp_02;
+	char answer;
 
 	u4_puts(/*D_57C0*/"\nWilt thou pay?\x12\x12\b");
-	bp_02 = AskY_N();
-	if(bp_02 == 'Y') {
-		Party._gold -= bp04; dspl_Gold();
+	answer = AskY_N();
+	if(answer == 'Y') {
+		Party._gold -= price; dspl_Gold();
 		return 1;
 	}
-	if(bp_02 == 'N')
+	if(answer == 'N')
 		u4_puts(/*D_57D3*/"\nThen I cannot aid thee.\n");
 
 	return 0;
 }
 
-/*C_DA79*/HealerSpell(bp04)
-int bp04;
+/*
+ * The healer's spell on a party member: flash the view and its status line with
+ * a magic sound.
+ */
+/*C_DA79*/HealerSpell(chara)
+int chara;
 {
 	Gra_InvertView();
-	Gra_InvertStatusLine(bp04);
-	sound(9, 0xc0);
-	Gra_InvertStatusLine(bp04);
+	Gra_InvertStatusLine(chara);
+	sound(SND_MAGIC, 0xc0);
+	Gra_InvertStatusLine(chara);
 	Gra_InvertView();
 }
 
-/*Curing*/
+/*
+ * Healer: cure poison for 100 gp, for free when the party cannot pay.
+ */
 /*C_DAA2*/HealerCure()
 {
-	int bp_02;
+	int chara;
 
-	bp_02 = HealerAskWho();
-	if(bp_02 == -1)
+	chara = HealerAskWho();
+	if(chara == -1)
 		return;
-	if(Party.chara[bp_02]._stat != 'P') {
+	if(Party.chara[chara]._stat != 'P') {
 		u4_puts(/*D_57ED*/"Thou suffers not from Poison!\n");
 		return;
 	}
@@ -1107,20 +1184,22 @@ int bp04;
 		if(!HealerAskPay(100))
 			return;
 	}
-	Party.chara[bp_02]._stat = 'G';
-	HealerSpell(bp_02);
+	Party.chara[chara]._stat = 'G';
+	HealerSpell(chara);
 	dspl_Stats();
 }
 
-/*Healing*/
+/*
+ * Healer: restore a member's HP to the maximum for 200 gp.
+ */
 /*C_DB29*/HealerHeal()
 {
-	int bp_02;
+	int chara;
 
-	bp_02 = HealerAskWho();
-	if(bp_02 == -1)
+	chara = HealerAskWho();
+	if(chara == -1)
 		return;
-	if(Party.chara[bp_02]._HP[0] == Party.chara[bp_02]._HP[1]) {
+	if(Party.chara[chara]._HP[0] == Party.chara[chara]._HP[1]) {
 		u4_puts(/*D_58A6*/"Thou art already quite healthy!\n");
 		return;
 	}
@@ -1130,21 +1209,23 @@ int bp04;
 		return;
 	}
 	if(HealerAskPay(200)) {
-		Party.chara[bp_02]._HP[0] = Party.chara[bp_02]._HP[1];
-		HealerSpell(bp_02);
+		Party.chara[chara]._HP[0] = Party.chara[chara]._HP[1];
+		HealerSpell(chara);
 		dspl_Stats();
 	}
 }
 
-/*Resurrection*/
+/*
+ * Healer: bring a dead member back to life for 300 gp.
+ */
 /*C_DB93*/HealerResurrect()
 {
-	int bp_02;
+	int chara;
 
-	bp_02 = HealerAskWho();
-	if(bp_02 == -1)
+	chara = HealerAskWho();
+	if(chara == -1)
 		return;
-	if(Party.chara[bp_02]._stat != 'D') {
+	if(Party.chara[chara]._stat != 'D') {
 		u4_puts(/*D_5931*/"Thou art not dead fool!\n");
 		return;
 	}
@@ -1154,37 +1235,43 @@ int bp04;
 		return;
 	}
 	if(HealerAskPay(300)) {
-		Party.chara[bp_02]._stat = 'G';
-		HealerSpell(bp_02);
+		Party.chara[chara]._stat = 'G';
+		HealerSpell(chara);
 		dspl_Stats();
 	}
 }
 
-/*blood donation*/
+/*
+ * Healer: ask the Avatar to give 100 HP of blood: Yes gives 5 Sacrifice, No costs 5
+ * (other answers neither). dummy is an unused local of the original.
+ */
 /*C_DBF5*/HealerBlood()
 {
-	char bp_04;
+	char answer;
 	int dummy;
 
 	u4_puts(/*D_59B6*/"Art thou willing to give 100pts of thy blood to aid others?\x12\x12\b");
-	bp_04 = AskY_N();
-	if(bp_04 == 'Y') {
+	answer = AskY_N();
+	if(answer == 'Y') {
 		karma_inc(&(Party._sacri), 5);
 		u4_puts(/*D_59F5*/"Thou art a great help.  We are in dire need!\n");
 		Party.chara[0]._HP[0] -= 100;
 		dspl_Stats();
 		u_delay(1, 0);
-	} else if(bp_04 == 'N') {
+	} else if(answer == 'N') {
 		karma_dec(&(Party._sacri), 5);
 		dspl_Stats();
 	}
 }
 
-/*SHOP #6 - healer*/
+/*
+ * SHOP #6 - healer: curing, healing and resurrection as long as wanted; then, if the
+ * Avatar has at least 400 HP, the blood donation.
+ */
 /*C_DC4D*/SHP_healer()
 {
-	int bp_02;
-	char bp_04;
+	int service;
+	char answer;
 
 	ShopId = HealerIds[Party._loc - 1] - 1;
 	u4_puts(/*D_5A23*/"Welcome unto\n");
@@ -1192,17 +1279,17 @@ int bp04;
 	Gra_CR();
 	u4_puts(HealerKeepers[ShopId]);
 	u4_puts(/*D_5A31*/" says: Peace and Joy be with you friend. Are you in need of help?\x12\x12\b");
-	while((bp_04 = AskY_N()) == 'Y') {
+	while((answer = AskY_N()) == 'Y') {
 		Gra_CR();
 		u4_puts(HealerKeepers[ShopId]);
 		u4_puts(/*D_5A76*/" says: We can perform:\n\
 A-Curing\n\
 B-Healing\n\
 C-Resurrection\n");
-		bp_02 = AskLetter(/*D_5AB0*/"Your need:\x12\x12\b", 'A', 'C');
-		if(bp_02 < 'A')
+		service = AskLetter(/*D_5AB0*/"Your need:\x12\x12\b", 'A', 'C');
+		if(service < 'A')
 			break;
-		switch((char)bp_02) {
+		switch((char)service) {
 			case 'A': HealerCure(); break;
 			case 'B': HealerHeal(); break;
 			case 'C': HealerResurrect(); break;
@@ -1221,10 +1308,10 @@ C-Resurrection\n");
 
 /*----------------------------------------*/
 
-/*shops indexes*/
 unsigned char /*D_5EE8*/PubIds[16] = {0, 0, 0, 0, 0, 1, 2, 0, 0, 3, 0, 0, 4, 5, 6, 0};
 
-int /*D_5EF8*/PubTipPrices[] = {20, 30, 10, 40, 99, 25};
+/*gold to pay for the answer about each topic of PubTopics*/
+int /*D_5EF8*/PubTopicPrices[] = {20, 30, 10, 40, 99, 25};
 
 char * /*D_5F04*/PubNames[] = {
 	/*D_5B16*/"Jolly Spirits",
@@ -1255,6 +1342,8 @@ char * /*D_5F1C*/PubSpecialties[] = {
 
 int /*D_5F28*/PubFoodPrices[] = {4,2,3,2,4,2};
 
+/*what can be asked in a pub; "mandrake root" is the same as "mandrake". Each pub
+ only answers about the topics from its own number (ShopId) on.*/
 char * /*D_5F34*/PubTopics[] = {
 	/*D_5BEC*/"black stone",
 	/*D_5BF8*/"sextant",
@@ -1274,39 +1363,43 @@ char * /*D_5F42*/PubAnswers[] = {
 	/*D_5E12*/"Of Nightshade I know but this... Seek out Virgil or thou shalt miss! Try in Trinsic!\n"
 };
 
-/*pub food*/
+/*
+ * Pub: buy plates of the specialty, each giving 1 food (100 units), as many as the
+ * party can pay. Returns 1 to leave the pub (nothing ordered or not a single plate
+ * afforded), 0 otherwise.
+ */
 /*C_DD24*/PubFood()
 {
-	int bp_02, bp_04;
+	int plates, sold;
 
 	u4_puts(/*D_5E68*/"Our specialty is ");
 	u4_puts(PubSpecialties[ShopId]);
 	u4_puts(/*D_5E7A*/", which costs ");
 	u4_putl(PubFoodPrices[ShopId], 1, '0');
 	u4_puts(/*D_5E89*/"gp.  How many plates would you like?\x12\x12\x12\b\b");
-	bp_02 = AskInt(2);
-	if(bp_02 <= 0) {
-		if(bp_02 < 0)
-			sound(1);
+	plates = AskInt(2);
+	if(plates <= 0) {
+		if(plates < 0)
+			sound(SND_BEEP);
 		return 1;
 	}
-	bp_04 = 0;
-	while(bp_02) {
+	sold = 0;
+	while(plates) {
 		if(Party._gold >= PubFoodPrices[ShopId]) {
 			Party._gold -= PubFoodPrices[ShopId];
 			Party._food = (Party._food + 100 > 999900L)?999900L:(Party._food + 100);
 			dspl_Stats();
-			bp_02 --;
-			bp_04 ++;
+			plates --;
+			sold ++;
 		} else {
-			if(bp_04 == 0) {
+			if(sold == 0) {
 				u4_puts(/*D_5EB3*/"\nYa cannot afford any!\n");
 				return 1;
 			}
 			u4_puts(/*D_5ECB*/"\nYa can only afford ");
-			u4_putl(bp_04, 1, '0');
+			u4_putl(sold, 1, '0');
 			u4_puts(/*D_5EE0*/" plate");
-			if(bp_04 != 1)
+			if(sold != 1)
 				u4_putc('s'); 
 			u4_putc('.');
 			Gra_CR();
@@ -1317,14 +1410,20 @@ char * /*D_5F42*/PubAnswers[] = {
 	return 0;
 }
 
-/*pub ale*/
+/*
+ * Pub: buy an ale (2 gp, at most 3 per visit). Paying 3 gp or more lets you ask
+ * about a topic; the barkeeper asks for more gold until the tip reaches its price
+ * (money is everything paid). Returns 1 to leave the pub, 0 to order again.
+ * Probable original bug: when no more gold is given (Enter), the test for the beep
+ * checks money instead of extra, so the "could not hep ya" message is always shown.
+ */
 /*C_DE35*/PubAle()
 {
-	int loc_A;
-	char loc_B;
-	int loc_C;
-	char loc_D[16];
-	int loc_E;
+	int money;
+	char ans;
+	int topic;
+	char question[16];
+	int extra;
 
 	if(PubDrinks == 3) {
 		Gra_CR();
@@ -1334,71 +1433,73 @@ char * /*D_5F42*/PubAnswers[] = {
 	}
 	PubDrinks ++;
 	u4_puts(/*D_5F7E*/"\nHere's a mug of our best. That'll be 2gp. You pay?\x12\x12\x12\b\b");
-	loc_A = AskInt(2);
-	if(loc_A <= 0) {
-		if(loc_A < 0)
-			sound(1);
+	money = AskInt(2);
+	if(money <= 0) {
+		if(money < 0)
+			sound(SND_BEEP);
 		return 1;
 	}
-	if(loc_A < 2) {
+	if(money < 2) {
 		u4_puts(/*D_5FB7*/"\nWon't pay, eh. Ya scum, be gone fore ey call the guards!\n");
 		return 1;
 	}
-	if(Party._gold < loc_A) {
+	if(Party._gold < money) {
 		u4_puts(/*D_5FF2*/"\nIt seems that you have not the gold. Good Day!\n");
 		return 1;
 	}
-	Party._gold -= loc_A; dspl_Gold();
-	if(loc_A >= 3) {
+	Party._gold -= money; dspl_Gold();
+	if(money >= 3) {
 		u4_puts(/*D_6023*/"\nWhat'd ya like to know friend?\n");
-		u4_gets(loc_D, 15);
-		for(loc_C = 6; loc_C >= 0; loc_C --) {
-			if(strnicmp(loc_D, PubTopics[loc_C], 16) == 0)
+		u4_gets(question, 15);
+		for(topic = 6; topic >= 0; topic --) {
+			if(strnicmp(question, PubTopics[topic], 16) == 0)
 			break;
 		}
-		if(loc_C == 6)
-			loc_C = 3;
-		if(loc_C < ShopId) {
+		if(topic == 6)
+			topic = 3;
+		if(topic < ShopId) {
 			u4_puts(/*D_6044*/"\n'fraid I can't help ya there friend!\n");
 		} else {
-			while(PubTipPrices[loc_C] > loc_A) {
+			while(PubTopicPrices[topic] > money) {
 				u4_puts(/*D_606B*/"\nThat subject is a bit foggy, perhaps more gold will refresh my memory. You give:\x12\x12\x12\b\b");
-				loc_E = AskInt(2);
-				if(loc_E <= 0) {
-					if(loc_A < 0)
-						sound(1);
+				extra = AskInt(2);
+				if(extra <= 0) {
+					if(money < 0)
+						sound(SND_BEEP);
 					else
 						u4_puts(/*D_60C2*/"\nSorry, I could not hep ya mate!\n");
 					return 1;
 				}
-				if(Party._gold < loc_E) {
+				if(Party._gold < extra) {
 					u4_puts(/*D_60E4*/"\nYer don't have that mate!\n");
 					u4_puts(/*D_6100*/"\nSorry, I could not hep ya mate!\n");
 					return 1;
 				}
-				Party._gold -= loc_E; dspl_Gold();
-				loc_A += loc_E;
+				Party._gold -= extra; dspl_Gold();
+				money += extra;
 			}
-			if(PubTipPrices[loc_C] <= loc_A) {
+			if(PubTopicPrices[topic] <= money) {
 				Gra_CR();
 				u4_puts(PubKeepers[ShopId]);
 				u4_puts(/*D_6122*/" says: ");
-				u4_puts(PubAnswers[loc_C]);
+				u4_puts(PubAnswers[topic]);
 				Gra_CR();
 			}
 		}
 	}
 	u4_puts(/*D_612A*/"\nAnythin' else?\x12\x12\b");
-	loc_B = AskY_N();
-	if(loc_B != 'Y')
+	ans = AskY_N();
+	if(ans != 'Y')
 		return 1;
 	return 0;
 }
 
-/*SHOP #4 - pub*/
+/*
+ * SHOP #4 - pub: Food or Ale, as long as wanted.
+ */
 /*C_DFAF*/SHP_pub()
 {
-	char bp_02;
+	char choice;
 
 	PubDrinks = 0;
 	ShopId = PubIds[Party._loc - 1] - 1;
@@ -1412,20 +1513,20 @@ char * /*D_5F42*/PubAnswers[] = {
 		u4_puts(/*D_6150*/" says: What'll it be, Food er Ale?\x12\x12\b");
 		{
 C_E004:
-			bp_02 = u_kbread();
-			u4_toupper(bp_02);
-			if(bp_02 == ' ' || bp_02 == 0x1b || bp_02 == '\r') {
+			choice = u_kbread();
+			u4_toupper(choice);
+			if(choice == ' ' || choice == 0x1b || choice == '\r') {
 				Gra_CR();
 				return;
 			}
-			if(bp_02 != 'F' && bp_02 != 'A') {
-				sound(1);
+			if(choice != 'F' && choice != 'A') {
+				sound(SND_BEEP);
 				goto C_E004;
 			}
 		}
-		u4_putc(bp_02);
+		u4_putc(choice);
 		Gra_CR();
-		if(bp_02 == 'F') {
+		if(choice == 'F') {
 			if(PubFood())
 				break;
 		} else {
@@ -1434,16 +1535,16 @@ C_E004:
 		}
 		dspl_Stats();
 		u4_puts(/*D_6176*/"Here ye arr. Somethin' else?\x12\x12\b");
-		bp_02 = AskY_N();
-	} while(bp_02 == 'Y');
+		choice = AskY_N();
+	} while(choice == 'Y');
 	u4_puts(/*D_6196*/"See ya mate!\n");
 }
 
 /*----------------------------------------*/
 
-/*shops indexes*/
 unsigned char /*D_636C*/FoodShopIds[16] = {0, 0, 0, 0, 1, 2, 0, 3, 0, 0, 4, 0, 5, 0, 0, 0};
 
+/*price of a pack of 25 rations in each shop*/
 int /*D_637C*/FoodPrices[] = {25, 40, 35, 20, 30};
 
 char * /*D_6386*/FoodShopNames[] = {
@@ -1462,11 +1563,15 @@ char * /*D_6390*/FoodShopKeepers[] = {
 	/*D_6109*/"Max"
 };
 
-/*SHOP #3 - food*/
+/*
+ * SHOP #3 - food: packs of 25 rations (food is kept in hundredths, max 999900).
+ * Probable original bug: packs is a char, so amounts of 128 or more typed (up to 999)
+ * wrap around: 200 packs is read as -56 ("Too bad"), 300 as 44.
+ */
 /*C_E088*/SHP_food()
 {
-	char bp_02;
-	char bp_04;
+	char packs;
+	char answer;
 
 	ShopId = FoodShopIds[Party._loc - 1] - 1;
 	u4_puts(/*D_620D*/"\n\n\n\nWelcome to ");
@@ -1474,9 +1579,9 @@ char * /*D_6390*/FoodShopKeepers[] = {
 	u4_puts(/*D_621D*/"\n\n");
 	u4_puts(FoodShopKeepers[ShopId]);
 	u4_puts(/*D_6220*/" says: Good day, and Welcome friend.\n\nMay I interest you in some rations?\x12\x12\b");
-	bp_04 = AskY_N();
-	if(bp_04 != 'Y') {
-		if(bp_04 == 'N')
+	answer = AskY_N();
+	if(answer != 'Y') {
+		if(answer == 'N')
 			u4_puts(/*D_626D*/"Goodbye, Come again!\n");
 		return;
 	}
@@ -1485,13 +1590,13 @@ char * /*D_6390*/FoodShopKeepers[] = {
 	u4_puts(/*D_62B4*/"gp.");
 	do {
 		u4_puts(/*D_62B8*/"\nHow many packs of 25 would you like?\x12\x12\x12\x12\b\b\b");
-		bp_02 = AskInt(3);
-		if(bp_02 <= 0) {
+		packs = AskInt(3);
+		if(packs <= 0) {
 			u4_puts(/*D_62E5*/"\nToo bad. Maybe next time.\n");
-			bp_04 = 'N';
+			answer = 'N';
 			continue;
 		}
-		if(FoodPrices[ShopId] * bp_02 > Party._gold) {
+		if(FoodPrices[ShopId] * packs > Party._gold) {
 			if(FoodPrices[ShopId] > Party._gold) {
 				u4_puts(/*D_6301*/"You cannot afford any!\n");
 				break;
@@ -1499,16 +1604,16 @@ char * /*D_6390*/FoodShopKeepers[] = {
 			u4_puts(/*D_6319*/"You can only afford ");
 			u4_putl((long)Party._gold / (long)FoodPrices[ShopId], 1, '0');
 			u4_puts(/*D_632E*/" packs.\n");
-			bp_04 = 'Y';
+			answer = 'Y';
 			continue;
 		}
-		Party._food += 2500L * bp_02;
+		Party._food += 2500L * packs;
 		if(Party._food > 999900L)
 			Party._food = 999900L;
-		Party._gold -= FoodPrices[ShopId] * bp_02;
+		Party._gold -= FoodPrices[ShopId] * packs;
 		dspl_Stats();
 		u4_puts(/*D_6337*/"\nThank you. Anything else?\x12\x12\b");
-		bp_04 = AskY_N();
-	} while(bp_04 == 'Y');
+		answer = AskY_N();
+	} while(answer == 'Y');
 	u4_puts(/*D_6355*/"\nGoodbye. Come again!\n");
 }
