@@ -29,7 +29,7 @@ uint16 chunkX;
 		MapChunks[LoadedChunkY][LoadedChunkX] = 0;
 	}
 	if(MapChunks[chunkY][chunkX] == 0) {
-		if(dlseek(File_MAP, (chunkY * 8 + chunkX) * sizeof(tMap32x32)) == -1)
+		if(dlseek(File_MAP, (uint16)((uint16)((chunkY * 8 + chunkX)) * sizeof(tMap32x32))) == -1)
 			exit(1);
 		MapChunks[chunkY][chunkX] = (tMap32x32 far *)dalloc(sizeof(tMap32x32));
 		if(MapChunks[chunkY][chunkX] == 0)

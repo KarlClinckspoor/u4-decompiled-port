@@ -477,10 +477,10 @@ int16 /*C_7FFD*/EnterDungeonRoom()
 	} room;
 	register int16 i, j;
 
-	dlseek(File_DNG, sizeof(tMap8x8x8) + (Party._loc == LOC_ABYSS?
+	dlseek(File_DNG, (uint16)(sizeof(tMap8x8x8) + (Party._loc == LOC_ABYSS?
 		((Party._z >> 1) * 0x1000) + ((tile_cur & 0xf) * 0x100):
 		((tile_cur & 0xf) * 0x100)
-	));
+	)));
 	dread(File_DNG, &room, 0x100);
 	SavedMode = MOD_DUNGEON;
 	CurMode = MOD_COM_ROOM;

@@ -303,7 +303,7 @@ int16 npc;
 {
 	int16 done, members;
 
-	dlseek(File_TLK, (Area._npc._tlkidx[npc] - 1) * 0x120);
+	dlseek(File_TLK, (uint16)((Area._npc._tlkidx[npc] - 1) * 0x120));
 	dread(File_TLK, TalkData, 0x120);
 	members = Party._members;
 	CombatFoe = Area._npc._tile[npc];

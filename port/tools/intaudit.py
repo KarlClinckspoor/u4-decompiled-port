@@ -195,6 +195,16 @@ def walk(n, out, src_of):
                     fixes.append((x, 'unsigned char'))
         if reason:
             out.append((n, reason, fixes))
+    if k in ('ImplicitCastExpr', 'CStyleCastExpr') and n.get('castKind') == 'IntegralCast' and n.get('inner'):
+        # 16-bit arithmetic widened to 32 bits: MSC widens the 16-bit result (zero-extended
+        # when unsigned), the host widens its 32-bit int result
+        to = n.get('type', {}).get('qualType', '')
+        inner = n['inner'][0]
+        if ('int32' in to or to in ('long', 'unsigned long')) and is_arith(inner):
+            t = dtype_of(inner)
+            if t in ('u16', 's16'):
+                out.append((n, '16-bit %s arithmetic widened to 32 bits' % ('unsigned' if t == 'u16' else 'signed'),
+                            [(inner, 'uint16' if t == 'u16' else 'int16')]))
     for c in n.get('inner', []) or []:
         if isinstance(c, dict):
             walk(c, out, src_of)
