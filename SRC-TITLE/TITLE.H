@@ -162,7 +162,7 @@ extern int16 /*C_0010*/Console(char *);
 extern int16 /*C_0051*/Load(char *, uint16, void far *);
 extern int16 /*C_0110*/Save(char *, uint16, void /*far */*);
 
-extern int16 /*C_027A*/u4_putc();
+extern int16 /*C_027A*/u4_putc(unsigned char);
 
 extern int16 cdecl Gra_DrawView(
 #if 0
@@ -223,5 +223,9 @@ extern int16 /*C_32AB*/u_fexist();
 extern int16 /*C_331E*/u_setint24();
 
 extern int16 /*C_3F77*/Unused3F77(uint32, uint32*);
+
+#ifndef M_I86
+#include "portprot.h"/*port only: a prototype of every function (tools/mkprotos.py)*/
+#endif
 
 #endif

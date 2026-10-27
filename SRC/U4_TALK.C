@@ -101,10 +101,10 @@ int16 /*C_A163*/TLK_Question()
  * The original declares only text but most calls pass an extra number first (3, 4,
  * 5, 6), which the code keeps: with the pascal convention the last argument is the
  * one nearest to the frame, so the function still reads text; the extra word stays
- * on the stack until the caller's epilogue resets SP. The WIN32 build declares the extra parameter.
+ * on the stack until the caller's epilogue resets SP. The port (#ifndef M_I86) declares the extra parameter.
  */
-#ifdef WIN32
-/*C_A22D*/TLK_Say(unused, text)
+#ifndef M_I86
+int16 /*C_A22D*/TLK_Say(unused, text)
 int16 unused;
 char *text;
 #else
@@ -121,7 +121,7 @@ char *text;
 /*the citizen's first personal keyword*/
 int16 /*C_A245*/TLK_special1()
 {
-#ifdef WIN32
+#ifndef M_I86
 	TLK_Say(6, TalkStrings[5]);
 #else
 	TLK_Say(TalkStrings[5]);
@@ -131,7 +131,7 @@ int16 /*C_A245*/TLK_special1()
 /*the citizen's second personal keyword*/
 int16 /*C_A253*/TLK_special2()
 {
-#ifdef WIN32
+#ifndef M_I86
 	TLK_Say(7, TalkStrings[6]);
 #else
 	TLK_Say(TalkStrings[6]);

@@ -152,11 +152,8 @@ int16 /*C_4018*/CMD_Enter()
 	}
 	place = 31;
 	while(place >= 0) {
-#ifdef WIN32
+		/*MSC compares the bytes (cmp [si+LocationX],al): the casts say so*/
 		if(Party._x == (unsigned char)LocationX[place] && Party._y == (unsigned char)LocationY[place])
-#else
-		if(Party._x == LocationX[place] && Party._y == LocationY[place])
-#endif
 			break;
 		place--;
 	}

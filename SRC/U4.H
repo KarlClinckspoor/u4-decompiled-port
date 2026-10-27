@@ -263,13 +263,13 @@ extern int16 /*C_0ACF*/CharaTile(int16);
 extern int16 /*C_0AFE*/IsNonEvil(unsigned char);
 extern int16 /*C_0B38*/u4_puts(char *);
 extern int16 /*C_0C03*/u4_putl(int32, int16, char);
-extern int16 /*C_0C9F*/u4_putc(int16);
+extern int16 /*C_0C9F*/u4_putc(unsigned char);
 extern int16 /*C_0CF7*/dspl_Stats();
 extern int16 /*C_0E0E*/dspl_Gold();
-extern int16 /*C_0E4E*/isCharaAlive(uint16);
+extern int16 /*C_0E4E*/isCharaAlive(int16);
 extern int16 /*C_0E82*/isCharaConscious(int16);
 extern int16 /*C_10FD*/CheckPartyAlive();
-extern int16 /*C_1135*/hitChara(uint16, int16);
+extern int16 /*C_1135*/hitChara(int16, uint16);
 extern int16 /*C_1188*/w_What();
 extern int16 /*C_1199*/w_Cant_t();
 extern int16 /*C_11AA*/w_NotHere();
@@ -282,8 +282,8 @@ extern int16 /*C_1287*/AskChara(char *);
 extern int16 /*C_12D6*/AskDir(char *, int16 *, int16 *);
 extern int16 /*C_138B*/food_dec(int16);
 extern int16 /*C_13B6*/MP_recover();
-extern int16 /*C_1445*/u4_gets(char *, int16);
-extern char * /*C_1513*/CreatureName(int16);
+extern int16 /*C_1445*/u4_gets(char *, uint16);
+extern char * /*C_1513*/CreatureName(unsigned char);
 extern int16 /*C_1584*/DamageAllParty();
 extern int16 /*C_162F*/AskY_N();
 extern int32 /*C_169C*/AskInt(int16);
@@ -296,7 +296,7 @@ extern unsigned char u_rand_a();
 #else
 /*the port: the operand first, as MSC computes U4_RND1(U4_RND2(1)) (port/sys/util2.c)*/
 extern int16 u4_rnd1(int16);
-#define U4_RND1(a) u4_rnd1(a)
+#define U4_RND1(a) u4_rnd1((a))
 #endif
 #define U4_RND3(a) (u_rand_a()%(a))
 #define U4_RND4(a) (SafeModulo(u_rand_a(), (a)))
@@ -524,6 +524,10 @@ extern unsigned char /*D_9772*/CombatFoeX;
 
 #ifdef WIN32
 	#pragma pack()
+#endif
+
+#ifndef M_I86
+#include "portprot.h"/*port only: a prototype of every function (tools/mkprotos.py)*/
 #endif
 
 #endif
