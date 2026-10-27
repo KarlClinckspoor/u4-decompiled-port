@@ -529,7 +529,7 @@ uint16 size;
 			break;
 			default:
 				key &= 0x00ff;
-				if(size - 1 == len || key < 0x20 || key >= 0x80) {
+				if((uint16)(size - 1) == len || key < 0x20 || key >= 0x80) {
 					sound_1();
 				} else {
 					buf[len] = key;
@@ -553,7 +553,7 @@ uint16 size;
 	}
 	do
 		buf[len] = 0;
-	while(buf[--len] == ' ');
+	while(LOCAL_AT(buf, --len) == ' ');
 }
 
 /*
@@ -877,7 +877,7 @@ char *fname;
 
 	Gra_ClearScreen();
 	txt_Y = 10;
-	txt_X = (40 - (uint16)strlen(prompt)) / 2;
+	txt_X = (uint16)((40 - (uint16)strlen(prompt))) / 2;
 	u4_puts(prompt);
 	txt_Y ++;
 	txt_X = 18;

@@ -56,7 +56,7 @@ void far *dest;
 		Console(fname);
 		return -1;
 	}
-	if((readCount = read(handle, nearBuf, size)) == -1 || size != readCount) {
+	if((readCount = read(handle, nearBuf, size)) == -1 || size != (uint16)(readCount)) {
 		Console("\r\nReading ");
 		if(readCount == -1) {
 			Console(fname);
@@ -95,7 +95,7 @@ void /*far */*buf;
 		Console(fname);
 		return -1;
 	}
-	if((writeCount = write(handle, buf, size)) == -1 || size != writeCount) {
+	if((writeCount = write(handle, buf, size)) == -1 || size != (uint16)(writeCount)) {
 		Console("\r\nWriting ");
 		if(writeCount == -1) {
 			Console(fname);

@@ -105,9 +105,9 @@ int16 /*C_3F4A*/EnterTown()
 	Party._x = WinPos.x = 1;
 	LoadTown(Party._loc);
 
-	if((Party._loc - LOC_TOWNS) < 8) {
+	if((uint16)((Party._loc - LOC_TOWNS)) < 8) {
 		for(member = Party._members; --member >= 1; ) {
-			if(Party.chara[member]._class == (Party._loc - LOC_TOWNS)) {
+			if((uint16)(Party.chara[member]._class) == (uint16)((Party._loc - LOC_TOWNS))) {
 				Area._npc._tile[31] = Area._npc._gtile[31] = Area._npc._var[31] = 0;
 			}
 		}
@@ -269,7 +269,7 @@ uint16 vehicle;
 		if(
 			Party._x == Area._npc._x[npc] &&
 			Party._y == Area._npc._y[npc] &&
-			vehicle == (Area._npc._tile[npc] & ~3)
+			vehicle == (uint16)((Area._npc._tile[npc] & ~3))
 		) break;
 	}
 	if(npc != 7)
@@ -357,7 +357,7 @@ int16 /*C_4353*/CMD_Open()
 	AskDir(/*D_1807*/"Open: ", &dx, &dy);
 	if(!(dx | dy))
 		return;
-	if((dx + Party._x) > 0x1f || dy) {
+	if((uint16)((dx + Party._x)) > 0x1f || dy) {
 		w_NotHere();
 	} else {
 		register unsigned char *p_door;

@@ -254,24 +254,24 @@ unsigned char tile;
 			for(line = 0; line < 48; line++)
 				Gra_ZoomTileRow(tile, line / 3, line + 0x70, 0x14, 2);
 			pause = 1000 * speed_info;
-			while(--pause);
+			while(--pause) BUSY_PASS;
 		break;
 		case 1:
 			for(line = 0; line < 32; line++)
 				Gra_ZoomTileRow(tile, line >> 1, line + 0x68, 0x14, 2);
 			pause = 1200 * speed_info;
-			while(--pause);
+			while(--pause) BUSY_PASS;
 		break;
 		case 2:
 			Gra_FillTiles(1, 1, tile, 0x60, 0x16);
 			pause = 2400 * speed_info;
-			while(--pause);
+			while(--pause) BUSY_PASS;
 		break;
 		case 3:
 			for(line = 0; line < 8; line ++)
 				Gra_ZoomTileRow(tile, line << 1, line + 0x60, 0x16, 1);
 			pause = 3000 * speed_info;
-			while(--pause);
+			while(--pause) BUSY_PASS;
 		break;
 	}
 }

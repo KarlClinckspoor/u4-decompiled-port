@@ -39,4 +39,22 @@ extern int u_rand_b_carry;
 #define RND2_CARRY(cf) (u_rand_b_carry = (cf)),
 #endif
 
+/*the body of a busy-wait loop ("while(--count);"): nothing in DOS, where the loop itself
+  is the wait; the port adds the time one pass of MSC's loop takes on the PC (u4rt.h)*/
+#ifdef M_I86
+#define BUSY_PASS
+#else
+extern void port_busy_pass(void);
+#define BUSY_PASS port_busy_pass()
+#endif
+
+/*a read that can fall before the start of a local array (u4_gets on an empty answer
+  reads buf[-1]): DOS reads whatever its stack holds there, the port reads a 0*/
+#ifdef M_I86
+#define LOCAL_AT(buf, i) buf[i]
+#else
+extern char port_local_at(char *buf, int16 i);
+#define LOCAL_AT(buf, i) port_local_at(buf, i)
+#endif
+
 #endif

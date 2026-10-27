@@ -148,7 +148,7 @@ int16 /*C_87E2*/DNG_EndOfTurn()
 	register struct tChara *pChara;
 
 	CheckPartyAlive();
-	for(pChara = &(Party.chara[0]), chara = 0; chara < Party._members; pChara ++, chara++) {
+	for(pChara = &(Party.chara[0]), chara = 0; (uint16)(chara) < Party._members; pChara ++, chara++) {
 		if(pChara->_stat == 'S' && U4_RND1(7) == 0) {
 			pChara->_stat = 'G';
 		} else if(pChara->_stat == 'P') {
@@ -160,7 +160,7 @@ int16 /*C_87E2*/DNG_EndOfTurn()
 	}
 	if(food_dec(Party._members)) {
 		u4_puts(/*D_263A*/"\nStarving!!!\n");
-		for(chara = 0; chara < Party._members; chara++) {
+		for(chara = 0; (uint16)(chara) < Party._members; chara++) {
 			if(isCharaAlive(chara))
 				hitChara(chara, 2);
 		}

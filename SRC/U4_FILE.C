@@ -43,7 +43,7 @@ void far *buf;
 		Console(fname);
 		return -1;
 	}
-	if((actual = dread(fd, buf, size)) == -1 || size != actual) {
+	if((actual = dread(fd, buf, size)) == -1 || size != (uint16)(actual)) {
 		Console("\r\nReading ");
 		if(actual == -1) {
 			Console(fname);
@@ -78,7 +78,7 @@ void far *buf;
 		Console(fname);
 		return -1;
 	}
-	if((actual = dwrite(fd, buf, size)) == -1 || size != actual) {
+	if((actual = dwrite(fd, buf, size)) == -1 || size != (uint16)(actual)) {
 		Console("\r\nWriting ");
 		if(actual == -1) {
 			Console(fname);

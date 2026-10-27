@@ -139,7 +139,7 @@ int16 /*C_1C53*/EndOfTurn()
 	if(Party._ship < 50 && U4_RND1(3) == 0)
 		Party._ship ++;
 	/*the asleep may wake up ('S' => 'G'), the poisoned take 2 hits*/
-	for(pChara = Party.chara, chara = 0; chara < Party._members; pChara++, chara++) {
+	for(pChara = Party.chara, chara = 0; (uint16)(chara) < Party._members; pChara++, chara++) {
 		if(pChara->_stat == 'S' && U4_RND1(7) == 0) {
 			pChara->_stat = 'G';
 		} else if(pChara->_stat == 'P') {
@@ -150,7 +150,7 @@ int16 /*C_1C53*/EndOfTurn()
 	/*each character eats 1 food*/
 	if(food_dec(Party._members)) {
 		u4_puts("\nStarving!!!\n");
-		for(chara = 0; chara < Party._members; chara ++) {
+		for(chara = 0; (uint16)(chara) < Party._members; chara ++) {
 			if(isCharaAlive(chara))
 				hitChara(chara, 2);
 		}

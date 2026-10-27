@@ -231,9 +231,9 @@ int16 *stat;
 int16 /*C_E4C3*/LB_LevelUp() {
 	int16 limit, chara, newMax;
 
-	for(chara = 0; chara < Party._members; chara++) {
-		for(newMax = limit = 100; limit <= Party.chara[chara]._XP; newMax += 100, limit <<= 1);
-		if(Party.chara[chara]._HP[1] < newMax) {
+	for(chara = 0; (uint16)(chara) < Party._members; chara++) {
+		for(newMax = limit = 100; (uint16)(limit) <= Party.chara[chara]._XP; newMax += 100, limit <<= 1);
+		if(Party.chara[chara]._HP[1] < (uint16)(newMax)) {
 			Party.chara[chara]._HP[1] = newMax;
 			Party.chara[chara]._HP[0] = newMax;
 			Party.chara[chara]._stat = 'G';

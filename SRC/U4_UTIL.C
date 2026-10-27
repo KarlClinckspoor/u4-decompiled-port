@@ -295,7 +295,7 @@ int16 /*C_0CF7*/dspl_Stats()
 	prevCol = txt_X;
 	for(
 		member = 0, pChara = &(Party.chara[0]);
-		member < Party._members;
+		(uint16)(member) < Party._members;
 		pChara++, member++
 	) {
 		txt_Y = member + 1;
@@ -346,7 +346,7 @@ int16 /*C_0E0E*/dspl_Gold() {
 int16 /*C_0E4E*/isCharaAlive(chara)
 int16 chara;
 {
-	if(chara >= Party._members)
+	if((uint16)(chara) >= Party._members)
 		return 0;
 	switch(Party.chara[chara]._stat) {
 		case 'G': case 'P': case 'S': return 1;
@@ -360,7 +360,7 @@ int16 chara;
 int16 /*C_0E82*/isCharaConscious(chara)
 int16 chara;
 {
-	if(chara >= Party._members)
+	if((uint16)(chara) >= Party._members)
 		return 0;
 	switch(Party.chara[chara]._stat) {
 		case 'G': case 'P': return 1;
@@ -398,7 +398,7 @@ int16 /*C_0EB1*/PartyDeath()
 	u4_puts("Afterlife?...\n");
 	u_delay(5, 0);
 	u4_puts("You hear:\n");
-	txt_X = (12 - (uint16)strlen(Party.chara[0]._name)) / 2 + 25;
+	txt_X = (uint16)((12 - (uint16)strlen(Party.chara[0]._name))) / 2 + 25;
 	u4_puts(Party.chara[0]._name);
 	Gra_CR();
 	u_delay(5, 0);
@@ -686,7 +686,7 @@ int16 /*C_13B6*/MP_recover()
 			if(maxMP > 99)
 				maxMP = 99;
 			p->_MP ++;
-			if(p->_MP > maxMP)
+			if(p->_MP > (uint16)(maxMP))
 				p->_MP = maxMP;
 		}
 	}
@@ -722,7 +722,7 @@ uint16 size;
 			break;
 			default:
 				key &= 0xff;
-				if(size - 1 == len || key < ' ' || key >= 0x80) {
+				if((uint16)(size - 1) == (uint16)(len) || key < ' ' || key >= 0x80) {
 					sound(SND_BEEP);
 				} else {
 					buf[len] = key;
@@ -750,7 +750,7 @@ uint16 size;
 	/*remove the trailing spaces*/
 	do {
 		buf[len] = 0;
-	} while(buf[--len] == ' ');
+	} while(LOCAL_AT(buf, --len) == ' ');
 }
 
 /*

@@ -280,11 +280,11 @@ int16 foe;
 		return 0;
 	if(x >= 11 || y >= 11)
 		return ((unsigned char)Fighters._HP[foe] < 24);
-	if(Fighters._x[foe] == x && Fighters._y[foe] == y && U4_RND1(3))
+	if((unsigned char)(Fighters._x[foe]) == x && (unsigned char)(Fighters._y[foe]) == y && U4_RND1(3))
 		return 0;
 
 	for(i = 15; i >= 0; i --)
-		if(Fighters._tile[i] && Combat._npcX[i] == x && Combat._npcY[i] == y)
+		if(Fighters._tile[i] && (unsigned char)(Combat._npcX[i]) == x && (unsigned char)(Combat._npcY[i]) == y)
 			return 0;
 	for(i = 7; i >= 0; i --)
 		if(Fighters._chtile[i] && Combat._charaX[i] == x && Combat._charaY[i] == y)
@@ -397,7 +397,7 @@ int16 /*C_9BA6*/StealGold()
 
 	if(U4_RND1(3) == 0) {
 		amount = U4_RND1(0x3f);
-		Party._gold = u4_max(Party._gold - amount, 0);
+		Party._gold = u4_max((uint16)(Party._gold - amount), 0);
 		dspl_Stats();
 		sound(SND_FAIL);
 	}

@@ -14,7 +14,7 @@ unsigned char y;
 	register int16 fighter;
 
 	for(fighter = 15; fighter >= 0; fighter --)
-		if(Fighters._tile[fighter] && Combat._npcX[fighter] == x && Combat._npcY[fighter] == y)
+		if(Fighters._tile[fighter] && (unsigned char)(Combat._npcX[fighter]) == x && (unsigned char)(Combat._npcY[fighter]) == y)
 			break;
 	return fighter;
 }
@@ -75,7 +75,7 @@ int16 /*C_5A6B*/COM_main()
 	last_key = 0;
 	RoomExitX = RoomExitY = 0;
 	do {
-		for(activeChara = 0; /*C_5A88:*/activeChara < Party._members && !IsCombatEnded(); activeChara++) {
+		for(activeChara = 0; /*C_5A88:*/(uint16)(activeChara) < Party._members && !IsCombatEnded(); activeChara++) {
 /*C_5A9E*/
 			if(Fighters._chtile[activeChara] && isCharaConscious(activeChara)) {
 				CursorBlink = 4;
@@ -326,7 +326,7 @@ int16 range;
 	}
 	hit_tile = (chara->_weapon == WPN_WAND)?TIL_MAGIC_BOLT:TIL_HIT_FLASH;
 	/*dexterity test*/
-	if(chara->_dex < 40 && U4_RND1(0xff) > chara->_dex + 0x80) {
+	if(chara->_dex < 40 && U4_RND1(0xff) > (uint16)(chara->_dex + 0x80)) {
 		w_missed(range);
 		return;
 	}

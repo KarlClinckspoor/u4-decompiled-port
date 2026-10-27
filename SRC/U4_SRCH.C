@@ -278,7 +278,7 @@ int16 /*C_90C5*/FindRune()
 	register int16 virtue;
 
 	for(virtue = 7; virtue >= 0; virtue --)
-		if(RuneTowns[virtue][0] == Party._loc)
+		if((uint16)(RuneTowns[virtue][0]) == Party._loc)
 			break;
 	if(RuneTowns[virtue][1] & Party.mRunes) {
 		u4_puts(MsgNothingHere);
@@ -340,7 +340,7 @@ int16 /*C_913A*/CMD_Search()
 		return;
 	}
 	for(spot = SearchSpots; spot->_03; spot ++) {
-		if(spot->_00 == Party._loc && spot->_01 == Party._x && spot->_02 == Party._y)
+		if((uint16)(spot->_00) == Party._loc && spot->_01 == Party._x && spot->_02 == Party._y)
 			break;
 	}
 	if(spot->_03 == 0) {

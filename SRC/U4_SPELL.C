@@ -498,7 +498,7 @@ int16 /*C_6BAE*/SPL_Sleep()
 	if(!SpellStart())
 		return;
 	for(foe = 15; foe >= 0; foe--)
-		if(Fighters._tile[foe] && IsUndead(Fighters._tile[foe]) == 0 && Fighters._tile[foe] != TIL_BALRON && Fighters._HP[foe] < u_rand_a())
+		if(Fighters._tile[foe] && IsUndead(Fighters._tile[foe]) == 0 && (unsigned char)(Fighters._tile[foe]) != TIL_BALRON && Fighters._HP[foe] < u_rand_a())
 			Fighters._sleeping[foe] = 1;
 }
 
@@ -728,7 +728,7 @@ int16 /*C_6E4A*/CMD_Cast()
 	}
 	Party._mixtures[CurSpell] --;
 	/*-- check m.p --*/
-	if(Party.chara[activeChara]._MP < SpellMPCost[CurSpell]) {
+	if(Party.chara[activeChara]._MP < (uint16)(SpellMPCost[CurSpell])) {
 		u4_puts(/*D_215F*/"M.P. too low!\n");
 		w_Failed();
 		return;

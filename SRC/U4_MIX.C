@@ -95,7 +95,7 @@ int16 /*C_8C08*/CMD_Mix()
 				} else {
 					u4_puts(/*D_2745*/"\nYou mix the Reagents, and...\n");
 					reagent = 0;
-					if(SpellRecipes[spellNo] == mask) {
+					if(SpellRecipes[spellNo] == (unsigned char)(mask)) {
 						u4_puts(/*D_2764*/"Success!\n\n");
 						Party._mixtures[spellNo] ++;
 						if(Party._mixtures[spellNo] > 99)

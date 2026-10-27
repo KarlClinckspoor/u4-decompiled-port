@@ -200,8 +200,8 @@ int16 /*C_A2BD*/TLK_join()
 
 	if(
 		(uint16)Area._npc._tlkidx[TalkNpc] != 1 ||
-		(Party._loc - LOC_TOWNS) >= 8 ||
-		(Party._loc - LOC_TOWNS) == Party.chara[0]._class
+		(uint16)((Party._loc - LOC_TOWNS)) >= 8 ||
+		(uint16)((Party._loc - LOC_TOWNS)) == (uint16)(Party.chara[0]._class)
 	) {
 		u4_puts(TalkStrings[1]);
 		u4_puts(/*D_2B17*/" says: I cannot join thee.\n");
@@ -213,7 +213,7 @@ int16 /*C_A2BD*/TLK_join()
 		u4_puts(/*D_2B41*/" enough for me to join thee.\n");
 		return;
 	}
-	if(100 * Party._members + 100 > Party.chara[0]._HP[1]) {
+	if((uint16)(100 * Party._members + 100) > Party.chara[0]._HP[1]) {
 		u4_puts(/*D_2B5F*/"Thou art not experienced enough for me to join thee.\n");
 		return;
 	}
@@ -224,7 +224,7 @@ int16 /*C_A2BD*/TLK_join()
 	Area._npc._tlkidx[31] = 0;
 	RefreshView();
 	for(chara = 7; chara >= 0; chara --) {
-		if(Party.chara[chara]._class == (Party._loc - LOC_TOWNS))
+		if((uint16)(Party.chara[chara]._class) == (uint16)((Party._loc - LOC_TOWNS)))
 			break;
 	}
 	if(chara != -1)
@@ -249,7 +249,7 @@ int16 /*C_A3A2*/TLK_give()
 	}
 	u4_puts(/*D_2BEC*/"How much?\x12\x12\x12\b\b");
 	if((amount = AskInt(2)) > 0) {
-		if(Party._gold < amount) {
+		if(Party._gold < (uint16)(amount)) {
 			u4_puts(/*D_2BFB*/"Thou hast not that much gold!\n");
 		} else {
 			Party._gold -= amount;
@@ -357,7 +357,7 @@ int16 npc;
 					Gra_CR();
 					TalkNpc = npc;
 					(*(TalkKeywords[kw]._02))();
-					if(Party._members != members)
+					if(Party._members != (uint16)(members))
 						return;/*looks like he/she has joined*/
 				} else {
 					done = 1;

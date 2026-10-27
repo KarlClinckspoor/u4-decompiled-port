@@ -236,7 +236,7 @@ F-Black Pearl\n"
 						karma_dec(&(Party._justi), shortBy);
 						karma_dec(&(Party._honor), shortBy);
 					}
-					if(paid > Party._gold) {
+					if((uint16)(paid) > Party._gold) {
 						u4_puts(/*D_40E5*/"It seems you have not the gold!\n");
 					} else {
 						karma_inc(&(Party._hones), 2);
@@ -345,7 +345,7 @@ int16 /*C_CD1D*/WeaponShopDeal(weapon, count)
 int16 weapon;
 int16 count;
 {
-	if(WeaponPrices[weapon] * count > Party._gold) {
+	if((uint16)(WeaponPrices[weapon] * count) > Party._gold) {
 		u4_puts(/*D_4652*/"I fear you have not the funds, perhaps something else.\n");
 		return;
 	}
@@ -395,7 +395,7 @@ int16 /*C_CD80*/WeaponShopBuy()
 		} while(entry == 4);
 		if(choice < 0)
 			break;
-		if(WeaponPrices[choice] > Party._gold) {
+		if((uint16)(WeaponPrices[choice]) > Party._gold) {
 			u4_puts(/*D_4749*/"You have not the funds for even one!\n");
 		} else {
 			Gra_CR();
@@ -457,7 +457,7 @@ int16 /*C_CEBE*/WeaponShopSell()
 						sound(SND_BEEP);
 					break;
 				}
-				if(Party._weapons[weapon] < amount) {
+				if(Party._weapons[weapon] < (uint16)(amount)) {
 					u4_puts(/*D_4830*/"You don't have that many swine!\n");
 					break;
 				}
@@ -599,7 +599,7 @@ int16 /*C_D16D*/ArmourShopDeal(armour, count)
 int16 armour;
 int16 count;
 {
-	if(ArmourPrices[armour] * count > Party._gold) {
+	if((uint16)(ArmourPrices[armour] * count) > Party._gold) {
 		u4_puts(/*D_4B63*/"You don't have enough gold.\nMaybe something cheaper?\n");
 		return;
 	}
@@ -647,7 +647,7 @@ int16 /*C_D1D0*/ArmourShopBuy()
 		} while(entry == 4);
 		if(choice < 0)
 			break;
-		if(ArmourPrices[choice] > Party._gold) {
+		if((uint16)(ArmourPrices[choice]) > Party._gold) {
 			u4_puts(/*D_4C35*/"What you try'n to pull? You can't pay!\n");
 		} else {
 			Gra_CR();
@@ -705,7 +705,7 @@ int16 /*C_D2F8*/ArmourShopSell()
 
 					break;
 				}
-				if(Party._armors[armour] < amount) {
+				if(Party._armors[armour] < (uint16)(amount)) {
 					u4_puts(/*D_4D03*/"You don't have that many swine!\n");
 					break;
 				}
@@ -809,7 +809,7 @@ int16 /*C_D596*/SHP_horse()
 			u4_puts(/*D_4E94*/"\nA shame, thou looks like thou could use a good horse!\n");
 		return;
 	}
-	if(100 * Party._members > Party._gold) {
+	if((uint16)(100 * Party._members) > Party._gold) {
 		u4_puts(/*D_4ECC*/"\nIt seems thou hast not gold enough to pay!\n");
 		return;
 	}
@@ -881,7 +881,7 @@ C-Magic Keys\n");
 				u4_puts(/*D_5123*/"\nHmmm...Grmbl...\n");
 			break;
 		}
-		if(Party._gold < GuildPrices[item]) {
+		if(Party._gold < (uint16)(GuildPrices[item])) {
 			Gra_ClearStatus();
 			ZtatsClearTitle();
 			dspl_Stats();
@@ -1385,7 +1385,7 @@ int16 /*C_DD24*/PubFood()
 	}
 	sold = 0;
 	while(plates) {
-		if(Party._gold >= PubFoodPrices[ShopId]) {
+		if(Party._gold >= (uint16)(PubFoodPrices[ShopId])) {
 			Party._gold -= PubFoodPrices[ShopId];
 			Party._food = (Party._food + 100 > 999900L)?999900L:(Party._food + 100);
 			dspl_Stats();
@@ -1443,7 +1443,7 @@ int16 /*C_DE35*/PubAle()
 		u4_puts(/*D_5FB7*/"\nWon't pay, eh. Ya scum, be gone fore ey call the guards!\n");
 		return 1;
 	}
-	if(Party._gold < money) {
+	if(Party._gold < (uint16)(money)) {
 		u4_puts(/*D_5FF2*/"\nIt seems that you have not the gold. Good Day!\n");
 		return 1;
 	}
@@ -1470,7 +1470,7 @@ int16 /*C_DE35*/PubAle()
 						u4_puts(/*D_60C2*/"\nSorry, I could not hep ya mate!\n");
 					return 1;
 				}
-				if(Party._gold < extra) {
+				if(Party._gold < (uint16)(extra)) {
 					u4_puts(/*D_60E4*/"\nYer don't have that mate!\n");
 					u4_puts(/*D_6100*/"\nSorry, I could not hep ya mate!\n");
 					return 1;
@@ -1596,8 +1596,8 @@ int16 /*C_E088*/SHP_food()
 			answer = 'N';
 			continue;
 		}
-		if(FoodPrices[ShopId] * packs > Party._gold) {
-			if(FoodPrices[ShopId] > Party._gold) {
+		if((uint16)(FoodPrices[ShopId] * packs) > Party._gold) {
+			if((uint16)(FoodPrices[ShopId]) > Party._gold) {
 				u4_puts(/*D_6301*/"You cannot afford any!\n");
 				break;
 			}

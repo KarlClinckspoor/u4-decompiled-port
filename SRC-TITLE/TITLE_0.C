@@ -83,7 +83,7 @@ int32 count;
 	if(u_kbhit())
 		return;
 	count *= (int32)speed_info;
-	while(-- count);
+	while(-- count) BUSY_PASS;
 }
 
 /*
@@ -446,7 +446,7 @@ cdecl /*C_0EAA*/main()
 	} else {
 		GraphicsType = low_gra();
 	}
-	if(GraphicsType == -1) {
+	if(GraphicsType == (uint16)(-1)) {
 		Console(/*D_01D3*/"I can't find a color graphics card.\r\n");
 		exit(2);
 	}

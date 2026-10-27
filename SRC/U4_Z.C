@@ -352,14 +352,14 @@ int16 page;
 			case KBD_6:
 			case KBD_7:
 			case KBD_8:
-				if((key&0xf) <= Party._members)
+				if((uint16)((key&0xf)) <= Party._members)
 					page = (key&0xf) - 1;
 				else
 					sound(SND_BEEP);
 			break;
 			case KBD_RIGHT: case KBD_DOWN:
 				page = (page + 1) % 14;
-				if(page == Party._members)
+				if((uint16)(page) == Party._members)
 					page = 8;
 			break;
 			case KBD_UP: case KBD_LEFT:

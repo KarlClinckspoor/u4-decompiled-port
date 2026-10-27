@@ -27,7 +27,7 @@ int16 /*C_70F1*/ChestGold()
 	gold = U4_RND3(80) + U4_RND1(7) + 10;
 	u4_putl(gold, 1, ' ');
 	u4_puts(/*D_2252*/" Gold\n");
-	Party._gold = (Party._gold + gold <= 9999)?Party._gold + gold:9999;
+	Party._gold = ((uint16)(Party._gold + gold) <= 9999)?Party._gold + gold:9999;
 }
 
 /*
@@ -54,7 +54,7 @@ int16 chara;
 		else
 			u4_puts(/*D_226B*/"Bomb");
 		u4_puts(/*D_2270*/" Trap!\n");
-		if(chara == -1 || U4_RND3(100) <= Party.chara[chara]._dex + 25) {
+		if(chara == -1 || U4_RND3(100) <= (uint16)(Party.chara[chara]._dex + 25)) {
 			u4_puts(/*D_2278*/"Evaded!\n");
 			sound(SND_FAIL);
 		} else if(trap == 0) {/*Acid*/

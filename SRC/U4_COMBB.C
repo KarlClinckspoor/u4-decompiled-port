@@ -178,7 +178,7 @@ unsigned char y;
 	for(n = 3; n >= 0; n --) {
 		if(RoomTriggerData[(n << 2)]) {
 			if(
-				(x << 12) == (*(U16 *)(RoomTriggerData+(n << 2)) & 0xf000) &&
+				(uint16)((x << 12)) == (*(U16 *)(RoomTriggerData+(n << 2)) & 0xf000) &&
 				(y <<  8) == (*(U16 *)(RoomTriggerData+(n << 2)) & 0x0f00)
 			) {
 				row = *(U16 *)(RoomTriggerData+(n << 2)+2) & 0xf;

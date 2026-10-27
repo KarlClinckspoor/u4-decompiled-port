@@ -13,6 +13,11 @@
 Starting and ending a combat
 ----------------------------------------*/
 
+/*the port: the monster and weapon tables below are one block laid out as in DOS
+  (port/tools/gen_block.py): MonsterIndex reads past MonsterMaxHP for people*/
+#ifdef PORT_BLOCK
+#include "block_u4_combc.h"
+#else
 /*base for enemy HP/XP/attack, indexed by MonsterIndex()*/
 unsigned char /*D_23D2*/MonsterMaxHP[] = {
 	/*80~8f*/
@@ -165,6 +170,7 @@ unsigned char /*D_2450*/WeaponDamage[] = {0x08,0x10,0x18,0x20,0x28,0x30,0x40,0x2
 unsigned char /*D_2460*/ArmorDefense[] = {0x60,0x80,0x90,0xA0,0xB0,0xC0,0xD0,0xF8};
 /*range weapons flag*/
 unsigned char /*D_2468*/WeaponIsRanged[] = {0x00,0x00,0x00,0xFF,0x00,0x00,0x00,0xFF,0xFF,0xFF,0x00,0xFF,0x00,0xFF,0xFF,0x00};
+#endif
 
 /*
  * Index of a foe tile in the monster tables (MonsterMaxHP...): the sea monsters
@@ -403,7 +409,7 @@ int16 /*C_7E7E*/PlaceFoes()
 	} else if((count = CombatFoe, CombatFoe < TIL_PIRATE_W) || (count = U4_RND1(7)) == 0) {
 		count = (U4_RND4(MonsterGroupSize[MonsterIndex(count)]) + MonsterGroupSize[MonsterIndex(count)]) / 2;
 	}
-	while(fighter = count, (count >> 1) >= Party._members)
+	while(fighter = count, (uint16)((count >> 1)) >= Party._members)
 		count = U4_RND4(Party._members * 2);
 	for(i = fighter; i >= 0; i--) {
 		do {
