@@ -9,6 +9,8 @@
 #include "../gfx/tgfx.h"
 #include "../gfx/ega.h"
 
+#include <stdlib.h>
+
 extern int16_t GraphicsType;
 extern void *pShapes, *pCharset, *patch_tandy;
 extern int16_t txt_X, txt_Y;
@@ -47,6 +49,7 @@ int Gra_ClearText(void) { tgfx_clear_text(); return 0; }
 /* GR_INIT_EGA frees the Tandy patch block (DOS 49h) and clears the pointer */
 int Gra_Init(void)
 {
+	free(patch_tandy);
 	patch_tandy = 0;
 	tgfx_init(pShapes, pCharset);
 	vc_cycles(256u * 128u * 8u * 30u);
