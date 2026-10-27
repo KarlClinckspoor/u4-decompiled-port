@@ -5,3 +5,5 @@ tools/MASM300.EXE
 __pycache__/
 *.OBJ
 *.MAP
+build*/
+port/tests/__pycache__/
