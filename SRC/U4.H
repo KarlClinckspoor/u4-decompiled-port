@@ -21,6 +21,74 @@
 
 #include "u4_scan.h"
 #include "u4_shape.h"
+#include "u4_loc.h"
+
+/*sound effects: sound(SND_xxx) (U4_SOUND.ASM)*/
+#define SND_STEP        0 /*a step*/
+#define SND_BEEP        1 /*blocked, wrong key*/
+#define SND_BAD_COMMAND 2
+#define SND_SHOOT       3 /*a missile or a cannon ball leaves*/
+#define SND_ATTACK      4 /*the active character attacks*/
+#define SND_FOE_ATTACK  5 /*a foe attacks in contact*/
+#define SND_HIT         6 /*something is hit, damage, explosion*/
+#define SND_HURT        7 /*a character is hurt*/
+#define SND_FAIL        8 /*failure, evasion, flight, theft*/
+#define SND_MAGIC       9 /*sound(SND_MAGIC, pitch): magic zap*/
+#define SND_CAST       10 /*sound(SND_CAST, length): spell casting*/
+#define SND_WHIRLPOOL  11
+#define SND_TWISTER    12
+
+/*first index of each group in Names[] (U4_CSTES.C)*/
+#define NAME_CREATURES     1 /*+ (tile - TIL_PIRATE_W) / 2 for 0x80-0x8F*/
+#define NAME_MONSTERS      9 /*+ (tile - TIL_RAT) / 4 for 0x90-0xFF*/
+#define NAME_PHANTOM      20
+#define NAME_WEAPONS      37
+#define NAME_ARMOURS      53
+#define NAME_WEAPON_CODES 61
+#define NAME_CLASSES      77 /*then the townsfolk: guard, merchant, ...*/
+#define NAME_REAGENTS     93
+#define NAME_SPELLS      101
+#define NAME_LOCATIONS   127 /*+ Party._loc - 1*/
+#define NAME_VIRTUES     151
+#define NAME_VILLAGER    159
+
+/*character classes (tChara._class)*/
+#define CLASS_MAGE     0
+#define CLASS_BARD     1
+#define CLASS_FIGHTER  2
+#define CLASS_DRUID    3
+#define CLASS_TINKER   4
+#define CLASS_PALADIN  5
+#define CLASS_RANGER   6
+#define CLASS_SHEPHERD 7
+
+/*weapons (tChara._weapon, tParty._weapons[])*/
+#define WPN_HANDS        0
+#define WPN_STAFF        1
+#define WPN_DAGGER       2
+#define WPN_SLING        3
+#define WPN_MACE         4
+#define WPN_AXE          5
+#define WPN_SWORD        6
+#define WPN_BOW          7
+#define WPN_CROSSBOW     8
+#define WPN_OIL          9
+#define WPN_HALBERD     10
+#define WPN_MAGIC_AXE   11
+#define WPN_MAGIC_SWORD 12
+#define WPN_MAGIC_BOW   13
+#define WPN_WAND        14
+#define WPN_MYSTIC      15
+
+/*armours (tChara._armor, tParty._armors[])*/
+#define ARM_SKIN        0
+#define ARM_CLOTH       1
+#define ARM_LEATHER     2
+#define ARM_CHAIN       3
+#define ARM_PLATE       4
+#define ARM_MAGIC_CHAIN 5
+#define ARM_MAGIC_PLATE 6
+#define ARM_MYSTIC      7
 
 #define DIR_W 0
 #define DIR_N 1
