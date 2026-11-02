@@ -16,11 +16,13 @@ ergonomy_joe
 
 ---
 
-## Readable version (branch `readable`)
+## Readable version (branch `master`)
 
 On this branch the source has been rewritten for readability **without changing the generated
 code**: it still builds an `AVATAR.EXE` and a `TITLE.EXE` identical to the ones built from
-`master`, checked with the original compiler (below).
+ergonomy_joe's sources (kept unchanged on the branch `original`), checked with the original
+compiler (below). What the work taught, and the traps of Microsoft C 4.00 it ran into, are in
+[docs/LESSONS-DECOMPILATION.md](docs/LESSONS-DECOMPILATION.md).
 
 What changed:
 * **Names.** Every function, global and structure member that had an address placeholder
