@@ -16,6 +16,9 @@ so that it replays exactly.
 You need your own copy of Ultima IV. The free GOG version works. The port reads the game's
 files from its folder and never writes there.
 
+What building the port taught (16-bit semantics, memory layout, the virtual clock, replays as
+tests) is written up in [LESSONS-PORT.md](LESSONS-PORT.md).
+
 ## Building
 
 The port lives on the `portable` branch:

@@ -6,8 +6,8 @@
 #
 # The game's C must be compiled by clang (MSYS2's CLANG64, or clang on Linux/macOS, or a
 # cross build from Linux with port/cmake/mingw64.cmake): it relies on clang evaluating a
-# call's arguments left to right, as Microsoft C 4.00's pascal calls did (port/sys/selftest.c
-# checks it at start).
+# call's arguments left to right, as Microsoft C 4.00's pascal calls did (configuring with
+# another compiler gives a warning below; the replay checkpoints show any difference).
 cmake_minimum_required(VERSION 3.16)
 project(u4port C)
 
