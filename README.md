@@ -37,6 +37,8 @@ What changed:
 * **Comments.** Every function has a comment saying what it does; wrong old comments were fixed.
 * **Findings.** [`FINDINGS.md`](FINDINGS.md) lists the probable bugs and quirks of the original
   game that turned up while reading the code.
+* **Mechanics.** [`docs/MECHANICS.md`](docs/MECHANICS.md) describes how the game works, read from
+  the code: time, conversation, quest progression, stats and combat, with the exact numbers.
 
 Not changed: control flow, expressions, declaration order, data, file names and the assembly
 code (only the symbols shared with C, and private labels, were renamed).
