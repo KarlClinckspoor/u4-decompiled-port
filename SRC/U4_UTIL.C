@@ -369,9 +369,9 @@ int chara;
 
 /*
  * The whole party is dead: after the "All is Dark" sequence, Lord British
- * resurrects it in his castle (LCB_2.ULT), with full hit points, but without
- * weapons and armour, with 200 gold and 200 food. Does not return: jumps
- * back to the main loop.
+ * resurrects it in his castle (LCB_2.ULT), with full hit points, 200 gold and
+ * 200 food. The spare weapons and armour are lost; each member keeps the weapon
+ * and armour in use. Does not return: jumps back to the main loop.
  */
 /*C_0EB1*/PartyDeath()
 {
