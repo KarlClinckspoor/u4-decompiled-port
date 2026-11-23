@@ -1,16 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="270" viewBox="0 0 840 270" font-family="Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="Decompilation progress: 501 of 530 functions named">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="270" viewBox="0 0 840 270" font-family="Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="Decompilation progress: 530 of 530 functions named">
 <rect width="840" height="270" rx="14" fill="#0f172a"/>
 <text x="20" y="38" font-size="21" fill="#ffffff">Decompilation progress</text>
 <text x="820" y="38" font-size="15" fill="#ffffff" text-anchor="end">u4-decompiled-port</text>
-<text x="20" y="62" font-size="15" fill="#e5e7eb">501 / 530 functions named (94.5%)</text>
+<text x="20" y="62" font-size="15" fill="#e5e7eb">530 / 530 functions named (100.0%)</text>
 <rect x="20" y="74" width="800" height="18" rx="5" fill="#334155"/>
-<rect x="20" y="74" width="756.23" height="18" rx="5" fill="#2a8c3c"/>
+<rect x="20" y="74" width="800.00" height="18" rx="5" fill="#2a8c3c"/>
 <rect x="20" y="104" width="10" height="10" fill="#2a8c3c"/>
-<text x="34" y="113" font-size="12" fill="#e5e7eb">Named: 501</text>
+<text x="34" y="113" font-size="12" fill="#e5e7eb">Named: 530</text>
 <rect x="232" y="104" width="10" height="10" fill="#b8860b"/>
 <text x="246" y="113" font-size="12" fill="#e5e7eb">Attempt: 0</text>
 <rect x="430" y="104" width="10" height="10" fill="#64748b"/>
-<text x="444" y="113" font-size="12" fill="#e5e7eb">Open: 29</text>
+<text x="444" y="113" font-size="12" fill="#e5e7eb">Open: 0</text>
 <rect x="628" y="104" width="10" height="10" fill="#3b5b8a"/>
 <text x="642" y="113" font-size="12" fill="#e5e7eb">Aside: 0</text>
 <text x="20" y="140" font-size="11" fill="#e5e7eb">Function map: 1 function per tile (C functions and assembly procedures), in order AVATAR, TITLE, CGA driver, then by original address</text>
@@ -492,11 +492,11 @@
 <rect x="497.78" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE TITLE_0.C C_0B45 ShowMenu (matched)</title></rect>
 <rect x="508.89" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE TITLE_0.C C_0BCA RedrawTitle (matched)</title></rect>
 <rect x="520.00" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE TITLE_0.C C_0EAA main (matched)</title></rect>
-<rect x="531.11" y="226.67" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>TITLE GRAPH.ASM C_208A C_208A (open)</title></rect>
+<rect x="531.11" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE GRAPH.ASM C_208A random (matched)</title></rect>
 <rect x="542.22" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE GRAPH.ASM C_217E LoadCompressed (matched)</title></rect>
-<rect x="553.33" y="226.67" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>TITLE INFLATE.ASM C_21E5 C_21E5 (open)</title></rect>
-<rect x="564.44" y="226.67" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>TITLE INFLATE.ASM C_2290 C_2290 (open)</title></rect>
-<rect x="575.56" y="226.67" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>TITLE INFLATE.ASM C_22D5 C_22D5 (open)</title></rect>
+<rect x="553.33" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE INFLATE.ASM C_21E5 LzwHashSlot (matched)</title></rect>
+<rect x="564.44" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE INFLATE.ASM C_2290 LzwNextCode (matched)</title></rect>
+<rect x="575.56" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE INFLATE.ASM C_22D5 LzwDecode (matched)</title></rect>
 <rect x="586.67" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE INFLATE.ASM C_23C3 _Inflate (matched)</title></rect>
 <rect x="597.78" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE TITLE_1.C C_261D u4_puts (matched)</title></rect>
 <rect x="608.89" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>TITLE TITLE_1.C C_2656 u4_gets (matched)</title></rect>
@@ -519,29 +519,29 @@
 <rect x="797.78" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0000 _abs (matched)</title></rect>
 <rect x="808.89" y="226.67" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0000 _pic_inflate (matched)</title></rect>
 <rect x="20.00" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0000 random (matched)</title></rect>
-<rect x="31.11" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_01E6 C_01E6 (open)</title></rect>
-<rect x="42.22" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_027A C_027A (open)</title></rect>
-<rect x="53.33" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_02EE C_02EE (open)</title></rect>
-<rect x="64.44" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_033E C_033E (open)</title></rect>
-<rect x="75.56" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0392 C_0392 (open)</title></rect>
-<rect x="86.67" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0404 C_0404 (open)</title></rect>
-<rect x="97.78" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0449 C_0449 (open)</title></rect>
-<rect x="108.89" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_046D C_046D (open)</title></rect>
-<rect x="120.00" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0493 C_0493 (open)</title></rect>
-<rect x="131.11" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_04D7 C_04D7 (open)</title></rect>
-<rect x="142.22" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_050E C_050E (open)</title></rect>
-<rect x="153.33" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0534 C_0534 (open)</title></rect>
-<rect x="164.44" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_056E C_056E (open)</title></rect>
-<rect x="175.56" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_05A8 C_05A8 (open)</title></rect>
-<rect x="186.67" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_074D C_074D (open)</title></rect>
-<rect x="197.78" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0815 C_0815 (open)</title></rect>
-<rect x="208.89" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0910 C_0910 (open)</title></rect>
-<rect x="220.00" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_095B C_095B (open)</title></rect>
-<rect x="231.11" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_09C6 C_09C6 (open)</title></rect>
-<rect x="242.22" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0A15 C_0A15 (open)</title></rect>
-<rect x="253.33" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0A5C C_0A5C (open)</title></rect>
-<rect x="264.44" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0B1A C_0B1A (open)</title></rect>
-<rect x="275.56" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0B55 C_0B55 (open)</title></rect>
-<rect x="286.67" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0BDF C_0BDF (open)</title></rect>
-<rect x="297.78" y="237.78" width="11.11" height="11.11" fill="#64748b" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0C5B C_0C5B (open)</title></rect>
+<rect x="31.11" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_01E6 CGA_ZoomTileRow (matched)</title></rect>
+<rect x="42.22" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_027A CGA_FillTiles (matched)</title></rect>
+<rect x="53.33" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_02EE CGA_ShiftDown (matched)</title></rect>
+<rect x="64.44" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_033E CGA_ShiftUp (matched)</title></rect>
+<rect x="75.56" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0392 CGA_DrawTiles (matched)</title></rect>
+<rect x="86.67" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0404 CGA_CR (matched)</title></rect>
+<rect x="97.78" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0449 CGA_InvertView (matched)</title></rect>
+<rect x="108.89" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_046D CGA_ClearView (matched)</title></rect>
+<rect x="120.00" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0493 CGA_InvertStatusLine (matched)</title></rect>
+<rect x="131.11" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_04D7 CGA_InvertChar (matched)</title></rect>
+<rect x="142.22" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_050E CGA_ClearStatus (matched)</title></rect>
+<rect x="153.33" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0534 CGA_DotOr (matched)</title></rect>
+<rect x="164.44" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_056E CGA_DotXor (matched)</title></rect>
+<rect x="175.56" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_05A8 CGA_Dot (matched)</title></rect>
+<rect x="186.67" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_074D CGA_RevealCodex (matched)</title></rect>
+<rect x="197.78" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0815 CGA_DrawQuad (matched)</title></rect>
+<rect x="208.89" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0910 CGA_VirtueGlyph (matched)</title></rect>
+<rect x="220.00" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_095B CGA_AnimCampfire (matched)</title></rect>
+<rect x="231.11" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_09C6 CGA_Init (matched)</title></rect>
+<rect x="242.22" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0A15 CGA_ClearScreen (matched)</title></rect>
+<rect x="253.33" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0A5C _sgn (matched)</title></rect>
+<rect x="264.44" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0B1A CGA_AnimFlow (matched)</title></rect>
+<rect x="275.56" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0B55 CGA_AnimFlags (matched)</title></rect>
+<rect x="286.67" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0BDF CGA_PutChar (matched)</title></rect>
+<rect x="297.78" y="237.78" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>DRIVER CGA_DRV.ASM C_0C5B CGA_ActiveBox (matched)</title></rect>
 </svg>
