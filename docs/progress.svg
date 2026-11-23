@@ -1,17 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="270" viewBox="0 0 840 270" font-family="Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="Decompilation progress: 501 of 530 functions matched">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="270" viewBox="0 0 840 270" font-family="Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="Decompilation progress: 501 of 530 functions named">
 <rect width="840" height="270" rx="14" fill="#0f172a"/>
 <text x="20" y="38" font-size="21" fill="#ffffff">Decompilation progress</text>
 <text x="820" y="38" font-size="15" fill="#ffffff" text-anchor="end">u4-decompiled-port</text>
-<text x="20" y="62" font-size="15" fill="#e5e7eb">501 / 530 functions matched (94.5%)</text>
+<text x="20" y="62" font-size="15" fill="#e5e7eb">501 / 530 functions named (94.5%)</text>
 <rect x="20" y="74" width="800" height="18" rx="5" fill="#334155"/>
 <rect x="20" y="74" width="756.23" height="18" rx="5" fill="#2a8c3c"/>
 <rect x="20" y="104" width="10" height="10" fill="#2a8c3c"/>
-<text x="34" y="113" font-size="12" fill="#e5e7eb">Matched: 501</text>
+<text x="34" y="113" font-size="12" fill="#e5e7eb">Named: 501</text>
 <rect x="232" y="104" width="10" height="10" fill="#b8860b"/>
 <text x="246" y="113" font-size="12" fill="#e5e7eb">Attempt: 0</text>
 <rect x="430" y="104" width="10" height="10" fill="#64748b"/>
 <text x="444" y="113" font-size="12" fill="#e5e7eb">Open: 29</text>
-<rect x="628" y="104" width="10" height="10" fill="#b94a53"/>
+<rect x="628" y="104" width="10" height="10" fill="#3b5b8a"/>
 <text x="642" y="113" font-size="12" fill="#e5e7eb">Aside: 0</text>
 <text x="20" y="140" font-size="11" fill="#e5e7eb">Function map: 1 function per tile (C functions and assembly procedures), in order AVATAR, TITLE, CGA driver, then by original address</text>
 <rect x="20.00" y="160.00" width="11.11" height="11.11" fill="#2a8c3c" stroke="#0f172a" stroke-width="1"><title>AVATAR LOW.ASM C_0000 low_clean (matched)</title></rect>
