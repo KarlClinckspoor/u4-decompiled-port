@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build AVATAR.EXE and TITLE.EXE with the original tools in a headless DOSBox, and check them.
 
-    python3 tools/dosbuild.py [--tools DIR] [--dosbox PATH] [--keep DIR] [--check FILE] [--log] [--drv]
+    python3 tools/dosbuild.py [--tools DIR] [--dosbox PATH] [--keep DIR] [--check FILE] [--log] [--drv] [--gog DIR]
 
 The DOS build is the reference for every change to the sources: renaming, commenting and the
 port's portability macros must all still give the same programs. This copies SRC/ and
@@ -14,6 +14,13 @@ the ones recorded there.
 --drv also assembles the CGA driver (SRC-DRV/CGA_DRV.ASM) with MASM 3.00, links it with LINK and
 strips the EXE header as EXE2BIN does (it has no relocations). The result, CGA.DRV, is checked
 against the CGA line of tools/build.sha1, which is the SHA-1 of the shipped CGA.DRV.
+
+--gog DIR then runs tools/postlink.py on the linked programs: it makes the files as shipped
+(AVATAR.EXE packed with EXEPACK behind GOG's stub, TITLE.EXE with its AskForDisk patch and
+UNP's header), copying the few envelope bytes it cannot derive from DIR (the shipped game,
+never committed), writes them to --keep DIR when given, and fails unless they are identical
+to DIR/AVATAR.EXE and DIR/TITLE.EXE (and DIR/CGA.DRV with --drv). The default check does not
+change: it is still on the linked programs, before EXEPACK.
 
 --tools DIR holds the compiler, in any of these forms:
   - MSC400/ (MSC.EXE, C1/C2/C3.EXE, LINK.EXE, INCLUDE/, LIB/), or
@@ -193,6 +200,8 @@ def main():
     ap.add_argument('--log', action='store_true', help='print the build log')
     ap.add_argument('--drv', action='store_true', help='also build and check the CGA driver (SRC-DRV/)')
     ap.add_argument('--drv-src', default=os.path.join(ROOT, 'SRC-DRV'))
+    ap.add_argument('--gog', metavar='DIR', help='also make the shipped AVATAR.EXE and TITLE.EXE '
+                    '(tools/postlink.py) and compare them with the ones in DIR')
     a = ap.parse_args()
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -257,15 +266,29 @@ def main():
             if not e:
                 print(log)
                 sys.exit('CGA: CGA_DRV.EXE was not built')
-            data = exe2bin(open(e, 'rb').read())
-            results['CGA'] = hashlib.sha1(data).hexdigest()
-            print('%-6s %s  %6d bytes  (CGA.DRV)' % ('CGA', results['CGA'], len(data)))
+            cga = exe2bin(open(e, 'rb').read())
+            results['CGA'] = hashlib.sha1(cga).hexdigest()
+            print('%-6s %s  %6d bytes  (CGA.DRV)' % ('CGA', results['CGA'], len(cga)))
             if a.keep:
                 os.makedirs(a.keep, exist_ok=True)
-                open(os.path.join(a.keep, 'CGA.DRV'), 'wb').write(data)
+                open(os.path.join(a.keep, 'CGA.DRV'), 'wb').write(cga)
         errs = [l for l in log.splitlines() if re.search(r'\berror\b|E r r o r', l, re.I)]
         if errs:
             print('build messages:\n  ' + '\n  '.join(errs[:40]))
+
+        gog = None
+        if a.gog:
+            sys.path.insert(0, HERE)
+            import postlink
+            post = os.path.join(tmp, 'post')
+            os.makedirs(post)
+            for d, names in (('A', ('U4_MAIN.EXE', 'U4_MAIN.MAP')), ('T', ('TITLE_0.EXE', 'TITLE_0.MAP'))):
+                for n in names:
+                    shutil.copy(find(os.path.join(c, d), n), os.path.join(post, n))
+            gog = postlink.run(post, a.gog, a.keep or post)
+            if a.drv:
+                ref = open(os.path.join(a.gog, 'CGA.DRV'), 'rb').read()
+                gog['CGA.DRV'] = (results['CGA'], ref == cga, len(cga), len(ref))
 
     chk = a.check or os.path.join(HERE, 'build.sha1')
     if a.write_check:
@@ -283,6 +306,14 @@ def main():
         if bad:
             sys.exit('DIFFERENT from %s: %s' % (os.path.relpath(chk), ', '.join(bad)))
         print('identical to %s' % os.path.relpath(chk))
+
+    if gog is not None:
+        for name, (sha, same, n, m) in gog.items():
+            print('%-10s %s  %6d bytes  %s' % (name, sha, n, 'same' if same else 'DIFFERENT (%d bytes)' % m))
+        bad = [k for k, v in gog.items() if not v[1]]
+        if bad:
+            sys.exit('DIFFERENT from the files in %s: %s' % (a.gog, ', '.join(bad)))
+        print('identical to the files in %s%s' % (a.gog, ' (written to %s)' % a.keep if a.keep else ''))
 
 
 if __name__ == '__main__':
