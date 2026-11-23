@@ -826,6 +826,37 @@
   "t_500": "tArea",
   "t_callback": "AnimateMonsters",
   "cursor_rate": "cursor_delay",
-  "KBD_0e7f": "KBD_CTRL_BS"
+  "KBD_0e7f": "KBD_CTRL_BS",
+  "C_208A": "random",
+  "C_21E5": "LzwHashSlot",
+  "C_2290": "LzwNextCode",
+  "C_22D5": "LzwDecode"
+ },
+ "cga": {
+  "C_01E6": "CGA_ZoomTileRow",
+  "C_027A": "CGA_FillTiles",
+  "C_02EE": "CGA_ShiftDown",
+  "C_033E": "CGA_ShiftUp",
+  "C_0392": "CGA_DrawTiles",
+  "C_0404": "CGA_CR",
+  "C_0449": "CGA_InvertView",
+  "C_046D": "CGA_ClearView",
+  "C_0493": "CGA_InvertStatusLine",
+  "C_04D7": "CGA_InvertChar",
+  "C_050E": "CGA_ClearStatus",
+  "C_0534": "CGA_DotOr",
+  "C_056E": "CGA_DotXor",
+  "C_05A8": "CGA_Dot",
+  "C_074D": "CGA_RevealCodex",
+  "C_0815": "CGA_DrawQuad",
+  "C_0910": "CGA_VirtueGlyph",
+  "C_095B": "CGA_AnimCampfire",
+  "C_09C6": "CGA_Init",
+  "C_0A15": "CGA_ClearScreen",
+  "C_0A5C": "_sgn",
+  "C_0B1A": "CGA_AnimFlow",
+  "C_0B55": "CGA_AnimFlags",
+  "C_0BDF": "CGA_PutChar",
+  "C_0C5B": "CGA_ActiveBox"
  }
 }

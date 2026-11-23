@@ -24,7 +24,9 @@ _BSS	ENDS
 _TEXT	SEGMENT PUBLIC BYTE 'CODE'
 	ASSUME CS:_TEXT
 
-C_21E5	PROC NEAR
+;dictionary slot of the string (prefix code [bp+04], byte [bp+06]):
+;hash, then probe until a free slot or that string (xu4: getNewHashCode)
+LzwHashSlot	PROC NEAR	;C_21E5
 	PUSH	BP
 	MOV	BP,SP
 	;-- AX := (bp06 << 4) ^ bp04
@@ -97,10 +99,11 @@ C_2261:
 C_228E:	;--
 	POP	BP
 	RET	
-C_21E5	ENDP
+LzwHashSlot	ENDP	;C_21E5
 
-;AX := read 12 bits?
-C_2290	PROC NEAR
+;AX := next 12-bit code of the buffer, 0FFFFh at its end
+;(xu4: getNextCodeword)
+LzwNextCode	PROC NEAR	;C_2290
 	MOV	BX,D_3B22
 	;-- AL := read one byte
 	SUB	D_3B20,1
@@ -150,11 +153,12 @@ C_22CB:	;==   ==
 	MOV	D_3B22,BX
 	;--
 	RET
-C_2290	ENDP
+LzwNextCode	ENDP	;C_2290
 
-;LZW inflate?
-;[Lempel-Ziv-Welch]
-C_22D5	PROC NEAR
+;LZW decoding of the whole buffer [Lempel-Ziv-Welch]
+;[bp+04] callback, called with each decoded byte in AL
+;(xu4: generalizedDecompress)
+LzwDecode	PROC NEAR	;C_22D5
 	PUSH	BP
 	MOV	BP,SP
 	SUB	SP,8
@@ -172,7 +176,7 @@ C_22D5	PROC NEAR
 	MOV	CX,0F00h
 	REPZ	STOSW
 	;--
-	CALL	C_2290	;AX := read 12 bits?
+	CALL	LzwNextCode	;AX := read 12 bits?
 	MOV	[BP-06],AX
 	MOV	[BP-08],AX
 	;--
@@ -180,7 +184,7 @@ C_22D5	PROC NEAR
 	;***************
 C_2303:	;** main loop **
 	;***************
-	CALL	C_2290	;AX := read 12 bits?
+	CALL	LzwNextCode	;AX := read 12 bits?
 	MOV	[BP-02],AX
 	;%%
 	CMP	AX,0FFFFh
@@ -234,7 +238,7 @@ C_2362:	;==   ==
 	;=======
 	PUSH	[BP-08]
 	PUSH	[BP-06]
-	CALL	C_21E5
+	CALL	LzwHashSlot
 	ADD	SP,4
 	MOV	BX,AX
 	;--
@@ -257,7 +261,7 @@ C_2362:	;==   ==
 	MOV	CX,0F00h
 	REPZ	STOSW
 	;--
-	CALL	C_2290	;AX := read 12 bits?
+	CALL	LzwNextCode	;AX := read 12 bits?
 	MOV	[BP-02],AX
 	MOV	[BP-08],AX
 	CMP	AX,0FFFFh
@@ -276,7 +280,7 @@ C_23BC:	;--
 	MOV	SP,BP
 	POP	BP
 	RET
-C_22D5	ENDP
+LzwDecode	ENDP	;C_22D5
 
 ;load file + inflate(callback)?
 ;[bp+04] file name
@@ -334,7 +338,7 @@ _Inflate	PROC NEAR	;C_23C3
 	ADD	SP,2
 	;--
 	PUSH	[BP+06]	;callback
-	CALL	C_22D5	;inflate?
+	CALL	LzwDecode	;inflate?
 	ADD	SP,2
 	;--
 	MOV	AX,0
