@@ -5,3 +5,7 @@ tools/MASM300.EXE
 __pycache__/
 *.OBJ
 *.MAP
+# the GOG game files (put them here to compare the build with the release), local builds and release packages
+gamedata/
+build-win/
+release-0.1.0/
