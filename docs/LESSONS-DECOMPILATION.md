@@ -71,8 +71,10 @@ stream (`tools/ctok.py`), not on regular expressions:
   with any notes keyed to the old names.
 - **Assembly** names are matched case-insensitively, with or without the leading `_` of cdecl
   names. A label at column 0 that had an address name keeps it as a comment.
-- **The CGA driver** (`SRC-DRV/`) only gets the shared `Gra_*` names, because its own labels are
-  its own addresses.
+- **The CGA driver** (`SRC-DRV/`) first only got the shared `Gra_*` names, because its own labels
+  are its own addresses. Its procedures were named later after the hook each one serves
+  (`CGA_ZoomTileRow` for `Gra_ZoomTileRow`), in the map's `cga` part, and `dosbuild.py --drv`
+  checks that the driver still rebuilds to the shipped `CGA.DRV`.
 
 Each readable pass was then checked with a token diff against the previous version. The only
 allowed differences were consistent identifier renames and literals replaced by constants of
