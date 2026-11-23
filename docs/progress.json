@@ -1,0 +1,34 @@
+{
+ "AVATAR": {
+  "matched": 451,
+  "attempt": 0,
+  "open": 0,
+  "aside": 0,
+  "total": 451,
+  "percent": 100.0
+ },
+ "TITLE": {
+  "matched": 47,
+  "attempt": 0,
+  "open": 4,
+  "aside": 0,
+  "total": 51,
+  "percent": 92.2
+ },
+ "DRIVER": {
+  "matched": 3,
+  "attempt": 0,
+  "open": 25,
+  "aside": 0,
+  "total": 28,
+  "percent": 10.7
+ },
+ "all": {
+  "matched": 501,
+  "attempt": 0,
+  "open": 29,
+  "aside": 0,
+  "total": 530,
+  "percent": 94.5
+ }
+}
