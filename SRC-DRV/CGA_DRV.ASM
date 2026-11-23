@@ -5,32 +5,32 @@ X_FAR	EQU 4
 _TEXT	SEGMENT
 	ASSUME CS:_TEXT
 ;----------------------------------------
-C_0000	dw OFFSET _TEXT:C_0C5B	;called through Gra_ActiveBox
-C_0002	dw OFFSET _TEXT:C_01E6	;called through Gra_ZoomTileRow 
-C_0004	dw OFFSET _TEXT:C_027A	;called through Gra_FillTiles
-C_0006	dw OFFSET _TEXT:C_02EE	;called through Gra_ShiftDown
-C_0008	dw OFFSET _TEXT:C_033E	;called through Gra_ShiftUp
-C_000A	dw OFFSET _TEXT:C_0392	;called through Gra_DrawTiles
-C_000C	dw OFFSET _TEXT:C_05A8	;called through Gra_Dot
+C_0000	dw OFFSET _TEXT:CGA_ActiveBox	;called through Gra_ActiveBox
+C_0002	dw OFFSET _TEXT:CGA_ZoomTileRow	;called through Gra_ZoomTileRow 
+C_0004	dw OFFSET _TEXT:CGA_FillTiles	;called through Gra_FillTiles
+C_0006	dw OFFSET _TEXT:CGA_ShiftDown	;called through Gra_ShiftDown
+C_0008	dw OFFSET _TEXT:CGA_ShiftUp	;called through Gra_ShiftUp
+C_000A	dw OFFSET _TEXT:CGA_DrawTiles	;called through Gra_DrawTiles
+C_000C	dw OFFSET _TEXT:CGA_Dot	;called through Gra_Dot
 C_000E	dw 0
-C_0010	dw OFFSET _TEXT:C_0404	;called through Gra_CR
-C_0012	dw OFFSET _TEXT:C_0449	;called through Gra_InvertView
-C_0014	dw OFFSET _TEXT:C_046D	;called through Gra_ClearView
-C_0016	dw OFFSET _TEXT:C_0493	;called through Gra_InvertStatusLine
-C_0018	dw OFFSET _TEXT:C_04D7	;called through Gra_InvertChar(uncalled)
-C_001A	dw OFFSET _TEXT:C_050E	;called through Gra_ClearStatus
-C_001C	dw OFFSET _TEXT:C_0534	;called through Gra_DotOr
-C_001E	dw OFFSET _TEXT:C_056E	;called through Gra_DotXor
+C_0010	dw OFFSET _TEXT:CGA_CR	;called through Gra_CR
+C_0012	dw OFFSET _TEXT:CGA_InvertView	;called through Gra_InvertView
+C_0014	dw OFFSET _TEXT:CGA_ClearView	;called through Gra_ClearView
+C_0016	dw OFFSET _TEXT:CGA_InvertStatusLine	;called through Gra_InvertStatusLine
+C_0018	dw OFFSET _TEXT:CGA_InvertChar	;called through Gra_InvertChar(uncalled)
+C_001A	dw OFFSET _TEXT:CGA_ClearStatus	;called through Gra_ClearStatus
+C_001C	dw OFFSET _TEXT:CGA_DotOr	;called through Gra_DotOr
+C_001E	dw OFFSET _TEXT:CGA_DotXor	;called through Gra_DotXor
 C_0020	dw OFFSET _TEXT:_pic_inflate	;called through Gra_LoadPicture
-C_0022	dw OFFSET _TEXT:C_074D	;called through Gra_RevealCodex
-C_0024	dw OFFSET _TEXT:C_0815	;called through Gra_DrawQuad
-C_0026	dw OFFSET _TEXT:C_0910	;called throuch Gra_VirtueGlyph
-C_0028	dw OFFSET _TEXT:C_095B	;called through Gra_AnimCampfire
-C_002A	dw OFFSET _TEXT:C_09C6	;called through Gra_Init
-C_002C	dw OFFSET _TEXT:C_0A15	;called through Gra_ClearScreen
-C_002E	dw OFFSET _TEXT:C_0B1A	;called through Gra_AnimFlow
-C_0030	dw OFFSET _TEXT:C_0B55	;called through Gra_AnimFlags
-C_0032	dw OFFSET _TEXT:C_0BDF	;called through Gra_PutChar
+C_0022	dw OFFSET _TEXT:CGA_RevealCodex	;called through Gra_RevealCodex
+C_0024	dw OFFSET _TEXT:CGA_DrawQuad	;called through Gra_DrawQuad
+C_0026	dw OFFSET _TEXT:CGA_VirtueGlyph	;called throuch Gra_VirtueGlyph
+C_0028	dw OFFSET _TEXT:CGA_AnimCampfire	;called through Gra_AnimCampfire
+C_002A	dw OFFSET _TEXT:CGA_Init	;called through Gra_Init
+C_002C	dw OFFSET _TEXT:CGA_ClearScreen	;called through Gra_ClearScreen
+C_002E	dw OFFSET _TEXT:CGA_AnimFlow	;called through Gra_AnimFlow
+C_0030	dw OFFSET _TEXT:CGA_AnimFlags	;called through Gra_AnimFlags
+C_0032	dw OFFSET _TEXT:CGA_PutChar	;called through Gra_PutChar
 ;----------------------------------------
 GR_SEGMENT	dw 0B800h	;C_0034
 C_0036	db 12h,34h,56h,78h	;random seed
@@ -69,7 +69,7 @@ C_01E2	db 00h,40h,80h,0C0h
 ;----------------------------------------
 ;Gra_ZoomTileRow(cdecl)
 ;----------------------------------------
-C_01E6	PROC FAR
+CGA_ZoomTileRow	PROC FAR	;C_01E6
 	PUSH	BP
 	MOV	BP,SP
 	SUB	SP,2
@@ -91,7 +91,8 @@ C_01E6	PROC FAR
 	MOV	AX,[BP+X_FAR+4]	;TRow
 	MOV	BX,AX
 	SHR	AX,1
-	AND	BX,1
+	;;;;AND	BX,1	;83h form: MASM 5 uses it, MASM 3.00 never does for AND/OR/XOR
+	db 83h,0E3h,01h
 	SHL	BX,1
 	SHL	BX,1
 	SHL	BX,1
@@ -145,11 +146,11 @@ C_0260:
 	ADD	SP,2
 	POP	BP
 	RET
-C_01E6	ENDP
+CGA_ZoomTileRow	ENDP	;C_01E6
 ;----------------------------------------
 ;Gra_FillTiles(cdecl)
 ;----------------------------------------
-C_027A	PROC FAR
+CGA_FillTiles	PROC FAR	;C_027A
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	SI
@@ -212,11 +213,11 @@ C_02CB:
 	POP	SI
 	POP	BP
 	RET
-C_027A	ENDP
+CGA_FillTiles	ENDP	;C_027A
 ;----------------------------------------
 ;Gra_ShiftDown(pascal)
 ;----------------------------------------
-C_02EE	PROC FAR
+CGA_ShiftDown	PROC FAR	;C_02EE
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	DI
@@ -267,11 +268,11 @@ C_032F:	;--
 	POP	DI
 	POP	BP
 	RET	2
-C_02EE	ENDP
+CGA_ShiftDown	ENDP	;C_02EE
 ;----------------------------------------
 ;Gra_ShiftUp(pascal)
 ;----------------------------------------
-C_033E	PROC FAR
+CGA_ShiftUp	PROC FAR	;C_033E
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	DI
@@ -322,11 +323,11 @@ C_037F:	;-- --
 	POP	DI
 	POP	BP
 	RET	2
-C_033E	ENDP
+CGA_ShiftUp	ENDP	;C_033E
 ;----------------------------------------
 ;Gra_DrawTiles(cdecl)
 ;----------------------------------------
-C_0392	PROC FAR
+CGA_DrawTiles	PROC FAR	;C_0392
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	SI
@@ -390,11 +391,12 @@ C_03E1:
 	POP	SI
 	POP	BP
 	RET
-C_0392	ENDP
+CGA_DrawTiles	ENDP	;C_0392
 ;----------------------------------------
 ;Gra_CR
 ;----------------------------------------
-C_0404	PROC FAR
+;scroll the text window up one line, clear its last line
+CGA_CR	PROC FAR	;C_0404
 	PUSH	DS
 	MOV	DS,CS:GR_SEGMENT
 	MOV	BX,0F30h
@@ -427,12 +429,12 @@ C_0432:
 	;--
 	POP	DS
 	RET
-C_0404	ENDP
+CGA_CR	ENDP	;C_0404
 ;----------------------------------------
 ;Gra_InvertView
 ;----------------------------------------
 ;invert main window
-C_0449	PROC FAR
+CGA_InvertView	PROC FAR	;C_0449
 	PUSH	DS
 	;--
 	MOV	DS,CS:GR_SEGMENT
@@ -441,8 +443,10 @@ C_0449	PROC FAR
 C_0455:
 	MOV	CX,16h
 C_0458:
-	XOR	WORD PTR [BX],0FFFFh
-	XOR	WORD PTR [BX+2000h],0FFFFh
+	;;;;XOR	WORD PTR [BX],0FFFFh	;83h form: MASM 5 uses it, MASM 3.00 never does for AND/OR/XOR
+	db 83h,37h,0FFh
+	;;;;XOR	WORD PTR [BX+2000h],0FFFFh
+	db 83h,0B7h,00h,20h,0FFh
 	ADD	BX,2
 	LOOP	C_0458
 	ADD	BX,24h
@@ -451,12 +455,12 @@ C_0458:
 	;--
 	POP	DS
 	RET
-C_0449	ENDP
+CGA_InvertView	ENDP	;C_0449
 ;----------------------------------------
 ;Gra_ClearView
 ;----------------------------------------
 ;clear main window
-C_046D	PROC FAR
+CGA_ClearView	PROC FAR	;C_046D
 	PUSH	DS
 	;--
 	MOV	DS,CS:GR_SEGMENT
@@ -475,12 +479,12 @@ C_047C:
 	;--
 	POP	DS
 	RET
-C_046D	ENDP
+CGA_ClearView	ENDP	;C_046D
 ;----------------------------------------
 ;Gra_InvertStatusLine(pascal)
 ;----------------------------------------
 ;invert one text line(status box)
-C_0493	PROC FAR
+CGA_InvertStatusLine	PROC FAR	;C_0493
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	DS
@@ -504,8 +508,10 @@ C_0493	PROC FAR
 C_04BC:
 	MOV	CX,0Fh
 C_04BF:
-	XOR	WORD PTR [BX],0FFFFh
-	XOR	WORD PTR [BX+2000h],0FFFFh
+	;;;;XOR	WORD PTR [BX],0FFFFh	;83h form: MASM 5 uses it, MASM 3.00 never does for AND/OR/XOR
+	db 83h,37h,0FFh
+	;;;;XOR	WORD PTR [BX+2000h],0FFFFh
+	db 83h,0B7h,00h,20h,0FFh
 	INC	BX
 	INC	BX
 	LOOP	C_04BF
@@ -516,12 +522,12 @@ C_04BF:
 	POP	DS
 	POP	BP
 	RET	2
-C_0493	ENDP
+CGA_InvertStatusLine	ENDP	;C_0493
 ;----------------------------------------
 ;Gra_InvertChar(cdecl)(uncalled)
 ;----------------------------------------
 ;invert one char(status box)
-C_04D7	PROC FAR
+CGA_InvertChar	PROC FAR	;C_04D7
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	ES
@@ -553,12 +559,12 @@ C_04FB:
 	POP	ES
 	POP	BP
 	RET
-C_04D7	ENDP
+CGA_InvertChar	ENDP	;C_04D7
 ;----------------------------------------
 ;Gra_ClearStatus
 ;----------------------------------------
 ;clear status box
-C_050E	PROC FAR
+CGA_ClearStatus	PROC FAR	;C_050E
 	PUSH	DS
 	;--
 	MOV	DS,CS:GR_SEGMENT
@@ -577,11 +583,11 @@ C_051D:	;--
 	;--
 	POP	DS
 	RET
-C_050E	ENDP
+CGA_ClearStatus	ENDP	;C_050E
 ;----------------------------------------
 ;Gra_DotOr(cdecl)
 ;----------------------------------------
-C_0534	PROC FAR
+CGA_DotOr	PROC FAR	;C_0534
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	ES
@@ -615,11 +621,11 @@ C_0534	PROC FAR
 	POP	ES
 	POP	BP
 	RET
-C_0534	ENDP
+CGA_DotOr	ENDP	;C_0534
 ;----------------------------------------
 ;Gra_DotXor(cdecl)
 ;----------------------------------------
-C_056E	PROC FAR
+CGA_DotXor	PROC FAR	;C_056E
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	ES
@@ -653,11 +659,11 @@ C_056E	PROC FAR
 	POP	ES
 	POP	BP
 	RET
-C_056E	ENDP
+CGA_DotXor	ENDP	;C_056E
 ;----------------------------------------
 ;Gra_Dot(cdecl)
 ;----------------------------------------
-C_05A8	PROC FAR
+CGA_Dot	PROC FAR	;C_05A8
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	ES
@@ -691,7 +697,7 @@ C_05A8	PROC FAR
 	POP	ES
 	POP	BP
 	RET
-C_05A8	ENDP
+CGA_Dot	ENDP	;C_05A8
 ;----------------------------------------
 ;Gra_LoadPicture(cdecl)
 ;----------------------------------------
@@ -879,7 +885,7 @@ _pic_inflate	ENDP
 ;----------------------------------------
 ;Gra_RevealCodex(pascal)
 ;----------------------------------------
-C_074D	PROC FAR
+CGA_RevealCodex	PROC FAR	;C_074D
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	SI
@@ -991,11 +997,11 @@ C_07E3:
 	POP	SI
 	POP	BP
 	RET	2
-C_074D	ENDP
+CGA_RevealCodex	ENDP	;C_074D
 ;----------------------------------------
 ;Gra_DrawQuad(cdecl)
 ;----------------------------------------
-C_0815	PROC FAR
+CGA_DrawQuad	PROC FAR	;C_0815
 	PUSH	BP
 	MOV	BP,SP
 	SUB	SP,10h
@@ -1016,21 +1022,21 @@ C_0815	PROC FAR
 	SUB	SI,[BP+X_FAR+2]
 	;--
 	PUSH	SI
-	CALL	C_0A5C	;test sign
+	CALL	_sgn	;test sign
 	ADD	SP,2
 	MOV	[BP-02],AX
 	;--
 	MOV	AX,[BP+X_FAR+0Ah]
 	SUB	AX,[BP+X_FAR+6]
 	PUSH	AX
-	CALL	C_0A5C	;test sign
+	CALL	_sgn	;test sign
 	ADD	SP,2
 	MOV	[BP-08],AX
 	;--
 	MOV	AX,[BP+X_FAR+0Ch]
 	SUB	AX,[BP+X_FAR+8]
 	PUSH	AX
-	CALL	C_0A5C	;test sign
+	CALL	_sgn	;test sign
 	ADD	SP,2
 	MOV	[BP-0Eh],AX
 	;--
@@ -1116,11 +1122,11 @@ C_0909:	;--
 	MOV	SP,BP
 	POP	BP
 	RET
-C_0815	ENDP
+CGA_DrawQuad	ENDP	;C_0815
 ;----------------------------------------
 ;Gra_VirtueGlyph(pascal)
 ;----------------------------------------
-C_0910	PROC FAR
+CGA_VirtueGlyph	PROC FAR	;C_0910
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	SI
@@ -1159,7 +1165,7 @@ C_0952:
 	POP	SI
 	POP	BP
 	RET	2
-C_0910	ENDP
+CGA_VirtueGlyph	ENDP	;C_0910
 ;----------------------------------------
 ;Gra_AnimCampfire
 ;----------------------------------------
@@ -1180,7 +1186,7 @@ C_0910	ENDP
 ;____77778_______ ;d
 ;________________ ;e
 ;________________ ;f
-C_095B	PROC FAR
+CGA_AnimCampfire	PROC FAR	;C_095B
 	PUSH	DS
 	LDS	BX,Dword Ptr CS:pShapes
 	;-- 0/1 --
@@ -1223,11 +1229,11 @@ C_095B	PROC FAR
 	;--
 	POP	DS
 	RET
-C_095B	ENDP
+CGA_AnimCampfire	ENDP	;C_095B
 ;----------------------------------------
 ;Gra_Init(cdecl)
 ;----------------------------------------
-C_09C6	PROC FAR
+CGA_Init	PROC FAR	;C_09C6
 	PUSH	BP
 	MOV	BP,SP
 	;--
@@ -1264,11 +1270,11 @@ C_09C6	PROC FAR
 	;--
 	POP	BP
 	RET
-C_09C6	ENDP
+CGA_Init	ENDP	;C_09C6
 ;----------------------------------------
 ;Gra_ClearScreen
 ;----------------------------------------
-C_0A15	PROC FAR
+CGA_ClearScreen	PROC FAR	;C_0A15
 	PUSH	DI
 	PUSH	ES
 	;--
@@ -1285,7 +1291,7 @@ C_0A22:
 	POP	ES
 	POP	DI
 	RET
-C_0A15	ENDP
+CGA_ClearScreen	ENDP	;C_0A15
 ;----------------------------------------
 ;########################################
 ;----------------------------------------C_0A34
@@ -1304,8 +1310,8 @@ random	PROC NEAR
 	RET
 random	ENDP
 ;----------------------------------------
-;test sign
-C_0A5C	PROC NEAR
+;sign of the argument: -1, 0 or 1
+_sgn	PROC NEAR	;C_0A5C
 	PUSH	BP
 	MOV	BP,SP
 	;--
@@ -1323,7 +1329,7 @@ C_0A72:	;-- 0 --
 C_0A75:	;--
 	POP	BP
 	RET
-C_0A5C	ENDP
+_sgn	ENDP	;C_0A5C
 ;----------------------------------------C_0A77
 _abs	PROC NEAR
 	PUSH	BP
@@ -1444,7 +1450,7 @@ C_0B16:
 ;----------------------------------------
 ;Gra_AnimFlow(pascal)
 ;----------------------------------------
-C_0B1A	PROC FAR
+CGA_AnimFlow	PROC FAR	;C_0B1A
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	DS
@@ -1472,11 +1478,11 @@ C_0B40:
 	POP	DS
 	POP	BP
 	RET	2
-C_0B1A	ENDP
+CGA_AnimFlow	ENDP	;C_0B1A
 ;----------------------------------------
 ;Gra_AnimFlags
 ;----------------------------------------
-C_0B55	PROC FAR
+CGA_AnimFlags	PROC FAR	;C_0B55
 	PUSH	ES
 	;--
 	LES	BX,Dword Ptr CS:pShapes
@@ -1526,11 +1532,11 @@ C_0BC9:	;--
 C_0BDD:	;--
 	POP	ES
 	RET
-C_0B55	ENDP
+CGA_AnimFlags	ENDP	;C_0B55
 ;----------------------------------------
 ;Gra_PutChar(pascal)
 ;----------------------------------------
-C_0BDF	PROC FAR
+CGA_PutChar	PROC FAR	;C_0BDF
 	PUSH	BP
 	MOV	BP,SP
 	PUSHF	
@@ -1589,11 +1595,11 @@ C_0BDF	PROC FAR
 	POPF	
 	POP	BP
 	RET	6
-C_0BDF	ENDP
+CGA_PutChar	ENDP	;C_0BDF
 ;----------------------------------------
 ;Gra_ActiveBox
 ;----------------------------------------
-C_0C5B	PROC FAR
+CGA_ActiveBox	PROC FAR	;C_0C5B
 	PUSH	BP
 	MOV	BP,SP
 	PUSH	SI
@@ -1651,7 +1657,7 @@ C_0CB7:
 	POP	SI
 	POP	BP
 	RET
-C_0C5B	ENDP
+CGA_ActiveBox	ENDP	;C_0C5B
 ;----------------------------------------
 _TEXT	ENDS
 ;########################################

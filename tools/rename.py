@@ -4,7 +4,8 @@
     python3 tools/rename.py [--map tools/rename_map.json] [ROOT]
 
 tools/rename_map.json has one map per program: "avatar" (SRC/, forVS/ except the title
-part) and "title" (SRC-TITLE/, forVS/u4title_main.c). Each is {old identifier: new}.
+part), "title" (SRC-TITLE/, forVS/u4title_main.c) and "cga" (SRC-DRV/, the CGA driver's
+own procedures). Each is {old identifier: new}.
 
 * C/H: identifier tokens are replaced, in code and preprocessor lines. When an
   address-named symbol (C_xxxx, D_xxxx) is renamed where it is declared or defined (at file
@@ -14,7 +15,11 @@ part) and "title" (SRC-TITLE/, forVS/u4title_main.c). Each is {old identifier: n
 * ASM: identifiers are replaced case-insensitively (also with the leading '_' of cdecl
   names), in code and in ';' comments. A label defined at column 0 that had an address name
   gets the old name as a comment.
-* SRC-DRV/ (the CGA driver) only gets the Gra_* names (its own labels are its own addresses).
+* SRC-DRV/ (the CGA driver) gets the Gra_* names of "avatar" and the "cga" map.
+
+Run it on sources that still have the old names. It is not idempotent: run again over
+renamed sources, it rewrites some of the old-address comments it left (e.g. ;D_3380 after
+an ASM data label) into the new names. New entries are best applied with apply() on the files concerned.
 
 Renaming never changes the compiled program: tools/dosbuild.py checks it with the original
 compiler.
@@ -163,6 +168,7 @@ def main():
     av = {k: v for k, v in maps['avatar'].items() if k != v}
     ti = {k: v for k, v in maps['title'].items() if k != v}
     gra = {k: v for k, v in av.items() if k.startswith('Gra_')}
+    gra.update({k: v for k, v in maps.get('cga', {}).items() if k != v})
     jobs = []
     for d, m in (('SRC', av), ('SRC-TITLE', ti), ('SRC-DRV', gra)):
         p = os.path.join(a.root, d)

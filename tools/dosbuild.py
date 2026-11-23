@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build AVATAR.EXE and TITLE.EXE with the original tools in a headless DOSBox, and check them.
 
-    python3 tools/dosbuild.py [--tools DIR] [--dosbox PATH] [--keep DIR] [--check FILE] [--log]
+    python3 tools/dosbuild.py [--tools DIR] [--dosbox PATH] [--keep DIR] [--check FILE] [--log] [--drv] [--gog DIR]
 
 The DOS build is the reference for every change to the sources: renaming, commenting and the
 port's portability macros must all still give the same programs. This copies SRC/ and
@@ -10,6 +10,17 @@ links them in DOSBox as SRC/MAKEFILE and SRC-TITLE/DOIT.BAT do, and prints the S
 linked programs (before EXEPACK) and of their link maps' public symbol addresses.
 With --check (default: tools/build.sha1 when it exists) it fails unless the program hashes are
 the ones recorded there.
+
+--drv also assembles the CGA driver (SRC-DRV/CGA_DRV.ASM) with MASM 3.00, links it with LINK and
+strips the EXE header as EXE2BIN does (it has no relocations). The result, CGA.DRV, is checked
+against the CGA line of tools/build.sha1, which is the SHA-1 of the shipped CGA.DRV.
+
+--gog DIR then runs tools/postlink.py on the linked programs: it makes the files as shipped
+(AVATAR.EXE packed with EXEPACK behind GOG's stub, TITLE.EXE with its AskForDisk patch and
+UNP's header), copying the few envelope bytes it cannot derive from DIR (the shipped game,
+never committed), writes them to --keep DIR when given, and fails unless they are identical
+to DIR/AVATAR.EXE and DIR/TITLE.EXE (and DIR/CGA.DRV with --drv). The default check does not
+change: it is still on the linked programs, before EXEPACK.
 
 --tools DIR holds the compiler, in any of these forms:
   - MSC400/ (MSC.EXE, C1/C2/C3.EXE, LINK.EXE, INCLUDE/, LIB/), or
@@ -168,6 +179,15 @@ def map_symbols(path):
     return out
 
 
+def exe2bin(data):
+    """The load image of an EXE without relocations, as EXE2BIN makes a .BIN (or .DRV) of it."""
+    sig, last, pages, nrel, hdrpar = struct.unpack_from('<5H', data, 0)
+    if sig != 0x5a4d or nrel:
+        sys.exit('exe2bin: not an EXE without relocations')
+    size = pages * 512 - ((512 - last) if last else 0)
+    return data[hdrpar * 16:size]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--src', default=os.path.join(ROOT, 'SRC'))
@@ -178,6 +198,10 @@ def main():
     ap.add_argument('--check', help='file of expected hashes (default: tools/build.sha1)')
     ap.add_argument('--write-check', action='store_true', help='record the hashes in tools/build.sha1')
     ap.add_argument('--log', action='store_true', help='print the build log')
+    ap.add_argument('--drv', action='store_true', help='also build and check the CGA driver (SRC-DRV/)')
+    ap.add_argument('--drv-src', default=os.path.join(ROOT, 'SRC-DRV'))
+    ap.add_argument('--gog', metavar='DIR', help='also make the shipped AVATAR.EXE and TITLE.EXE '
+                    '(tools/postlink.py) and compare them with the ones in DIR')
     a = ap.parse_args()
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -190,11 +214,17 @@ def main():
         shutil.copytree(a.title_src, os.path.join(c, 'T'), ignore=ign)
         acmds, alink = avatar_steps(a.src)
         tcmds, tlink = title_steps(a.title_src)
+        if a.drv:
+            os.makedirs(os.path.join(c, 'D'))
+            shutil.copy(os.path.join(a.drv_src, 'CGA_DRV.ASM'), os.path.join(c, 'D', 'CGA_DRV.ASM'))
         lines = ['@echo off', r'set PATH=\TOOLS\MSC400', r'set INCLUDE=\TOOLS\MSC400\INCLUDE',
                  r'set LIB=\TOOLS\MSC400\LIB', r'cd \A']
         lines += ['%s >> \\BUILD.LOG' % x for x in acmds + [alink]]
         lines.append(r'cd \T')
         lines += ['%s >> \\BUILD.LOG' % x for x in tcmds + [tlink]]
+        if a.drv:
+            lines += [r'cd \D', r'\TOOLS\MASM300 CGA_DRV; >> \BUILD.LOG',
+                      r'\TOOLS\MSC400\LINK CGA_DRV; >> \BUILD.LOG']
         open(os.path.join(c, 'BUILD.BAT'), 'w', newline='').write('\r\n'.join(lines) + '\r\n')
         conf = os.path.join(tmp, 'dosbox.conf')
         open(conf, 'w').write('[sdl]\noutput=surface\n[dosbox]\nmemsize=16\n[cpu]\ncycles=max\n'
@@ -231,15 +261,44 @@ def main():
                 m = find(os.path.join(c, d), mp)
                 if m:
                     shutil.copy(m, os.path.join(a.keep, mp))
+        if a.drv:
+            e = find(os.path.join(c, 'D'), 'CGA_DRV.EXE')
+            if not e:
+                print(log)
+                sys.exit('CGA: CGA_DRV.EXE was not built')
+            cga = exe2bin(open(e, 'rb').read())
+            results['CGA'] = hashlib.sha1(cga).hexdigest()
+            print('%-6s %s  %6d bytes  (CGA.DRV)' % ('CGA', results['CGA'], len(cga)))
+            if a.keep:
+                os.makedirs(a.keep, exist_ok=True)
+                open(os.path.join(a.keep, 'CGA.DRV'), 'wb').write(cga)
         errs = [l for l in log.splitlines() if re.search(r'\berror\b|E r r o r', l, re.I)]
         if errs:
             print('build messages:\n  ' + '\n  '.join(errs[:40]))
 
+        gog = None
+        if a.gog:
+            sys.path.insert(0, HERE)
+            import postlink
+            post = os.path.join(tmp, 'post')
+            os.makedirs(post)
+            for d, names in (('A', ('U4_MAIN.EXE', 'U4_MAIN.MAP')), ('T', ('TITLE_0.EXE', 'TITLE_0.MAP'))):
+                for n in names:
+                    shutil.copy(find(os.path.join(c, d), n), os.path.join(post, n))
+            gog = postlink.run(post, a.gog, a.keep or post)
+            if a.drv:
+                ref = open(os.path.join(a.gog, 'CGA.DRV'), 'rb').read()
+                gog['CGA.DRV'] = (results['CGA'], ref == cga, len(cga), len(ref))
+
     chk = a.check or os.path.join(HERE, 'build.sha1')
     if a.write_check:
-        with open(os.path.join(HERE, 'build.sha1'), 'w', newline='\n') as f:
-            for k in ('AVATAR', 'TITLE'):
-                f.write('%s %s\n' % (results[k], k))
+        path = os.path.join(HERE, 'build.sha1')
+        old = dict(reversed(l.split()) for l in open(path) if l.strip()) if os.path.exists(path) else {}
+        old.update(results)
+        with open(path, 'w', newline='\n') as f:
+            for k in ('AVATAR', 'TITLE', 'CGA'):
+                if k in old:
+                    f.write('%s %s\n' % (old[k], k))
         print('recorded in tools/build.sha1')
     elif os.path.exists(chk):
         want = dict(reversed(l.split()) for l in open(chk) if l.strip())
@@ -247,6 +306,14 @@ def main():
         if bad:
             sys.exit('DIFFERENT from %s: %s' % (os.path.relpath(chk), ', '.join(bad)))
         print('identical to %s' % os.path.relpath(chk))
+
+    if gog is not None:
+        for name, (sha, same, n, m) in gog.items():
+            print('%-10s %s  %6d bytes  %s' % (name, sha, n, 'same' if same else 'DIFFERENT (%d bytes)' % m))
+        bad = [k for k, v in gog.items() if not v[1]]
+        if bad:
+            sys.exit('DIFFERENT from the files in %s: %s' % (a.gog, ', '.join(bad)))
+        print('identical to the files in %s%s' % (a.gog, ' (written to %s)' % a.keep if a.keep else ''))
 
 
 if __name__ == '__main__':

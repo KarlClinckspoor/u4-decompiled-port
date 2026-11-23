@@ -425,7 +425,7 @@ C_13E6:
 	POP	BP
 	RET	
 ;----------------------------------------13EE
-;close to CGA_DRV.C_027A
+;close to CGA_DRV.ASM CGA_FillTiles (C_027A)
 GR_0_CGA:
 	PUSH	BP
 	MOV	BP,SP
@@ -1550,7 +1550,7 @@ GR_ANIMFLOW_EGA:
 	POP	BP
 	RET	2
 ;----------------------------------------1C4D
-;close to CGA_DRV.C_0B1A
+;close to CGA_DRV.ASM CGA_AnimFlow (C_0B1A)
 GR_ANIMFLOW_CGA:
 	PUSH	BP
 	MOV	BP,SP
@@ -1585,31 +1585,31 @@ GR_ANIMFLAG_TANDY:
 	PUSH	ES
 	;--
 	LES	BX,pShapes
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1CA2
 	MOV	AX,ES:[BX+051Ah]
 	XCHG	AX,ES:[BX+0522h]
 	MOV	ES:[BX+051Ah],AX
 C_1CA2:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1CB6
 	MOV	AX,ES:[BX+058Ch]
 	XCHG	AX,ES:[BX+0594h]
 	MOV	ES:[BX+058Ch],AX
 C_1CB6:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1CCA
 	MOV	AX,ES:[BX+0813h]
 	XCHG	AX,ES:[BX+081Bh]
 	MOV	ES:[BX+0813h],AX
 C_1CCA:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1CDE
 	MOV	AX,ES:[BX+0913h]
 	XCHG	AX,ES:[BX+091Bh]
 	MOV	ES:[BX+0913h],AX
 C_1CDE:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1CF2
 	MOV	AX,ES:[BX+070Ah]
 	XCHG	AX,ES:[BX+0712h]
@@ -1622,7 +1622,7 @@ GR_ANIMFLAG_EGA:
 	PUSH	ES
 	;--
 	LES	BX,pShapes
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1D3B
 	MOV	AX,ES:[BX+0506h]
 	XCHG	AX,ES:[BX+0508h]
@@ -1637,7 +1637,7 @@ GR_ANIMFLAG_EGA:
 	XCHG	AX,ES:[BX+0568h]
 	MOV	ES:[BX+0566h],AX
 C_1D3B:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1D7C
 	MOV	AX,ES:[BX+0582h]
 	XCHG	AX,ES:[BX+0584h]
@@ -1652,7 +1652,7 @@ C_1D3B:
 	XCHG	AX,ES:[BX+05E4h]
 	MOV	ES:[BX+05E2h],AX
 C_1D7C:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1DBD
 	MOV	AX,ES:[BX+0804h]
 	XCHG	AX,ES:[BX+0806h]
@@ -1667,7 +1667,7 @@ C_1D7C:
 	XCHG	AX,ES:[BX+0866h]
 	MOV	ES:[BX+0864h],AX
 C_1DBD:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1DFE
 	MOV	AX,ES:[BX+0904h]
 	XCHG	AX,ES:[BX+0906h]
@@ -1682,7 +1682,7 @@ C_1DBD:
 	XCHG	AX,ES:[BX+0966h]
 	MOV	ES:[BX+0964h],AX
 C_1DFE:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1E3F
 	MOV	AX,ES:[BX+0702h]
 	XCHG	AX,ES:[BX+0704h]
@@ -1700,25 +1700,25 @@ C_1E3F:
 	POP	ES
 	RET	
 ;----------------------------------------1E41
-;close to CGA_DRV.C_0B55
+;close to CGA_DRV.ASM CGA_AnimFlags (C_0B55)
 GR_ANIMFLAG_CGA:
 	PUSH	ES
 	;--
 	LES	BX,pShapes
 	;--
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1E5B
 	MOV	AX,WORD PTR ES:[BX+02A4h]
 	XCHG	AX,WORD PTR ES:[BX+0288h]
 	MOV	WORD PTR ES:[BX+02A4h],AX
 C_1E5B:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1E6F
 	MOV	AX,WORD PTR ES:[BX+02E2h]
 	XCHG	AX,WORD PTR ES:[BX+02C6h]
 	MOV	WORD PTR ES:[BX+02E2h],AX
 C_1E6F:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1E92
 	MOV	AX,WORD PTR ES:[BX+0404h]
 	XCHG	AX,WORD PTR ES:[BX+0424h]
@@ -1727,7 +1727,7 @@ C_1E6F:
 	XCHG	AX,WORD PTR ES:[BX+0426h]
 	MOV	WORD PTR ES:[BX+0406h],AX
 C_1E92:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1EB5
 	MOV	AX,WORD PTR ES:[BX+0484h]
 	XCHG	AX,WORD PTR ES:[BX+04A4h]
@@ -1736,7 +1736,7 @@ C_1E92:
 	XCHG	AX,WORD PTR ES:[BX+04A6h]
 	MOV	WORD PTR ES:[BX+0486h],AX
 C_1EB5:
-	CALL	C_208A	;random?
+	CALL	random	;random?
 	JS	C_1EC9
 	MOV	AX,WORD PTR ES:[BX+03A0h]
 	XCHG	AX,WORD PTR ES:[BX+0384h]
@@ -1860,7 +1860,7 @@ C_1F72:
 	POP	BP
 	RET	2
 ;----------------------------------------1FAC
-;close to CGA_DRV.C_0BDF
+;close to CGA_DRV.ASM CGA_PutChar (C_0BDF)
 GR_PUTCHAR_CGA:
 	PUSH	BP
 	MOV	BP,SP
@@ -1961,7 +1961,7 @@ GR_CLRSCR_EGA:
 	POP	DI
 	RET	
 ;----------------------------------------
-;close to CGA_DRV.C_0A15
+;close to CGA_DRV.ASM CGA_ClearScreen (C_0A15)
 GR_CLRSCR_CGA:
 	PUSH	DI
 	PUSH	ES
@@ -1980,8 +1980,9 @@ C_2078:
 	POP	DI
 	RET	
 ;----------------------------------------
-;random?
-C_208A	PROC NEAR
+;pseudo-random byte in AL (AH = 0, flags set from AL),
+;the same generator as CGA_DRV.ASM random
+random	PROC NEAR	;C_208A
 	MOV	AL,D_3A86[3]
 	ADC	AL,D_3A86[2]
 	MOV	D_3A86[2],AL
@@ -1994,7 +1995,7 @@ C_208A	PROC NEAR
 	MOV	AH,0
 	TEST	AL,0FFh
 	RET	
-C_208A	ENDP
+random	ENDP	;C_208A
 ;----------------------------------------
 
 ;----------------------------------------

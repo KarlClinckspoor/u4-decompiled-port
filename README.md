@@ -73,3 +73,27 @@ Two constraints of Microsoft C 4.00 shaped the renaming:
 builds both programs with Microsoft C 4.00, MASM 3.00 and LINK in a headless DOSBox
 (`apt install dosbox`) and compares them with `tools/build.sha1`. `DIR` holds
 `Microsoft C Compiler 4.0.zip` and MASM 3.00 (see the script's help).
+
+The check is on the programs as LINK leaves them, before EXEPACK. Two options go further:
+
+    python3 tools/dosbuild.py --tools DIR --drv --gog GAMEDIR --keep OUT
+
+* `--drv` also assembles the CGA driver (`SRC-DRV/`) and checks it against the `CGA` line of
+  `tools/build.sha1`, the SHA-1 of the shipped `CGA.DRV` (see `SRC-DRV/README.md`).
+* `--gog GAMEDIR` runs `tools/postlink.py`, which makes the files as GOG ships them from the
+  linked programs, writes them to `OUT` and fails unless they are identical to
+  `GAMEDIR/AVATAR.EXE` and `GAMEDIR/TITLE.EXE` (and `CGA.DRV`). `GAMEDIR` is your copy of the
+  game: nothing from it is in this repository. The steps, as the shipped files show them:
+  their load image stops before the all-zero communal variables (`C_COMMON`), which LINK 3.51
+  writes out; `AVATAR.EXE` was packed with Microsoft EXEPACK, reimplemented in `postlink.py`,
+  and GOG's copy enters through a stub appended after the unpacker, which sets the stack and
+  jumps to it; `TITLE.EXE` was packed and unpacked again, as `SRC-TITLE/DOIT.BAT` does (its
+  header is UNP's), and its `AskForDisk` was patched to return at once (a jump to its final
+  `RET`; the source keeps the function as it was, marked `%%% hacked %%%`). The bytes that
+  cannot be derived from the build are copied from `GAMEDIR` when the script runs: EXEPACK's
+  unpacker code and message (283 bytes), 13 bytes of padding EXEPACK left after its
+  relocation table, and the 1,312 bytes from GOG's entry point to the end of the file.
+
+With the sources of this branch, both options give files identical to the GOG release:
+`AVATAR.EXE` e8b5d4231e3cba60773e2e20851a90a043d5263a, `TITLE.EXE`
+d7ae41c2f398c8d4ee935bfb861b12030c9bf262, `CGA.DRV` 9b246ac9c97d9dd22f55c78f9d394da397ab86ff.
