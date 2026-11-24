@@ -17,9 +17,10 @@ own procedures). Each is {old identifier: new}.
   gets the old name as a comment.
 * SRC-DRV/ (the CGA driver) gets the Gra_* names of "avatar" and the "cga" map.
 
-Run it on sources that still have the old names. It is not idempotent: run again over
-renamed sources, it rewrites some of the old-address comments it left (e.g. ;D_3380 after
-an ASM data label) into the new names. New entries are best applied with apply() on the files concerned.
+It can be run again over renamed sources: the old-address markers it leaves (/*C_2F7E*/ in C,
+;D_3380 at the start of an ASM comment) are kept, and so are the old names a C file keeps on
+purpose behind an alias (`#define TalkStrings D_8CCE`: see kept_names), so a second run
+changes nothing.
 
 Renaming never changes the compiled program: tools/dosbuild.py checks it with the original
 compiler.
@@ -30,6 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ctok
 
 ADDR = re.compile(r'^(?:C|D)_[0-9A-F]{4}$')
+ASM_MARKER = re.compile(r';\s*_?(?:C|D)_[0-9A-Fa-f]{4}\b')
 PURE_MARKER = re.compile(r'^/\*\s*[A-Za-z_]*_[0-9A-Fa-f]{4}(?:[,/][A-Za-z_]*_?[0-9A-Fa-f]{4})*\s*\*+/$')
 DECL_KEYWORDS = {'static', 'extern', 'register', 'auto'}
 
@@ -114,7 +116,13 @@ def rename_asm(src, gmap, cmap_re):
         def rep(m):
             if m.group(1):
                 c = m.group(1)
-                return cmap_re.sub(lambda mm: gmap[mm.group(0)], c) if cmap_re else c
+                if not cmap_re:
+                    return c
+                # an address marker at the start of the comment (;D_3380, ;C_0A5C (...)) is the
+                # old name this tool left there: keep it, as rename_c keeps /*C_xxxx*/ markers
+                mk = ASM_MARKER.match(c)
+                head, rest = (c[:mk.end()], c[mk.end():]) if mk else ('', c)
+                return head + cmap_re.sub(lambda mm: gmap[mm.group(0)], rest)
             if m.group(3):
                 n = low.get(m.group(3).lower())
                 if n is not None:
@@ -141,11 +149,25 @@ def comment_re(gmap):
     return re.compile(r'\b(' + '|'.join(sorted(map(re.escape, tech), key=len, reverse=True)) + r')\b')
 
 
+ALIAS = re.compile(r'^[ \t]*#[ \t]*define[ \t]+(\w+)[ \t]+(\w+)[ \t]*(?:/\*.*?\*/[ \t]*)?\r?$', re.M)
+
+
+def kept_names(src, gmap):
+    """Old names a file keeps on purpose: `#define NEW OLD` with NEW = gmap[OLD]. Microsoft C 4.00
+    lays out uninitialised statics (and a function's locals) by a hash of their names, so those
+    keep their old name and get the new one as an alias (README, "Two constraints")."""
+    return {old for new, old in ALIAS.findall(src) if gmap.get(old) == new}
+
+
 def apply(path, gmap):
-    cre = comment_re(gmap)
     raw = open(path, 'rb').read()
     s = raw.decode('latin-1')
     up = path.upper()
+    if up.endswith(('.C', '.H')):
+        keep = kept_names(s, gmap)
+        if keep:
+            gmap = {k: v for k, v in gmap.items() if k not in keep}
+    cre = comment_re(gmap)
     if up.endswith(('.C', '.H')):
         n = rename_c(s, gmap, cre)
     elif up.endswith('.ASM'):
